@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#8a6e2f">
+<title>Tờ Khai Lệ Phí Trước Bạ v1.2.0</title>
+<meta name="description" content="Công cụ nhập liệu Tờ khai Lệ phí trước bạ (Mẫu 01/LPTB) - chỉ hiện các mục cần khai, tự nhớ dữ liệu">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  :root{
+    --gold:#ad8a3d; --gold-dark:#8a6e2f; --gold-light:#f7f1e3;
+    --ink:#2b2620; --g900:#1f1c17; --g800:#332d24; --g700:#4a4234; --g600:#665c49;
+    --g500:#8a806c; --g400:#aca08a; --g300:#cfc4ab; --g200:#e4dcc9; --g100:#f0ead9; --g50:#faf7ef;
+    --line:#e4dcc9; --red:#b3413a; --green:#2f7d4f; --white:#fff;
+    --mono:'SFMono-Regular',Consolas,monospace;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--g50);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;}
+  body{padding-bottom:90px}
+  .header{
+    position:sticky;top:0;z-index:50;background:linear-gradient(135deg,var(--gold-dark),var(--gold));
+    color:#fff;padding:14px 16px calc(14px + env(safe-area-inset-top,0px));
+    padding-top:calc(14px + env(safe-area-inset-top,0px));
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    box-shadow:0 2px 10px rgba(0,0,0,.15);
+  }
+  .header-title{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .header-title b{font-size:15.5px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .header-title span{font-size:11px;opacity:.85}
+  .gear-btn{
+    flex:0 0 auto;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.18);
+    border:none;color:#fff;font-size:16px;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+  }
+  .gear-btn:active{background:rgba(255,255,255,.32)}
+
+  .container{max-width:640px;margin:0 auto;padding:14px 14px 0}
+
+  .empty-state{
+    text-align:center;padding:60px 20px;color:var(--g500);
+  }
+  .empty-state .ico{font-size:44px;margin-bottom:12px}
+  .empty-state b{color:var(--g700);display:block;margin-bottom:6px;font-size:15px}
+  .empty-state button{
+    margin-top:14px;background:var(--gold-dark);color:#fff;border:none;border-radius:10px;
+    padding:10px 18px;font-size:13.5px;font-weight:700;cursor:pointer;
+  }
+
+  .section{margin-bottom:16px}
+  .section-title{
+    font-size:12.5px;font-weight:800;color:var(--gold-dark);letter-spacing:.3px;
+    padding:0 2px 8px;border-bottom:2px solid var(--g200);margin-bottom:10px;
+  }
+  .field-card{
+    background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 13px;margin-bottom:9px;
+  }
+  .field-label{font-size:12.5px;font-weight:700;color:var(--g700);margin-bottom:8px;display:flex;gap:6px;align-items:baseline}
+  .field-label .ma{color:var(--gold-dark);font-family:var(--mono);font-weight:800;flex:0 0 auto}
+  .field-input, .field-select, .field-textarea{
+    width:100%;border:1px solid var(--g300);border-radius:8px;padding:9px 10px;font-size:14px;
+    color:var(--ink);background:var(--g50);font-family:inherit;
+  }
+  .field-input:focus, .field-select:focus, .field-textarea:focus{outline:none;border-color:var(--gold);background:#fff}
+  .field-textarea{min-height:56px;resize:vertical}
+  .sub-grid{display:flex;flex-direction:column;gap:8px}
+  .sub-row{display:flex;flex-direction:column;gap:4px}
+  .ac-wrap{position:relative}
+  .ac-list{
+    display:none;position:absolute;left:0;right:0;top:calc(100% + 2px);background:#fff;
+    border:1px solid var(--g300);border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.14);
+    max-height:180px;overflow-y:auto;z-index:30;
+  }
+  .ac-item{padding:9px 11px;font-size:13px;color:var(--g700);cursor:pointer;border-bottom:1px solid var(--g100)}
+  .ac-item:last-child{border-bottom:none}
+  .ac-item:active{background:var(--gold-light)}
+  .sub-row label{font-size:11px;color:var(--g500);font-weight:600}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+  .choice-row{display:flex;gap:8px;margin-bottom:8px}
+  .choice-btn{
+    flex:1;border:1px solid var(--g300);background:var(--g50);border-radius:8px;padding:9px 8px;
+    font-size:12.5px;font-weight:700;color:var(--g600);text-align:center;cursor:pointer;
+  }
+  .choice-btn.active{background:var(--gold-light);border-color:var(--gold);color:var(--gold-dark)}
+
+  .yesno-row{display:flex;align-items:center;gap:9px;cursor:pointer}
+  .yesno-row input{width:19px;height:19px;accent-color:var(--gold-dark)}
+  .yesno-row span{font-size:13px;color:var(--g700);font-weight:600}
+
+  .table-wrap{overflow-x:auto}
+  table.ck-table{width:100%;border-collapse:collapse;font-size:12px;min-width:520px}
+  table.ck-table th{background:var(--g100);color:var(--g700);font-weight:700;padding:6px 5px;text-align:left;border:1px solid var(--g200)}
+  table.ck-table td{border:1px solid var(--g200);padding:4px}
+  table.ck-table input{width:100%;border:none;background:transparent;font-size:12px;padding:4px 3px}
+  table.ck-table input:focus{outline:none;background:var(--g50)}
+  .row-del{background:none;border:none;color:var(--red);font-size:16px;cursor:pointer;padding:2px 6px}
+  .add-row-btn{
+    margin-top:8px;background:var(--g100);border:1px dashed var(--g400);border-radius:8px;
+    padding:7px 10px;font-size:12px;font-weight:700;color:var(--g600);cursor:pointer;width:100%;
+  }
+
+  .bottom-bar{
+    position:fixed;left:0;right:0;bottom:0;z-index:40;background:#fff;border-top:1px solid var(--line);
+    padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));
+    display:flex;gap:8px;box-shadow:0 -2px 10px rgba(0,0,0,.06);
+  }
+  .btn-print{
+    flex:1;background:var(--gold-dark);color:#fff;border:none;border-radius:10px;
+    padding:13px;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;
+    justify-content:center;gap:6px;
+  }
+  .btn-print:active{background:var(--gold)}
+
+  /* ===== Modal cài đặt (chọn mục) ===== */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;
+    align-items:flex-end;justify-content:center;backdrop-filter:blur(2px)}
+  .modal.show{display:flex}
+  .modal-box{
+    background:#fff;width:100%;max-width:640px;max-height:88vh;overflow-y:auto;
+    border-radius:18px 18px 0 0;padding:14px 16px calc(16px + env(safe-area-inset-bottom,0px));
+  }
+  .modal-handle{width:38px;height:4px;background:var(--g300);border-radius:3px;margin:0 auto 12px}
+  .modal-title{font-size:16px;font-weight:800;color:var(--g800);margin-bottom:4px}
+  .modal-sub{font-size:11.5px;color:var(--g500);margin-bottom:12px;line-height:1.5}
+  .set-group-title{
+    font-size:11.5px;font-weight:800;color:var(--gold-dark);margin:14px 0 6px;padding-top:8px;
+    border-top:1px solid var(--g100);
+  }
+  .set-group-title:first-of-type{border-top:none;margin-top:0}
+  .set-row{
+    display:flex;align-items:flex-start;gap:10px;padding:8px 2px;border-bottom:1px solid var(--g100);
+  }
+  .set-row input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin-top:1px;accent-color:var(--gold-dark)}
+  .set-row .set-label{font-size:13px;color:var(--g700);line-height:1.4}
+  .set-row .set-label .ma{color:var(--gold-dark);font-family:var(--mono);font-weight:800;margin-right:4px}
+  .modal-footer{display:flex;gap:8px;margin-top:14px;position:sticky;bottom:0;background:#fff;padding-top:6px}
+  .btn-huy, .btn-luu{flex:1;border:none;border-radius:10px;padding:12px;font-size:13.5px;font-weight:700;cursor:pointer}
+  .btn-huy{background:var(--g100);color:var(--g700)}
+  .btn-luu{background:var(--gold-dark);color:#fff}
+
+  /* ===== In / Xuất (dùng chung cơ chế với "Xuất bảng kê" của app Mua Bán Mủ: dựng ảnh bằng
+     html2canvas rồi đóng gói PDF bằng jsPDF — ổn định hơn nhiều so với window.print() trực tiếp
+     vì không phụ thuộc CSS @page của từng máy in. Khác biệt duy nhất: khổ A4 ĐỨNG thay vì ngang,
+     nên KHÔNG cần khối xoay 90° như bên bảng kê — ảnh hiển thị thẳng, vừa khít màn hình điện thoại
+     (vốn cũng đang ở chiều đứng) ngay từ đầu. ===== */
+  #tk-print-area{display:none}
+  #tk-preview-overlay{display:none;position:fixed;inset:0;z-index:5000;background:#525659;flex-direction:column}
+  /* QUAN TRỌNG: dùng CUỘN TỰ NHIÊN của trình duyệt (overflow-y:auto) để xem hết nội dung, KHÔNG dùng
+     kéo (pan) tự chế bằng transform như bản trước — bản trước đặt #tk-panzoom-wrap là position:absolute;
+     inset:0 (khít đúng khung nhìn) + touch-action:none (chặn hẳn cuộn mặc định), khiến phần cuối trang
+     2 (bảng đồng sở hữu, mục 6, chữ ký) vượt quá khung nhìn KHÔNG THỂ cuộn tới được bằng thao tác cuộn
+     thông thường — đây chính là lỗi "mất góc dưới trang" khi xem trước. Giờ để trình duyệt tự cuộn dọc
+     bình thường (vuốt 1 ngón), CHỈ can thiệp JS khi có đúng 2 ngón chạm (chụm để phóng to/thu nhỏ).
+     Phóng to bằng CSS `zoom` (không dùng transform:scale) vì `zoom` làm thay đổi kích thước bố cục
+     thật sự, nên vùng cuộn tự mở rộng theo đúng kích thước đã phóng to — cuộn vẫn luôn chạm tới đáy. */
+  #tk-preview-scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;position:relative}
+  #tk-panzoom-wrap{display:flex;flex-direction:column;align-items:center;padding:14px 0;transform-origin:top center}
+  #tk-preview-img, .tk-preview-page-img{max-width:88vw;display:block;box-shadow:0 2px 16px rgba(0,0,0,.35)}
+  .tk-print-doc{
+    font-family:'Times New Roman',Times,serif; color:#000; font-size:13px; line-height:1.5; padding:26px 30px;
+  }
+  .tk-print-doc .quochieu{text-align:center;font-weight:700}
+  .tk-print-doc .tieude{text-align:center;font-weight:700;font-size:16px;margin:12px 0 2px;text-transform:uppercase}
+  .tk-print-doc .mausotop{font-size:12px;font-style:italic;margin-bottom:2px}
+  .tk-print-doc .pl{margin:4px 0}
+  .tk-print-doc .pl b{font-weight:700}
+  .tk-print-doc table{width:100%;border-collapse:collapse;margin:8px 0;font-size:12px}
+  .tk-print-doc table th, .tk-print-doc table td{border:1px solid #000;padding:4px 6px}
+  .tk-print-doc .kytenwrap{display:flex;justify-content:space-between;margin-top:22px}
+  .tk-print-doc .kyten{width:47%;text-align:center;font-size:12px}
+  .tk-print-doc .kyten b{display:block;margin:4px 0}
+
+  .toast{
+    position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:var(--g900);color:#fff;
+    padding:10px 18px;border-radius:20px;font-size:13px;font-weight:600;z-index:300;opacity:0;
+    pointer-events:none;transition:opacity .2s, bottom .2s;
+  }
+  .toast.show{opacity:1;bottom:110px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title">
+    <b>📋 Tờ Khai Lệ Phí Trước Bạ</b>
+    <span>Mẫu 01/LPTB · TT80/2021/TT-BTC · v1.2.0</span>
+  </div>
+  <div style="display:flex;gap:6px;flex:0 0 auto">
+    <button class="gear-btn" onclick="taoToKhaiMoi()" title="Tờ khai mới">➕</button>
+    <button class="gear-btn" onclick="moLichSuToKhai()" title="Lịch sử tờ khai">🕘</button>
+    <button class="gear-btn" id="btn-gear" onclick="openSettings()" title="Chọn mục cần khai">⚙️</button>
+  </div>
+</div>
+
+<div class="container" id="main-container">
+  <!-- render động bằng JS -->
+</div>
+
+<div class="bottom-bar">
+  <button class="btn-print" onclick="inToKhai()">🖨️ In / Xuất Tờ Khai</button>
+</div>
+
+<!-- MODAL CÀI ĐẶT: chọn các mục cần hiển thị -->
+<div class="modal" id="modal-settings">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title">⚙️ Chọn mục cần khai</div>
+    <div id="startup-mode-box" style="background:var(--g100);border-radius:10px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px">
+      <label style="font-size:12px;color:var(--g600);font-weight:700">🔄 Khi mở lại ứng dụng:</label>
+      <select id="startup-mode-select" onchange="suaCheDoKhoiDong(this.value)" style="border:1px solid var(--g300);border-radius:7px;padding:6px 8px;font-size:12px;font-weight:700;color:var(--gold-dark);background:#fff">
+        <option value="keep">Mở lại tờ khai cũ</option>
+        <option value="clear">Mở tờ khai mới</option>
+      </select>
+    </div>
+    <div class="modal-sub">Tick chọn mục nào thì mục đó mới hiện ô nhập liệu ở màn hình chính. Bỏ tick sẽ ẩn đi <b>và xoá luôn dữ liệu đã nhập</b> của mục đó. Mục đã tick sẽ tự nhớ dữ liệu cho lần sau.</div>
+    <div id="settings-list"><!-- render động bằng JS --></div>
+    <div class="modal-footer">
+      <button class="btn-huy" onclick="closeSettings()">Đóng</button>
+      <button class="btn-luu" onclick="boChonTatCa()">🗑️ Bỏ chọn tất cả</button>
+    </div>
+  </div>
+</div>
+
+<div id="tk-print-area"></div>
+
+<!-- OVERLAY XEM TRƯỚC — hiện đúng nội dung sẽ in/xuất PDF, dựng bằng html2canvas rồi đóng gói PDF
+     bằng jsPDF (giống hệt cơ chế "Xuất bảng kê" của app Mua Bán Mủ, chỉ khác khổ A4 ĐỨNG). -->
+<div id="tk-preview-overlay">
+  <div style="background:#323639;color:#fff;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+    <div style="font-weight:700;font-size:14px">👁️ Xem trước Tờ khai <span style="font-weight:400;font-size:11px;opacity:.75">(chụm 2 ngón để phóng to)</span></div>
+    <button onclick="closeTkPreview()" style="background:none;border:none;color:#fff;font-size:22px;line-height:1;cursor:pointer;padding:4px 8px">✕</button>
+  </div>
+  <div id="tk-preview-scroll" style="flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;position:relative"></div>
+  <div style="background:#fff;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));display:flex;gap:6px;flex-shrink:0;border-top:1px solid #ddd">
+    <button onclick="chiaSeToKhai()" id="tk-chiase-btn" style="flex:1.1;padding:12px 2px;background:#0068FF;color:#fff;border:none;border-radius:10px;font-size:12.5px;font-weight:700;cursor:pointer">📤 Chia sẻ</button>
+    <button onclick="inToKhaiPdf()" style="flex:0.75;padding:12px 2px;background:var(--g100);color:var(--gold-dark);border:1.5px solid var(--gold);border-radius:10px;font-size:11.5px;font-weight:700;cursor:pointer">🖨️ In</button>
+    <button onclick="taiPdfToKhai()" id="tk-tai-pdf-btn" style="flex:1.3;padding:12px 2px;background:var(--gold-dark);color:#fff;border:none;border-radius:10px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap">⬇️ Tải PDF</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<!-- MODAL LỊCH SỬ TỜ KHAI -->
+<div class="modal" id="modal-history">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🕘 Lịch sử tờ khai</div>
+    <div class="modal-sub">Mỗi lần bấm "In / Xuất Tờ Khai" sẽ tự lưu 1 bản vào đây. Nhấn vào 1 tờ khai để nạp lại toàn bộ dữ liệu đã nhập, chỉnh sửa tiếp nếu cần.</div>
+    <div id="history-list"></div>
+    <div class="modal-footer">
+      <button class="btn-huy" onclick="closeM('modal-history')">Đóng</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL XÁC NHẬN dùng chung (thay cho confirm() mặc định của trình duyệt) -->
+<div class="modal" id="modal-confirm" style="z-index:600">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="confirm-title">⚠️ Xác nhận</div>
+    <div class="modal-sub" id="confirm-msg" style="white-space:pre-line"></div>
+    <div class="modal-footer">
+      <button class="btn-huy" onclick="_confirmNo()">Huỷ</button>
+      <button class="btn-luu" id="confirm-yes-btn" onclick="_confirmYes()">Đồng ý</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// TỜ KHAI LỆ PHÍ TRƯỚC BẠ (Mẫu 01/LPTB - TT80/2021/TT-BTC)
+// Kỹ thuật: "Thông Tin Đơn Vị / Master Data theo mục có thể bật-tắt" — mỗi mục
+// trên tờ khai giấy được khai báo thành 1 phần tử trong SCHEMA bên dưới; toàn bộ
+// giao diện (cả khung nhập liệu chính lẫn danh sách tick chọn trong ⚙️ Cài đặt)
+// được RENDER TỰ ĐỘNG từ SCHEMA này — không có phần nào code cứng lặp lại 2 nơi.
+// Muốn thêm/sửa/bớt 1 mục trên tờ khai, chỉ cần sửa đúng 1 chỗ trong SCHEMA.
+// ═══════════════════════════════════════════════════════════════════════════
+
+const LS_CHECKED = 'ltb_checked_v1';   // { [id]: true }  — mục nào đang được tick chọn hiển thị
+const LS_VALUES  = 'ltb_values_v1';    // { [id]: string | {sub:val,...} | [{...}] } — dữ liệu đã nhập
+const LS_TABLE5  = 'ltb_table5_v1';    // mảng riêng cho bảng "đồng chủ sở hữu" (mục 5)
+const LS_HISTORY = 'ltb_history_v1';   // [{id, savedAt, ten, checkedMap, valuesMap, table5Rows}] — lịch sử các tờ khai đã lưu
+const LS_CURRENT_ID = 'ltb_current_id_v1'; // id của tờ khai đang chỉnh (khớp với 1 phần tử trong LS_HISTORY), rỗng nếu là tờ khai chưa từng lưu lần nào
+const LS_STARTUP_MODE = 'ltb_startup_mode_v1'; // 'keep' (mặc định, giữ nguyên tờ khai đang dở) | 'clear' (mỗi lần mở app tự xoá, bắt đầu tờ khai mới)
+const LICH_SU_TOI_DA = 200; // giới hạn số tờ khai lưu trong lịch sử, tránh phình to dữ liệu mãi theo thời gian
+
+function lsGetO(k){ try{ var v=JSON.parse(localStorage.getItem(k)); return (v&&typeof v==='object'&&!Array.isArray(v))?v:{}; }catch(e){ return {}; } }
+function lsGetA(k){ try{ var v=JSON.parse(localStorage.getItem(k)); return Array.isArray(v)?v:[]; }catch(e){ return []; } }
+function lsSet(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
+
+// ── SCHEMA: khai báo TOÀN BỘ mục số trên tờ khai, kể cả mục con ──
+// type: 'text' | 'number' | 'date' | 'textarea' | 'multi' (nhiều ô nhỏ gộp 1 mục) |
+//       'choice' (chọn 1 trong nhiều lựa chọn, có thể kèm ô phụ) | 'yesno' (1 checkbox) | 'table5'
+const SCHEMA = [
+  // ===== I. THÔNG TIN NGƯỜI NỘP THUẾ =====
+  { id:'f01', section:'A', ma:'[01]', label:'Kỳ tính thuế (ngày phát sinh)', type:'date' },
+  { id:'f0203', section:'A', ma:'[02]/[03]', label:'Loại tờ khai', type:'choice',
+    options:[{v:'dau',label:'Lần đầu'},{v:'bosung',label:'Bổ sung lần thứ',hasExtra:true,extraLabel:'Lần thứ mấy',extraType:'number'}] },
+  { id:'uyquyen', section:'A', ma:'', label:'Tổ chức, cá nhân được uỷ quyền khai thay cho người nộp thuế', type:'yesno' },
+  { id:'f04', section:'A', ma:'[04]', label:'Tên người nộp thuế', type:'text' },
+  { id:'f05', section:'A', ma:'[05]', label:'Mã số thuế', type:'text' },
+  { id:'f06', section:'A', ma:'[06]', label:'Số CMND/CCCD/Hộ chiếu (trường hợp chưa có mã số thuế)', type:'text' },
+  { id:'f07', section:'A', ma:'[07]', label:'Địa chỉ', type:'text' },
+  { id:'f08', section:'A', ma:'[08]', label:'Xã/phường', type:'text' },
+  { id:'f09', section:'A', ma:'[09]', label:'Tỉnh/Thành phố', type:'text' },
+  { id:'f10', section:'A', ma:'[10]', label:'Điện thoại', type:'text' },
+  { id:'f11', section:'A', ma:'[11]', label:'Fax', type:'text' },
+  { id:'f12', section:'A', ma:'[12]', label:'Email', type:'text' },
+  { id:'f13', section:'A', ma:'[13]', label:'Đại lý thuế; hoặc Tổ chức, cá nhân được uỷ quyền khai thay (nếu có)', type:'text' },
+  { id:'f14', section:'A', ma:'[14]', label:'Mã số thuế (đại lý thuế)', type:'text' },
+  { id:'f15', section:'A', ma:'[15]', label:'Hợp đồng đại lý thuế', type:'multi',
+    subs:[{k:'so',label:'Số hợp đồng'},{k:'ngay',label:'Ngày ký hợp đồng',type:'date'}] },
+
+  // ===== II. ĐẶC ĐIỂM NHÀ, ĐẤT =====
+  { id:'m1', section:'B', ma:'1', label:'Đất (mô tả chung)', type:'textarea' },
+  { id:'m1_1', section:'B', ma:'1.1', label:'Thửa đất số / Tờ bản đồ số', type:'multi',
+    subs:[{k:'thua',label:'Thửa đất số (số hiệu thửa đất)'},{k:'tbd',label:'Tờ bản đồ số'}] },
+  { id:'m1_2', section:'B', ma:'1.2', label:'Địa chỉ thửa đất (mô tả chung)', type:'text' },
+  { id:'m1_2_1', section:'B', ma:'1.2.1', label:'Số nhà / Toà nhà / Ngõ, hẻm / Đường, phố / Thôn, xóm, ấp', type:'multi',
+    subs:[{k:'sonha',label:'Số nhà'},{k:'toanha',label:'Toà nhà'},{k:'ngohem',label:'Ngõ/Hẻm'},{k:'duongpho',label:'Đường/Phố'},{k:'thonxom',label:'Thôn/xóm/ấp'}] },
+  { id:'m1_2_2', section:'B', ma:'1.2.2', label:'Phường/xã', type:'text' },
+  { id:'m1_2_3', section:'B', ma:'1.2.3', label:'Quận/huyện', type:'text' },
+  { id:'m1_2_4', section:'B', ma:'1.2.4', label:'Tỉnh/thành phố', type:'text' },
+  { id:'m1_3', section:'B', ma:'1.3', label:'Vị trí thửa đất (mặt tiền đường phố hay ngõ, hẻm)', type:'text' },
+  { id:'m1_4', section:'B', ma:'1.4', label:'Mục đích sử dụng đất', type:'text' },
+  { id:'m1_5', section:'B', ma:'1.5', label:'Diện tích (m²)', type:'number' },
+  { id:'m1_6', section:'B', ma:'1.6', label:'Nguồn gốc nhà đất (Nhà nước giao/cho thuê; nhận chuyển nhượng; thừa kế; tặng cho)', type:'text' },
+  { id:'m1_6_a', section:'B', ma:'1.6.a', label:'Tên tổ chức, cá nhân chuyển giao QSDĐ', type:'multi',
+    subs:[{k:'ten',label:'Tên tổ chức/cá nhân chuyển giao QSDĐ'},{k:'mst',label:'Mã số thuế'},{k:'cmnd',label:'Số CMND/CCCD/Hộ chiếu'},{k:'diachi',label:'Địa chỉ người giao QSDĐ'}] },
+  { id:'m1_6_b', section:'B', ma:'1.6.b', label:'Thời điểm làm giấy tờ chuyển giao QSDĐ', type:'date' },
+  { id:'m1_7', section:'B', ma:'1.7', label:'Giá trị đất thực tế chuyển giao (đồng)', type:'number' },
+
+  { id:'m2_1', section:'B', ma:'2.1', label:'Cấp nhà / Loại nhà / Hạng nhà', type:'multi',
+    subs:[{k:'cap',label:'Cấp nhà'},{k:'loai',label:'Loại nhà'},{k:'hang',label:'Hạng nhà'}] },
+  { id:'m2_1cc1', section:'B', ma:'2.1', label:'(Nếu là nhà chung cư) Chủ dự án / Địa chỉ dự án, công trình', type:'multi',
+    subs:[{k:'chudt',label:'Chủ dự án'},{k:'diachidt',label:'Địa chỉ dự án, công trình'}] },
+  { id:'m2_1cc2', section:'B', ma:'2.1', label:'(Chung cư) Kết cấu / Số tầng nổi / Số tầng hầm', type:'multi',
+    subs:[{k:'ketcau',label:'Kết cấu'},{k:'tangnoi',label:'Số tầng nổi',type:'number'},{k:'tangham',label:'Số tầng hầm',type:'number'}] },
+  { id:'m2_1cc3', section:'B', ma:'2.1', label:'(Chung cư) Diện tích sở hữu chung / riêng (m²)', type:'multi',
+    subs:[{k:'schung',label:'Diện tích sở hữu chung (m²)',type:'number'},{k:'srieng',label:'Diện tích sở hữu riêng (m²)',type:'number'}] },
+  { id:'m2_2', section:'B', ma:'2.2', label:'Diện tích xây dựng / Diện tích sàn xây dựng (m²)', type:'multi',
+    subs:[{k:'dtxd',label:'Diện tích xây dựng (m²)',type:'number'},{k:'dtsan',label:'Diện tích sàn xây dựng (m²)',type:'number'}] },
+  { id:'m2_3', section:'B', ma:'2.3', label:'Nguồn gốc nhà', type:'text' },
+  { id:'m2_3a', section:'B', ma:'2.3.a', label:'Năm hoàn công (tự xây dựng / năm bắt đầu sử dụng)', type:'text' },
+  { id:'m2_3b', section:'B', ma:'2.3.b', label:'Thời điểm làm giấy tờ chuyển giao nhà (mua, thừa kế, tặng cho)', type:'date' },
+  { id:'m2_4', section:'B', ma:'2.4', label:'Giá trị nhà (đồng)', type:'number' },
+
+  { id:'m3', section:'B', ma:'3', label:'Giá trị nhà, đất thực tế nhận chuyển nhượng/thừa kế/tặng cho (đồng)', type:'number' },
+  { id:'m4', section:'B', ma:'4', label:'Tài sản thuộc diện được miễn lệ phí trước bạ (lý do)', type:'textarea' },
+  { id:'m5', section:'B', ma:'5', label:'Thông tin đồng chủ sở hữu nhà, đất (nếu có)', type:'table5' },
+
+  // ===== III. KÝ TÊN =====
+  { id:'ky1', section:'C', ma:'', label:'Nơi, ngày ký tờ khai', type:'multi',
+    subs:[{k:'noi',label:'Địa danh (VD: TP. Hồ Chí Minh)'},{k:'ngay',label:'Ngày ký',type:'date'}] },
+  { id:'ky2', section:'C', ma:'', label:'Người ký (Người nộp thuế / Đại diện hợp pháp)', type:'multi',
+    subs:[{k:'hoten',label:'Họ và tên'},{k:'chucvu',label:'Chức vụ (nếu là đại diện tổ chức)'}] },
+];
+
+const SECTION_LABEL = { A:'I. THÔNG TIN NGƯỜI NỘP THUẾ', B:'II. ĐẶC ĐIỂM NHÀ, ĐẤT', C:'III. KÝ TÊN' };
+
+function schemaById(id){ return SCHEMA.find(function(x){ return x.id===id; }); }
+
+// ── Áp dụng chế độ khởi động (chạy 1 lần duy nhất khi mở app, TRƯỚC khi đọc state vào bộ nhớ) ──
+// Nếu người dùng chọn "clear": tờ khai đang nhập dở (nếu có nội dung) được LƯU VÀO LỊCH SỬ trước
+// (không mất dữ liệu), rồi CHỈ xoá phần DỮ LIỆU đã nhập (valuesMap/table5Rows) — GIỮ NGUYÊN các mục
+// đang tick chọn (checkedMap), vì đó là cấu hình khung nhập liệu chứ không phải dữ liệu riêng của 1
+// tờ khai. Chỉ mất mục đã chọn khi người dùng TỰ TAY bỏ tick trong ⚙️ Cài đặt.
+(function _apDungCheDoKhoiDong(){
+  var che = localStorage.getItem(LS_STARTUP_MODE) || 'keep';
+  if (che !== 'clear') return;
+  var checkedCu = lsGetO(LS_CHECKED);
+  var coNoiDung = Object.keys(checkedCu).some(function(k){ return checkedCu[k]; });
+  if (coNoiDung) {
+    var valuesCu = lsGetO(LS_VALUES);
+    var table5Cu = lsGetA(LS_TABLE5);
+    var hist = lsGetA(LS_HISTORY);
+    var curId = localStorage.getItem(LS_CURRENT_ID);
+    var ten = (checkedCu.f04 && valuesCu.f04) ? valuesCu.f04 : '(Chưa có tên người nộp thuế)';
+    var snap = { id: curId || ('tk_' + Date.now()), savedAt: new Date().toISOString(), ten: ten, checkedMap: checkedCu, valuesMap: valuesCu, table5Rows: table5Cu };
+    var idx = hist.findIndex(function(h){ return h.id === snap.id; });
+    if (idx >= 0) hist[idx] = snap; else hist.unshift(snap);
+    if (hist.length > LICH_SU_TOI_DA) hist = hist.slice(0, LICH_SU_TOI_DA);
+    lsSet(LS_HISTORY, hist);
+  }
+  lsSet(LS_VALUES, {});
+  lsSet(LS_TABLE5, []);
+  localStorage.removeItem(LS_CURRENT_ID);
+  // LƯU Ý: KHÔNG đụng tới LS_CHECKED ở đây — giữ nguyên các mục đang tick để lần mở này vẫn hiện đúng
+  // khung nhập liệu như trước, chỉ có ô nhập là trống.
+})();
+
+// ── State ──
+let checkedMap = lsGetO(LS_CHECKED);
+let valuesMap  = lsGetO(LS_VALUES);
+let table5Rows = lsGetA(LS_TABLE5);
+
+function isChecked(id){ return !!checkedMap[id]; }
+
+function toast(msg){
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(function(){ el.classList.remove('show'); }, 1600);
+}
+// ═══════════════════════ POPUP XÁC NHẬN (thay cho confirm() mặc định của trình duyệt) ═══════════
+var _confirmCallback = null;
+function showConfirm(title, msg, onYes, yesLabel, nguyHiem){
+  document.getElementById('confirm-title').textContent = title || '⚠️ Xác nhận';
+  document.getElementById('confirm-msg').textContent = msg || '';
+  var btn = document.getElementById('confirm-yes-btn');
+  btn.textContent = yesLabel || 'Đồng ý';
+  btn.style.background = nguyHiem ? 'var(--red)' : 'var(--gold-dark)';
+  _confirmCallback = onYes;
+  openM('modal-confirm');
+}
+function _confirmYes(){
+  closeM('modal-confirm');
+  var cb = _confirmCallback; _confirmCallback = null;
+  if (cb) cb();
+}
+function _confirmNo(){ closeM('modal-confirm'); _confirmCallback = null; }
+function esc(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+// Cuộn ô đang nhập lên trên 1 chút khi focus, tránh bị bàn phím ảo che mất trên điện thoại.
+function scrollInputUp(el){
+  setTimeout(function(){ el.scrollIntoView({ block:'center', behavior:'smooth' }); }, 250);
+}
+
+// ═══════════════════════ RENDER MÀN HÌNH CHÍNH ═══════════════════════
+function renderMain(){
+  var box = document.getElementById('main-container');
+  var checkedSchemas = SCHEMA.filter(function(f){ return isChecked(f.id); });
+  if (!checkedSchemas.length) {
+    box.innerHTML = ''
+      + '<div class="empty-state">'
+      + '<div class="ico">📋</div>'
+      + '<b>Chưa chọn mục nào để nhập liệu</b>'
+      + 'Nhấn nút ⚙️ ở góc trên để chọn các mục cần khai cho lần này.'
+      + '<div><button onclick="openSettings()">⚙️ Chọn mục cần khai</button></div>'
+      + '</div>';
+    return;
+  }
+  var html = '';
+  ['A','B','C'].forEach(function(sec){
+    var fields = checkedSchemas.filter(function(f){ return f.section===sec; });
+    if (!fields.length) return;
+    html += '<div class="section"><div class="section-title">' + SECTION_LABEL[sec] + '</div>';
+    fields.forEach(function(f){ html += renderFieldCard(f); });
+    html += '</div>';
+  });
+  box.innerHTML = html;
+  // Sau khi render xong mới gắn giá trị đã lưu vào (tránh mất giá trị đang gõ dở nếu render lại giữa chừng)
+  checkedSchemas.forEach(function(f){ fillFieldValue(f); });
+}
+
+function renderFieldCard(f){
+  var maHtml = f.ma ? '<span class="ma">' + esc(f.ma) + '</span>' : '';
+  var inner = '';
+  if (f.type === 'text') {
+    inner = '<div class="ac-wrap"><input class="field-input" type="text" data-id="' + f.id + '" '
+      + 'oninput="onSimpleInput(\'' + f.id + '\',this.value);onAutoInput(\'' + f.id + '\',this.value)" '
+      + 'onfocus="scrollInputUp(this)" onblur="hideGoiYTruong(\'' + f.id + '\')">'
+      + '<div class="ac-list" id="ac-' + f.id + '"></div></div>';
+  } else if (f.type === 'number') {
+    inner = '<input class="field-input" type="number" inputmode="decimal" data-id="' + f.id + '" oninput="onSimpleInput(\'' + f.id + '\',this.value)">';
+  } else if (f.type === 'date') {
+    inner = '<input class="field-input" type="date" data-id="' + f.id + '" oninput="onSimpleInput(\'' + f.id + '\',this.value)">';
+  } else if (f.type === 'textarea') {
+    inner = '<textarea class="field-textarea" data-id="' + f.id + '" oninput="onSimpleInput(\'' + f.id + '\',this.value)"></textarea>';
+  } else if (f.type === 'yesno') {
+    inner = '<label class="yesno-row"><input type="checkbox" data-id="' + f.id + '" onchange="onYesNoInput(\'' + f.id + '\',this.checked)"><span>Có áp dụng mục này</span></label>';
+  } else if (f.type === 'multi') {
+    inner = '<div class="sub-grid">' + f.subs.map(function(s){
+      var t = s.type || 'text';
+      var key = f.id + '.' + s.k;
+      if (t === 'text') {
+        return '<div class="sub-row"><label>' + esc(s.label) + '</label><div class="ac-wrap">'
+          + '<input class="field-input" type="text" data-id="' + f.id + '" data-sub="' + s.k + '" '
+          + 'oninput="onMultiInput(\'' + f.id + '\',\'' + s.k + '\',this.value);onAutoInput(\'' + key + '\',this.value)" '
+          + 'onfocus="scrollInputUp(this)" onblur="hideGoiYTruong(\'' + key + '\')">'
+          + '<div class="ac-list" id="ac-' + key + '"></div></div></div>';
+      }
+      return '<div class="sub-row"><label>' + esc(s.label) + '</label>'
+        + '<input class="field-input" type="' + (t==='number'?'number':'date') + '" '
+        + (t==='number'?'inputmode="decimal" ':'') + 'data-id="' + f.id + '" data-sub="' + s.k + '" oninput="onMultiInput(\'' + f.id + '\',\'' + s.k + '\',this.value)"></div>';
+    }).join('') + '</div>';
+  } else if (f.type === 'choice') {
+    inner = '<div class="choice-row" id="choice-' + f.id + '">' + f.options.map(function(o){
+      return '<div class="choice-btn" data-v="' + o.v + '" onclick="onChoiceClick(\'' + f.id + '\',\'' + o.v + '\')">' + esc(o.label) + '</div>';
+    }).join('') + '</div>'
+      + '<div id="choice-extra-' + f.id + '"></div>';
+  } else if (f.type === 'table5') {
+    inner = renderTable5();
+  }
+  return '<div class="field-card"><div class="field-label">' + maHtml + '<span>' + esc(f.label) + '</span></div>' + inner + '</div>';
+}
+// ═══════════════════════ TỰ ĐỘNG ĐỀ XUẤT (giống chọn nhanh tên khách hàng ở app Mua Bán Mủ) ═══════
+// Nguồn gợi ý lấy từ TOÀN BỘ giá trị đã từng nhập cho ĐÚNG trường đó ở các tờ khai trong Lịch sử —
+// càng dùng nhiều, gợi ý càng đầy đủ, không cần danh sách khách hàng dựng sẵn riêng.
+function _fieldGoiYPool(key){
+  var parts = key.split('.');
+  var hist = lsGetA(LS_HISTORY);
+  var set = {};
+  hist.forEach(function(h){
+    var val = parts.length > 1 ? (h.valuesMap && h.valuesMap[parts[0]] && h.valuesMap[parts[0]][parts[1]]) : (h.valuesMap && h.valuesMap[parts[0]]);
+    if (typeof val === 'string' && val.trim()) set[val.trim()] = true;
+  });
+  return Object.keys(set).sort(function(a,b){ return a.localeCompare(b,'vi'); });
+}
+function onAutoInput(key, val){
+  var box = document.getElementById('ac-' + key);
+  if (!box) return;
+  val = (val||'').trim();
+  if (!val) { box.style.display='none'; return; }
+  var pool = _fieldGoiYPool(key);
+  var vLow = val.toLowerCase();
+  var matches = pool.filter(function(x){ return x.toLowerCase().indexOf(vLow) === 0 && x.toLowerCase() !== vLow; });
+  if (!matches.length) { box.style.display='none'; return; }
+  box.innerHTML = matches.slice(0,6).map(function(x){
+    return '<div class="ac-item" onmousedown="chonGoiYTruong(\'' + key + '\',\'' + x.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')">👤 ' + esc(x) + '</div>';
+  }).join('');
+  box.style.display = 'block';
+}
+function chonGoiYTruong(key, val){
+  var box = document.getElementById('ac-' + key);
+  if (box) box.style.display = 'none';
+  var parts = key.split('.');
+  if (parts.length > 1) {
+    var el = document.querySelector('[data-id="'+parts[0]+'"][data-sub="'+parts[1]+'"]');
+    if (el) el.value = val;
+    onMultiInput(parts[0], parts[1], val);
+  } else {
+    var el2 = document.querySelector('[data-id="'+parts[0]+'"]:not([data-sub])');
+    if (el2) el2.value = val;
+    onSimpleInput(parts[0], val);
+  }
+}
+function hideGoiYTruong(key){
+  // Trễ 150ms để onmousedown ở trên kịp chạy trước khi input mất focus ẩn dropdown mất
+  setTimeout(function(){ var box = document.getElementById('ac-' + key); if (box) box.style.display='none'; }, 150);
+}
+
+function renderTable5(){
+  var rows = table5Rows.length ? table5Rows : [{ten:'',mst:'',cmnd:'',tyle:''}];
+  var trs = rows.map(function(r, i){
+    return '<tr>'
+      + '<td style="text-align:center">' + (i+1) + '</td>'
+      + '<td><input value="' + esc(r.ten) + '" oninput="onTable5Input(' + i + ',\'ten\',this.value)"></td>'
+      + '<td><input value="' + esc(r.mst) + '" oninput="onTable5Input(' + i + ',\'mst\',this.value)"></td>'
+      + '<td><input value="' + esc(r.cmnd) + '" oninput="onTable5Input(' + i + ',\'cmnd\',this.value)"></td>'
+      + '<td><input type="number" value="' + esc(r.tyle) + '" oninput="onTable5Input(' + i + ',\'tyle\',this.value)"></td>'
+      + '<td><button class="row-del" onclick="delTable5Row(' + i + ')">✕</button></td>'
+      + '</tr>';
+  }).join('');
+  return '<div class="table-wrap"><table class="ck-table"><thead><tr>'
+    + '<th style="width:26px">STT</th><th>Tên tổ chức/cá nhân đồng sở hữu</th><th>Mã số thuế</th>'
+    + '<th>Số CMND/CCCD/Hộ chiếu</th><th style="width:60px">Tỷ lệ (%)</th><th style="width:26px"></th>'
+    + '</tr></thead><tbody id="table5-body">' + trs + '</tbody></table></div>'
+    + '<button class="add-row-btn" onclick="addTable5Row()">➕ Thêm đồng chủ sở hữu</button>';
+}
+function addTable5Row(){
+  table5Rows.push({ten:'',mst:'',cmnd:'',tyle:''});
+  lsSet(LS_TABLE5, table5Rows);
+  renderMain();
+}
+
+function fillFieldValue(f){
+  var v = valuesMap[f.id];
+  if (f.type === 'text' || f.type === 'number' || f.type === 'date' || f.type === 'textarea') {
+    var el = document.querySelector('[data-id="' + f.id + '"]');
+    if (el && v != null) el.value = v;
+  } else if (f.type === 'yesno') {
+    var el2 = document.querySelector('[data-id="' + f.id + '"]');
+    if (el2) el2.checked = !!v;
+  } else if (f.type === 'multi') {
+    (f.subs||[]).forEach(function(s){
+      var el3 = document.querySelector('[data-id="' + f.id + '"][data-sub="' + s.k + '"]');
+      if (el3 && v && v[s.k] != null) el3.value = v[s.k];
+    });
+  } else if (f.type === 'choice') {
+    if (v && v.value) setChoiceUI(f, v.value, v.extra);
+  }
+  // table5 tự lấy từ table5Rows lúc render, không cần fill thêm ở đây
+}
+
+// ═══════════════════════ XỬ LÝ NHẬP LIỆU (lưu ngay khi gõ) ═══════════════════════
+function onSimpleInput(id, val){ valuesMap[id] = val; lsSet(LS_VALUES, valuesMap); }
+function onYesNoInput(id, checked){ valuesMap[id] = checked; lsSet(LS_VALUES, valuesMap); }
+function onMultiInput(id, subKey, val){
+  if (!valuesMap[id] || typeof valuesMap[id] !== 'object') valuesMap[id] = {};
+  valuesMap[id][subKey] = val;
+  lsSet(LS_VALUES, valuesMap);
+}
+function onChoiceClick(id, v){
+  var f = schemaById(id);
+  var opt = f.options.find(function(o){ return o.v===v; });
+  var cur = (valuesMap[id] && typeof valuesMap[id]==='object') ? valuesMap[id] : {};
+  cur.value = v;
+  if (!opt.hasExtra) delete cur.extra;
+  valuesMap[id] = cur;
+  lsSet(LS_VALUES, valuesMap);
+  setChoiceUI(f, v, cur.extra);
+}
+function setChoiceUI(f, v, extra){
+  var row = document.getElementById('choice-' + f.id);
+  if (row) Array.prototype.forEach.call(row.children, function(btn){
+    btn.classList.toggle('active', btn.getAttribute('data-v') === v);
+  });
+  var opt = f.options.find(function(o){ return o.v===v; });
+  var extraBox = document.getElementById('choice-extra-' + f.id);
+  if (!extraBox) return;
+  if (opt && opt.hasExtra) {
+    extraBox.innerHTML = '<div class="sub-row" style="margin-top:6px"><label>' + esc(opt.extraLabel) + '</label>'
+      + '<input class="field-input" type="' + (opt.extraType==='number'?'number':'text') + '" value="' + esc(extra||'') + '" '
+      + 'oninput="onChoiceExtraInput(\'' + f.id + '\',this.value)"></div>';
+  } else {
+    extraBox.innerHTML = '';
+  }
+}
+function onChoiceExtraInput(id, val){
+  if (!valuesMap[id] || typeof valuesMap[id]!=='object') valuesMap[id] = {};
+  valuesMap[id].extra = val;
+  lsSet(LS_VALUES, valuesMap);
+}
+function onTable5Input(i, key, val){
+  while (table5Rows.length <= i) table5Rows.push({ten:'',mst:'',cmnd:'',tyle:''});
+  table5Rows[i][key] = val;
+  lsSet(LS_TABLE5, table5Rows);
+}
+
+function delTable5Row(i){
+  table5Rows.splice(i,1);
+  lsSet(LS_TABLE5, table5Rows);
+  renderMain();
+}
+
+// ═══════════════════════ MODAL CÀI ĐẶT (chọn mục) ═══════════════════════
+function renderSettingsList(){
+  var box = document.getElementById('settings-list');
+  var html = '';
+  ['A','B','C'].forEach(function(sec){
+    var fields = SCHEMA.filter(function(f){ return f.section===sec; });
+    if (!fields.length) return;
+    html += '<div class="set-group-title">' + SECTION_LABEL[sec] + '</div>';
+    fields.forEach(function(f){
+      var maHtml = f.ma ? '<span class="ma">' + esc(f.ma) + '</span>' : '';
+      html += '<label class="set-row">'
+        + '<input type="checkbox" ' + (isChecked(f.id)?'checked':'') + ' onchange="toggleMuc(\'' + f.id + '\',this.checked)">'
+        + '<span class="set-label">' + maHtml + esc(f.label) + '</span>'
+        + '</label>';
+    });
+  });
+  box.innerHTML = html;
+}
+function openSettings(){ renderSettingsList(); _capNhatSelectCheDoKhoiDong(); openM('modal-settings'); }
+function closeSettings(){ closeM('modal-settings'); renderMain(); }
+function toggleMuc(id, checked){
+  checkedMap[id] = checked;
+  lsSet(LS_CHECKED, checkedMap);
+  if (!checked) {
+    // Bỏ tick -> XOÁ LUÔN dữ liệu đã nhập của mục này (đúng yêu cầu: không tick = làm trống ô nhập liệu)
+    delete valuesMap[id];
+    lsSet(LS_VALUES, valuesMap);
+    if (id === 'm5') { table5Rows = []; lsSet(LS_TABLE5, table5Rows); }
+  }
+}
+// Lưu tờ khai đang dở vào Lịch sử NẾU đang có nội dung (ít nhất 1 mục đang tick) — dùng chung cho mọi
+// thao tác "xoá để bắt đầu lại", đảm bảo không bao giờ mất dữ liệu.
+function _luuLichSuNeuCoNoiDung(){
+  var coNoiDung = Object.keys(checkedMap).some(function(k){ return checkedMap[k]; });
+  if (coNoiDung) luuLichSu();
+}
+// Dùng cho "➕ Tờ khai mới" (nút header) và chế độ khởi động "Mở tờ khai mới" — CHỈ xoá DỮ LIỆU đã
+// nhập (valuesMap/table5Rows), GIỮ NGUYÊN các mục đang tick chọn (checkedMap). Các mục đã tick chọn
+// là "cấu hình khung nhập liệu" cho loại hồ sơ đang làm (VD: luôn cần khai đủ [04][05][07] cho mọi
+// tờ khai), không phải dữ liệu riêng của 1 tờ khai — nên KHÔNG được mất khi bắt đầu tờ khai mới; chỉ
+// mất khi người dùng TỰ TAY bỏ tick trong ⚙️ Cài đặt.
+function _xoaDuLieuGiuMuc(){
+  _luuLichSuNeuCoNoiDung();
+  valuesMap = {}; table5Rows = [];
+  lsSet(LS_VALUES, valuesMap); lsSet(LS_TABLE5, table5Rows);
+  localStorage.removeItem(LS_CURRENT_ID);
+}
+// Dùng RIÊNG cho "🗑️ Bỏ chọn tất cả" trong Cài đặt — đây là hành động chủ động của người dùng muốn
+// dọn sạch CẢ cấu hình mục đang chọn, nên mới xoá luôn checkedMap (khác với _xoaDuLieuGiuMuc ở trên).
+function _xoaTatCaKeCaMuc(){
+  _luuLichSuNeuCoNoiDung();
+  checkedMap = {}; valuesMap = {}; table5Rows = [];
+  lsSet(LS_CHECKED, checkedMap); lsSet(LS_VALUES, valuesMap); lsSet(LS_TABLE5, table5Rows);
+  localStorage.removeItem(LS_CURRENT_ID);
+}
+function taoToKhaiMoi(){
+  showConfirm('➕ Tờ khai mới', 'Bắt đầu tờ khai MỚI?\n\nDữ liệu đã nhập sẽ được xoá (tự lưu vào Lịch sử trước, không mất). Các mục đang chọn ở Cài đặt vẫn giữ nguyên, không cần chọn lại.', function(){
+    _xoaDuLieuGiuMuc();
+    renderMain();
+    toast('✅ Đã bắt đầu tờ khai mới!');
+  }, 'Bắt đầu mới');
+}
+function boChonTatCa(){
+  showConfirm('🗑️ Bỏ chọn tất cả', 'Bỏ chọn TẤT CẢ các mục và XOÁ TOÀN BỘ dữ liệu đã nhập?\n\n(Tờ khai hiện tại sẽ được lưu vào Lịch sử trước khi xoá, không mất dữ liệu.)', function(){
+    _xoaTatCaKeCaMuc();
+    renderSettingsList();
+    toast('🗑️ Đã bỏ chọn tất cả!');
+  }, 'Bỏ chọn tất cả', true);
+}
+function openM(id){ document.getElementById(id).classList.add('show'); }
+function closeM(id){ document.getElementById(id).classList.remove('show'); }
+
+// ═══════════════════════ LỊCH SỬ TỜ KHAI ═══════════════════════
+function _fmtNgayGioVN(iso){
+  try {
+    var d = new Date(iso);
+    var p2 = function(n){ return String(n).padStart(2,'0'); };
+    return p2(d.getDate()) + '/' + p2(d.getMonth()+1) + '/' + d.getFullYear() + ' ' + p2(d.getHours()) + ':' + p2(d.getMinutes());
+  } catch(e) { return ''; }
+}
+function moLichSuToKhai(){ renderHistoryList(); openM('modal-history'); }
+function renderHistoryList(){
+  var box = document.getElementById('history-list');
+  var hist = lsGetA(LS_HISTORY);
+  if (!hist.length) {
+    box.innerHTML = '<div style="text-align:center;color:var(--g500);padding:30px 10px;font-size:13px">Chưa có tờ khai nào trong lịch sử.<br>Bấm "In / Xuất Tờ Khai" ở màn hình chính để lưu lại.</div>';
+    return;
+  }
+  var curId = localStorage.getItem(LS_CURRENT_ID);
+  box.innerHTML = hist.map(function(h){
+    var dangMo = h.id === curId;
+    return '<div style="display:flex;align-items:center;gap:8px;padding:10px 2px;border-bottom:1px solid var(--g100)' + (dangMo?';background:var(--gold-light)':'') + '">'
+      + '<div onclick="napLichSu(\'' + h.id + '\')" style="flex:1;min-width:0;cursor:pointer">'
+      + '<div style="font-weight:700;font-size:13px;color:var(--g800);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(h.ten) + (dangMo?' <span style="font-size:10px;color:var(--gold-dark);font-weight:800">(đang mở)</span>':'') + '</div>'
+      + '<div style="font-size:11px;color:var(--g500);margin-top:2px">Lưu lúc: ' + _fmtNgayGioVN(h.savedAt) + '</div>'
+      + '</div>'
+      + '<button onclick="event.stopPropagation();xoaLichSu(\'' + h.id + '\')" style="flex:0 0 auto;background:none;border:none;color:var(--red);font-size:18px;cursor:pointer;padding:4px 8px">🗑️</button>'
+      + '</div>';
+  }).join('');
+}
+function napLichSu(id){
+  var hist = lsGetA(LS_HISTORY);
+  var h = hist.find(function(x){ return x.id === id; });
+  if (!h) return;
+  showConfirm('🕘 Nạp lại tờ khai', 'Nạp lại tờ khai "' + h.ten + '" (lưu lúc ' + _fmtNgayGioVN(h.savedAt) + ')?\n\nDữ liệu đang nhập dở ở màn hình chính (nếu có) sẽ được lưu vào lịch sử trước khi thay thế.', function(){
+    var coNoiDungHienTai = Object.keys(checkedMap).some(function(k){ return checkedMap[k]; });
+    if (coNoiDungHienTai && localStorage.getItem(LS_CURRENT_ID) !== id) luuLichSu(); // đừng để mất tờ khai đang dở
+    checkedMap = JSON.parse(JSON.stringify(h.checkedMap || {}));
+    valuesMap = JSON.parse(JSON.stringify(h.valuesMap || {}));
+    table5Rows = JSON.parse(JSON.stringify(h.table5Rows || []));
+    lsSet(LS_CHECKED, checkedMap); lsSet(LS_VALUES, valuesMap); lsSet(LS_TABLE5, table5Rows);
+    localStorage.setItem(LS_CURRENT_ID, id);
+    closeM('modal-history');
+    closeTkPreview();
+    renderMain();
+    toast('✅ Đã nạp lại tờ khai "' + h.ten + '"');
+  }, 'Nạp lại');
+}
+function xoaLichSu(id){
+  showConfirm('🗑️ Xoá khỏi lịch sử', 'Xoá tờ khai này khỏi lịch sử? Không ảnh hưởng tờ khai đang nhập ở màn hình chính.', function(){
+    var hist = lsGetA(LS_HISTORY).filter(function(h){ return h.id !== id; });
+    lsSet(LS_HISTORY, hist);
+    if (localStorage.getItem(LS_CURRENT_ID) === id) localStorage.removeItem(LS_CURRENT_ID);
+    renderHistoryList();
+    toast('🗑️ Đã xoá khỏi lịch sử');
+  }, 'Xoá', true);
+}
+function suaCheDoKhoiDong(mode){
+  localStorage.setItem(LS_STARTUP_MODE, mode);
+  toast(mode === 'clear' ? '🗑️ Sẽ luôn mở tờ khai mới từ lần sau' : '💾 Sẽ giữ nguyên tờ khai đang dở từ lần sau');
+}
+function _capNhatSelectCheDoKhoiDong(){
+  var sel = document.getElementById('startup-mode-select');
+  if (sel) sel.value = localStorage.getItem(LS_STARTUP_MODE) || 'keep';
+}
+
+// ═══════════════════════ IN / XUẤT TỜ KHAI ═══════════════════════
+// QUY TẮC: bản in/PDF LUÔN hiện ĐỦ toàn bộ mục như tờ khai giấy gốc, giống hệt in ra 1 tờ giấy
+// trắng — mục nào KHÔNG được tick chọn ở màn hình nhập liệu thì hiện dấu chấm chấm (giống bản mẫu
+// gốc), mục nào có tick chọn + có nhập dữ liệu thì thay đúng dữ liệu đó vào chỗ dấu chấm. Không bao
+// giờ ẨN/BỎ hẳn 1 mục ra khỏi bản in như trước, vì tờ khai để nộp cơ quan thuế cần đủ format gốc.
+const DOTS = '……………………………………';
+function vGet(id){ return valuesMap[id]; }
+function vText(id){
+  var v = vGet(id);
+  return (isChecked(id) && v!=null && v!=='') ? ('<b>' + esc(v) + '</b>') : DOTS;
+}
+function vSub(id, sub){
+  var v = vGet(id);
+  return (isChecked(id) && v && v[sub]!=null && v[sub]!=='') ? ('<b>' + esc(v[sub]) + '</b>') : '…………….';
+}
+function fmtDateVN(iso){
+  if (!iso) return '…../…../20….';
+  var p = iso.split('-'); if (p.length!==3) return esc(iso);
+  return p[2] + '/' + p[1] + '/' + p[0];
+}
+// Vẽ ô Mã số thuế dạng từng ô vuông riêng biệt (10 ô + khoảng cách + 4 ô, đúng như mẫu gốc) — mỗi
+// chữ số của MST được điền vào đúng 1 ô, lần lượt từ trái qua phải. Chỉ mục [05] Mã số thuế của
+// NGƯỜI NỘP THUẾ dùng dạng ô vuông này (đúng theo mẫu gốc); các mã số thuế khác trên tờ khai (đại lý
+// thuế, người chuyển giao QSDĐ, đồng sở hữu...) vẫn là 1 dòng gạch chân thông thường.
+// LƯU Ý KỸ THUẬT: dùng ĐÚNG 1 bảng <table> duy nhất (không tách 2 bảng riêng rồi đặt cạnh nhau bằng
+// flex) — vì 2 <table> đặt làm flex-item trong 1 container display:flex bị Chrome tính sai độ rộng
+// (cả 2 bảng bị kéo giãn bằng nhau bất kể số ô thật sự bên trong), khiến ô bị to lệch hẳn. Gộp thành
+// 1 bảng với 1 ô trống ở giữa (không viền) để tạo khoảng cách thay vì dùng flex/table riêng.
+function renderMSTBoxes(id){
+  var raw = (isChecked(id) && vGet(id)) ? String(vGet(id)).replace(/[^0-9]/g,'') : '';
+  var tds = '';
+  for (var i=0;i<10;i++){
+    tds += '<td style="width:19px;height:22px;border:1px solid #000;text-align:center;font-weight:700;font-size:12px;padding:0">' + esc(raw.charAt(i)) + '</td>';
+  }
+  tds += '<td style="width:14px;border:none"></td>'; // ô đệm tạo khoảng cách, không viền
+  for (var j=10;j<14;j++){
+    tds += '<td style="width:19px;height:22px;border:1px solid #000;text-align:center;font-weight:700;font-size:12px;padding:0">' + esc(raw.charAt(j)) + '</td>';
+  }
+  return '<table style="width:auto;border-collapse:collapse;display:inline-table;vertical-align:middle"><tr>' + tds + '</tr></table>';
+}
+function xayHtmlToKhaiTrang1(){
+  var html = '<div class="tk-print-doc">';
+  html += '<div class="mausotop">Mẫu số: <b>01/LPTB</b><br>(Ban hành kèm theo Thông tư số 80/2021/TT-BTC ngày 29/9/2021 của Bộ trưởng Bộ Tài chính)</div>';
+  html += '<div class="quochieu">CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM<br>Độc lập - Tự do - Hạnh phúc</div>';
+  html += '<div class="tieude">Tờ khai lệ phí trước bạ</div>';
+  html += '<div style="text-align:center;font-style:italic;margin-bottom:10px">(Áp dụng đối với nhà, đất)</div>';
+
+  html += '<div class="pl">[01] Kỳ tính thuế: Theo từng lần phát sinh ngày ' + fmtDateVN(vGet('f01')) + '</div>';
+  var c0203 = (isChecked('f0203') && vGet('f0203')) ? vGet('f0203') : {};
+  html += '<div class="pl">[02] ' + (c0203.value==='dau' ? '☑' : '☐') + ' Lần đầu: &nbsp;&nbsp;&nbsp; [03] '
+    + (c0203.value==='bosung' ? '☑' : '☐') + ' Bổ sung lần thứ: ' + (c0203.value==='bosung' ? ('<b>'+esc(c0203.extra||'…')+'</b>') : '…') + '</div>';
+  html += '<div class="pl">' + (isChecked('uyquyen') && vGet('uyquyen') ? '☑' : '☐') + ' Tổ chức, cá nhân được uỷ quyền khai thay cho người nộp thuế</div>';
+  html += '<div class="pl"><b>[04] Tên Người nộp thuế:</b> ' + vText('f04') + '</div>';
+  html += '<div class="pl">[05] Mã số thuế: ' + renderMSTBoxes('f05') + '</div>';
+  html += '<div class="pl">[06] Số CMND/CCCD/Hộ chiếu (trường hợp chưa có mã số thuế): ' + vText('f06') + '</div>';
+  html += '<div class="pl">[07] Địa chỉ: ' + vText('f07') + '</div>';
+  html += '<div class="pl">[08] Xã/phường: ' + vText('f08') + ' &nbsp;&nbsp; [09] Tỉnh/Thành phố: ' + vText('f09') + '</div>';
+  html += '<div class="pl">[10] Điện thoại: ' + vText('f10') + ' &nbsp; [11] Fax: ' + vText('f11') + ' &nbsp; [12] Email: ' + vText('f12') + '</div>';
+  html += '<div class="pl"><b>[13] Đại lý thuế; hoặc Tổ chức, cá nhân được uỷ quyền khai thay (nếu có):</b> ' + vText('f13') + '</div>';
+  html += '<div class="pl">[14] Mã số thuế: ' + vText('f14') + '</div>';
+  html += '<div class="pl">[15] Hợp đồng đại lý thuế: Số ' + vSub('f15','so') + ' &nbsp; ngày ' + (isChecked('f15') ? ('<b>'+fmtDateVN((vGet('f15')||{}).ngay)+'</b>') : '…../…../20….') + '</div>';
+
+  html += '<div class="pl" style="font-weight:700;margin-top:10px">ĐẶC ĐIỂM NHÀ ĐẤT:</div>';
+  html += '<div class="pl">1. Đất: ' + vText('m1') + '</div>';
+  html += '<div class="pl">1.1. Thửa đất số (Số hiệu thửa đất): ' + vSub('m1_1','thua') + '; Tờ bản đồ số: ' + vSub('m1_1','tbd') + '</div>';
+  html += '<div class="pl">1.2. Địa chỉ thửa đất: ' + vText('m1_2') + '</div>';
+  html += '<div class="pl">1.2.1. Số nhà: ' + vSub('m1_2_1','sonha') + '; Toà nhà: ' + vSub('m1_2_1','toanha') + '; Ngõ/Hẻm: ' + vSub('m1_2_1','ngohem') + '<br>Đường/Phố: ' + vSub('m1_2_1','duongpho') + '; Thôn/xóm/ấp: ' + vSub('m1_2_1','thonxom') + '</div>';
+  html += '<div class="pl">1.2.2. Phường/xã: ' + vText('m1_2_2') + '</div>';
+  html += '<div class="pl">1.2.3. Quận/huyện: ' + vText('m1_2_3') + '</div>';
+  html += '<div class="pl">1.2.4. Tỉnh/thành phố: ' + vText('m1_2_4') + '</div>';
+  html += '<div class="pl">1.3. Vị trí thửa đất (mặt tiền đường phố hay ngõ, hẻm): ' + vText('m1_3') + '</div>';
+  html += '<div class="pl">1.4. Mục đích sử dụng đất: ' + vText('m1_4') + '</div>';
+  html += '<div class="pl">1.5. Diện tích (m²): ' + vText('m1_5') + '</div>';
+  html += '<div class="pl">1.6. Nguồn gốc nhà đất (đất được Nhà nước giao, cho thuê; nhận chuyển nhượng; nhận thừa kế, hoặc nhận tặng cho): ' + vText('m1_6') + '</div>';
+  html += '<div class="pl">a) Tên tổ chức, cá nhân chuyển giao QSDĐ: ' + vSub('m1_6_a','ten') + '<br>'
+    + '- Mã số thuế: ' + vSub('m1_6_a','mst') + '; Số CMND/CCCD/Hộ chiếu: ' + vSub('m1_6_a','cmnd') + '<br>'
+    + '- Địa chỉ người giao QSDĐ: ' + vSub('m1_6_a','diachi') + '</div>';
+  html += '<div class="pl">b) Thời điểm làm giấy tờ chuyển giao QSDĐ ngày ' + (isChecked('m1_6_b') ? ('<b>'+fmtDateVN(vGet('m1_6_b'))+'</b>') : '.......... tháng .......... năm ……') + '</div>';
+  html += '<div class="pl">1.7. Giá trị đất thực tế chuyển giao (nếu có): ' + vText('m1_7') + ' đồng</div>';
+  html += '</div>';
+  return html;
+}
+function xayHtmlToKhaiTrang2(){
+  var html = '<div class="tk-print-doc">';
+  html += '<div class="pl">2. Nhà:</div>';
+  html += '<div class="pl">2.1. Thông tin về nhà ở, nhà làm việc, nhà sử dụng cho mục đích khác:</div>';
+  html += '<div class="pl">Cấp nhà: ' + vSub('m2_1','cap') + ' &nbsp; Loại nhà: ' + vSub('m2_1','loai') + ' &nbsp; Hạng nhà: ' + vSub('m2_1','hang') + '</div>';
+  html += '<div class="pl">Trường hợp là nhà ở chung cư:</div>';
+  html += '<div class="pl">Chủ dự án: ' + vSub('m2_1cc1','chudt') + ' &nbsp; Địa chỉ dự án, công trình: ' + vSub('m2_1cc1','diachidt') + '</div>';
+  html += '<div class="pl">Kết cấu: ' + vSub('m2_1cc2','ketcau') + ' &nbsp; Số tầng nổi: ' + vSub('m2_1cc2','tangnoi') + ' &nbsp; Số tầng hầm: ' + vSub('m2_1cc2','tangham') + '</div>';
+  html += '<div class="pl">Diện tích sở hữu chung (m²): ' + vSub('m2_1cc3','schung') + ' &nbsp; Diện tích sở hữu riêng (m²): ' + vSub('m2_1cc3','srieng') + '</div>';
+  html += '<div class="pl">2.2. Diện tích nhà (m²):</div>';
+  html += '<div class="pl">Diện tích xây dựng (m²): ' + vSub('m2_2','dtxd') + '</div>';
+  html += '<div class="pl">Diện tích sàn xây dựng (m²): ' + vSub('m2_2','dtsan') + '</div>';
+  html += '<div class="pl">2.3. Nguồn gốc nhà: ' + vText('m2_3') + '</div>';
+  html += '<div class="pl">a) Tự xây dựng - Năm hoàn công (hoặc năm bắt đầu sử dụng nhà): ' + vText('m2_3a') + '</div>';
+  html += '<div class="pl">b) Mua, thừa kế, tặng cho - Thời điểm làm giấy tờ chuyển giao nhà: ' + (isChecked('m2_3b') ? ('Ngày <b>'+fmtDateVN(vGet('m2_3b'))+'</b>') : 'Ngày ......... tháng ........ năm ........') + '</div>';
+  html += '<div class="pl">2.4. Giá trị nhà (đồng): ' + vText('m2_4') + '</div>';
+
+  html += '<div class="pl">3. Giá trị nhà, đất thực tế nhận chuyển nhượng, nhận thừa kế, nhận tặng cho (đồng): ' + vText('m3') + '</div>';
+  html += '<div class="pl">4. Tài sản thuộc diện được miễn lệ phí trước bạ (lý do): ' + vText('m4') + '</div>';
+
+  html += '<div class="pl">5. Thông tin đồng chủ sở hữu nhà, đất (nếu có):</div>';
+  html += '<table><thead><tr><th>STT</th><th>Tên tổ chức/cá nhân đồng sở hữu</th><th>Mã số thuế</th><th>Số CMND/CCCD/Hộ chiếu (trường hợp chưa có mã số thuế)</th><th>Tỷ lệ sở hữu (%)</th></tr></thead><tbody>';
+  var t5 = (isChecked('m5') && table5Rows.length) ? table5Rows : [{},{}];
+  t5.forEach(function(r,i){
+    html += '<tr><td style="text-align:center">' + (i+1) + '</td><td>' + (r.ten?('<b>'+esc(r.ten)+'</b>'):'') + '</td><td>' + (r.mst?('<b>'+esc(r.mst)+'</b>'):'') + '</td><td>' + (r.cmnd?('<b>'+esc(r.cmnd)+'</b>'):'') + '</td><td style="text-align:center">' + (r.tyle?('<b>'+esc(r.tyle)+'</b>'):'') + '</td></tr>';
+  });
+  html += '</tbody></table>';
+
+  html += '<div class="pl" style="margin-top:6px">6. Giấy tờ có liên quan, gồm:</div>'
+    + '<div class="pl">- Mỗi hợp đồng chuyển nhượng, tặng cho, thừa kế; 1 bản vẽ, 1 GCN QSDĐ photocopy</div>'
+    + '<div class="pl">- quan hệ nhân thân nếu có, tờ khai trước bạ + thuế thu nhập cá nhân.</div>';
+
+  html += '<div class="pl" style="margin-top:10px">Tôi cam đoan số liệu khai trên là đúng và chịu trách nhiệm trước pháp luật về số liệu đã khai./.</div>';
+
+  var noiky = (isChecked('ky1') && (vGet('ky1')||{}).noi) ? esc(vGet('ky1').noi) : '…….........';
+  var ngaykyObj = vGet('ky1') || {};
+  var ngaykyStr = (isChecked('ky1') && ngaykyObj.ngay) ? fmtDateVN(ngaykyObj.ngay) : '......../......../202....';
+  var hoten = (isChecked('ky2') && (vGet('ky2')||{}).hoten) ? esc(vGet('ky2').hoten) : '.................................';
+  var chucvu = (isChecked('ky2') && (vGet('ky2')||{}).chucvu) ? esc(vGet('ky2').chucvu) : '';
+  html += '<div class="kytenwrap">'
+    + '<div class="kyten"><b>NHÂN VIÊN ĐẠI LÝ THUẾ</b>Họ và tên: .................................<br>Chứng chỉ hành nghề số: .........</div>'
+    + '<div class="kyten"><i>' + noiky + ', ngày ' + ngaykyStr.split('/')[0] + ' tháng ' + ngaykyStr.split('/')[1] + ' năm ' + ngaykyStr.split('/')[2] + '</i>'
+    + '<b>NGƯỜI NỘP THUẾ hoặc<br>ĐẠI DIỆN HỢP PHÁP CỦA NGƯỜI NỘP THUẾ<br>hoặc TỔ CHỨC, CÁ NHÂN ĐƯỢC UỶ QUYỀN KHAI THAY</b>'
+    + '<div style="font-size:10.5px;font-style:italic;margin:2px 0">(Chữ ký, ghi rõ họ tên; chức vụ và đóng dấu (nếu có)/Ký điện tử)</div>'
+    + '<div style="margin-top:44px">' + hoten + (chucvu?('<br>' + chucvu):'') + '</div></div>'
+    + '</div>';
+  html += '</div>';
+  return html;
+}
+// Lưu (hoặc cập nhật) tờ khai hiện tại vào Lịch sử — gọi mỗi khi mở bản xem trước/in/xuất, để "từ
+// nay trở đi tất cả tờ khai đều được lưu lại lịch sử" đúng như yêu cầu. Nếu tờ khai này đã từng lưu
+// trước đó (đang sửa lại 1 tờ khai cũ lấy từ Lịch sử) thì CẬP NHẬT đúng bản ghi đó, không tạo trùng.
+function luuLichSu(){
+  var hist = lsGetA(LS_HISTORY);
+  var curId = localStorage.getItem(LS_CURRENT_ID);
+  var ten = (isChecked('f04') && vGet('f04')) ? vGet('f04') : '(Chưa có tên người nộp thuế)';
+  var snap = {
+    id: curId || ('tk_' + Date.now()),
+    savedAt: new Date().toISOString(),
+    ten: ten,
+    checkedMap: JSON.parse(JSON.stringify(checkedMap)),
+    valuesMap: JSON.parse(JSON.stringify(valuesMap)),
+    table5Rows: JSON.parse(JSON.stringify(table5Rows))
+  };
+  var idx = hist.findIndex(function(h){ return h.id === snap.id; });
+  if (idx >= 0) hist[idx] = snap; else hist.unshift(snap);
+  if (hist.length > LICH_SU_TOI_DA) hist = hist.slice(0, LICH_SU_TOI_DA);
+  lsSet(LS_HISTORY, hist);
+  localStorage.setItem(LS_CURRENT_ID, snap.id);
+}
+function inToKhai(){
+  luuLichSu();
+  document.getElementById('tk-print-area').innerHTML = ''; // không dùng chung 1 khối nữa, xem _tkGeneratePreviewImage
+  openTkPreview();
+  _tkGeneratePreviewImage();
+}
+
+// ── Xem trước / xuất PDF: dùng CHUNG cơ chế với "Xuất bảng kê" của app Mua Bán Mủ (html2canvas dựng
+// ảnh, jsPDF đóng gói PDF) — khác biệt: (1) khổ A4 ĐỨNG (210×297mm) thay vì ngang nên không cần khối
+// xoay 90° như bên bảng kê; (2) tờ khai có 2 TRANG THEO ĐÚNG ĐIỂM NGẮT của mẫu gốc (trang 1 hết ở mục
+// 1.7, trang 2 bắt đầu từ "2. Nhà:") — mỗi trang được dựng + chụp ảnh RIÊNG BIỆT rồi mới ghép vào PDF,
+// thay vì chụp 1 ảnh dài rồi cắt theo chiều cao cố định (cách cũ khiến nội dung dồn/lệch trang so với
+// mẫu gốc vì chiều cao chữ trên máy mỗi người mỗi khác, không thể canh đúng điểm ngắt bằng cách đó).
+var _tkPageCanvases = [];
+function openTkPreview(){ document.getElementById('tk-preview-overlay').style.display = 'flex'; _tkInitPinch(); }
+function closeTkPreview(){ document.getElementById('tk-preview-overlay').style.display = 'none'; }
+// Tải 1 script ngoài, có DỰ PHÒNG nhiều nguồn CDN — nếu nguồn 1 lỗi (bị mạng công ty/nhà trường chặn,
+// CDN quá tải, v.v.) tự động thử nguồn kế tiếp thay vì báo lỗi ngay.
+function _taiScriptCoDuPhong(urls, checkLoaded, cb, idx){
+  idx = idx || 0;
+  if (checkLoaded()) { cb(); return; }
+  if (idx >= urls.length) { toast('❌ Không tải được thư viện xuất PDF, kiểm tra kết nối mạng'); return; }
+  var s = document.createElement('script');
+  s.src = urls[idx];
+  s.onload = function(){ checkLoaded() ? cb() : _taiScriptCoDuPhong(urls, checkLoaded, cb, idx+1); };
+  s.onerror = function(){ _taiScriptCoDuPhong(urls, checkLoaded, cb, idx+1); };
+  document.head.appendChild(s);
+}
+function ensureHtml2Canvas(cb){
+  _taiScriptCoDuPhong([
+    'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+    'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js',
+    'https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js'
+  ], function(){ return !!window.html2canvas; }, cb);
+}
+function ensureJsPDF(cb){
+  _taiScriptCoDuPhong([
+    'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+    'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js',
+    'https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js'
+  ], function(){ return !!(window.jspdf && window.jspdf.jsPDF); }, cb);
+}
+// Chụp ảnh 1 trang HTML (dùng cho cả 2 trang, tái sử dụng cùng logic thay vì lặp code).
+function _tkCaptureOnePage(htmlContent, cb){
+  var tmp = document.createElement('div');
+  // Tỷ lệ 794px ứng với A4 đứng ở 96dpi (210mm) — giữ đúng tỷ lệ khổ giấy thật khi chụp ảnh.
+  tmp.style.cssText = 'position:fixed;left:-99999px;top:0;width:794px;background:#fff;z-index:-1';
+  tmp.innerHTML = htmlContent;
+  document.body.appendChild(tmp);
+  html2canvas(tmp, { scale:2, useCORS:true, backgroundColor:'#ffffff' }).then(function(canvas){
+    document.body.removeChild(tmp);
+    cb(canvas);
+  }).catch(function(e){
+    document.body.removeChild(tmp);
+    cb(null, e);
+  });
+}
+function _tkGeneratePreviewImage(){
+  var scrollEl = document.getElementById('tk-preview-scroll');
+  if (!scrollEl) return;
+  _tkPageCanvases = [];
+  scrollEl.innerHTML = '<div style="color:#fff;text-align:center;padding:60px 16px;font-size:13px">⏳ Đang dựng bản xem trước…</div>';
+  ensureHtml2Canvas(function(){
+    var trangHtmls = [xayHtmlToKhaiTrang1(), xayHtmlToKhaiTrang2()];
+    var ketQua = [];
+    // QUAN TRỌNG: chụp TUẦN TỰ từng trang một (KHÔNG chụp song song nhiều trang cùng lúc) — html2canvas
+    // không đảm bảo an toàn khi gọi đồng thời nhiều lần vì nó clone toàn bộ tài liệu vào 1 khung ẩn dùng
+    // chung; gọi song song 2 lần từng khiến vùng cắt ảnh bị lệch, làm mất phần đầu trang trong bản xem
+    // trước. Chụp xong hẳn 1 trang (đã xoá khung tạm khỏi DOM) rồi mới bắt đầu chụp trang kế tiếp.
+    function chupTrangTiep(idx){
+      if (idx >= trangHtmls.length) {
+        _tkPageCanvases = ketQua;
+        var imgsHtml = ketQua.map(function(c, i){
+          return '<img class="tk-preview-page-img" src="' + c.toDataURL('image/png') + '"' + (i>0?' style="margin-top:14px"':'') + '>';
+        }).join('');
+        scrollEl.innerHTML = '<div id="tk-panzoom-wrap"><div style="display:flex;flex-direction:column;align-items:center">' + imgsHtml + '</div></div>';
+        _tkScale = 1;
+        _tkApplyTransform();
+        return;
+      }
+      _tkCaptureOnePage(trangHtmls[idx], function(canvas, err){
+        if (!canvas) {
+          scrollEl.innerHTML = '<div style="color:#fff;text-align:center;padding:60px 16px;font-size:13px">❌ Lỗi dựng xem trước (trang ' + (idx+1) + '): ' + (err&&err.message?err.message:'không rõ nguyên nhân') + '</div>';
+          return;
+        }
+        ketQua.push(canvas);
+        chupTrangTiep(idx + 1);
+      });
+    }
+    chupTrangTiep(0);
+  });
+}
+// ── Chụm 2 ngón để phóng to/thu nhỏ (0.5x-3x), CÒN CUỘN DỌC/NGANG DÙNG CUỘN TỰ NHIÊN của trình duyệt
+// (không còn tự chế kéo bằng transform như trước — xem giải thích ở CSS #tk-preview-scroll phía trên).
+// Dùng CSS `zoom` (không dùng transform:scale) để vùng cuộn tự giãn đúng theo kích thước đã phóng to.
+var _tkScale = 1;
+var _tkPinchStartDist = 0, _tkPinchStartScale = 1;
+var _tkPinchBound = false;
+function _tkApplyTransform(){
+  var wrap = document.getElementById('tk-panzoom-wrap');
+  if (wrap) wrap.style.zoom = _tkScale;
+}
+function _tkApplyScale(scale){ _tkScale = Math.max(0.5, Math.min(scale, 3)); _tkApplyTransform(); }
+function _tkDist(t1, t2){ return Math.hypot(t2.clientX-t1.clientX, t2.clientY-t1.clientY); }
+function _tkInitPinch(){
+  if (_tkPinchBound) return;
+  _tkPinchBound = true;
+  var scrollEl = document.getElementById('tk-preview-scroll');
+  if (!scrollEl) return;
+  scrollEl.addEventListener('touchstart', function(e){
+    if (e.touches.length === 2) {
+      _tkPinchStartDist = _tkDist(e.touches[0], e.touches[1]);
+      _tkPinchStartScale = _tkScale;
+    }
+    // Chạm 1 ngón: KHÔNG can thiệp gì cả, để trình duyệt tự xử lý cuộn như bình thường.
+  }, {passive:true});
+  scrollEl.addEventListener('touchmove', function(e){
+    if (e.touches.length === 2 && _tkPinchStartDist > 0) {
+      e.preventDefault(); // chỉ chặn hành vi mặc định khi ĐANG chụm 2 ngón để phóng to, không đụng tới cuộn 1 ngón
+      var d = _tkDist(e.touches[0], e.touches[1]);
+      _tkApplyScale(_tkPinchStartScale * d / _tkPinchStartDist);
+    }
+  }, {passive:false});
+  scrollEl.addEventListener('touchend', function(e){
+    if (e.touches.length < 2) _tkPinchStartDist = 0;
+  }, {passive:true});
+}
+// Dựng PDF A4 ĐỨNG từ MẢNG ảnh đã chụp — MỖI PHẦN TỬ = ĐÚNG 1 TRANG PDF (không cắt theo chiều cao cố
+// định như cách cũ), khớp tuyệt đối với 2 trang đã hiện ở bản xem trước. Nếu 1 trang lỡ cao hơn khổ
+// A4 một chút (do font máy mỗi người render hơi khác nhau), tự thu nhỏ vừa khít trang thay vì để tràn
+// lem sang trang sau — ưu tiên giữ đúng ranh giới nội dung theo mẫu gốc hơn là giữ nguyên cỡ chữ.
+function _tkBuildPdfFromCanvases(canvases, cb){
+  ensureJsPDF(function(){
+    var jsPDF = window.jspdf.jsPDF;
+    var pageW = 210, pageH = 297; // A4 ĐỨNG, đơn vị mm
+    var pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    canvases.forEach(function(canvas, i){
+      if (i > 0) pdf.addPage();
+      var imgW = pageW;
+      var imgH = canvas.height * imgW / canvas.width;
+      if (imgH > pageH) { imgH = pageH; imgW = canvas.width * imgH / canvas.height; } // thu nhỏ vừa khít nếu lỡ cao hơn 1 trang
+      var offsetX = (pageW - imgW) / 2;
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', offsetX, 0, imgW, imgH);
+    });
+    cb(pdf);
+  });
+}
+function taiPdfToKhai(){
+  if (!_tkPageCanvases.length) { toast('⏳ Bản xem trước chưa dựng xong, thử lại sau giây lát!'); return; }
+  var btn = document.getElementById('tk-tai-pdf-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Đang tạo PDF...'; }
+  _tkBuildPdfFromCanvases(_tkPageCanvases, function(pdf){
+    pdf.save('ToKhaiTruocBa_' + new Date().toISOString().slice(0,10) + '.pdf');
+    toast('✅ Đã tải file PDF về máy!');
+    if (btn) { btn.disabled = false; btn.textContent = '⬇️ Tải PDF'; }
+  });
+}
+function inToKhaiPdf(){
+  if (!_tkPageCanvases.length) { toast('⏳ Bản xem trước chưa dựng xong, thử lại sau giây lát!'); return; }
+  toast('⏳ Đang mở file PDF để in…');
+  _tkBuildPdfFromCanvases(_tkPageCanvases, function(pdf){
+    var blobUrl = pdf.output('bloburl');
+    window.open(blobUrl, '_blank');
+  });
+}
+function chiaSeToKhai(){
+  if (!_tkPageCanvases.length) { toast('⏳ Bản xem trước chưa dựng xong, thử lại sau giây lát!'); return; }
+  var btn = document.getElementById('tk-chiase-btn');
+  var resetBtn = function(){ if (btn){ btn.disabled=false; btn.textContent='📤 Chia sẻ'; } };
+  if (btn){ btn.disabled = true; btn.textContent = '⏳ Đang chuẩn bị...'; }
+  _tkBuildPdfFromCanvases(_tkPageCanvases, function(pdf){
+    var fileName = 'ToKhaiTruocBa_' + new Date().toISOString().slice(0,10) + '.pdf';
+    var file;
+    try { file = new File([pdf.output('blob')], fileName, { type:'application/pdf' }); } catch(e){ file = null; }
+    if (file && navigator.canShare && navigator.canShare({ files:[file] })) {
+      navigator.share({ files:[file], title:'Tờ khai lệ phí trước bạ', text:'Tờ khai lệ phí trước bạ (Mẫu 01/LPTB)' })
+        .then(resetBtn)
+        .catch(function(e){ resetBtn(); if (e && e.name !== 'AbortError') toast('❌ Không chia sẻ được, hãy thử "Tải PDF" rồi gửi thủ công'); });
+    } else {
+      resetBtn();
+      toast('ℹ️ Thiết bị này chưa hỗ trợ chia sẻ trực tiếp — hãy bấm "⬇️ Tải PDF" rồi tự gửi file');
+    }
+  });
+}
+
+// ═══════════════════════ KHỞI TẠO ═══════════════════════
+document.addEventListener('DOMContentLoaded', function(){
+  renderMain();
+  _capNhatSelectCheDoKhoiDong();
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  }
+});
+</script>
+</body>
+</html>
