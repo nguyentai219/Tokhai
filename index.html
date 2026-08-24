@@ -4,11 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#8a6e2f">
-<title>Sổ Tay Khai Thuế v1.2.2</title>
-<meta name="description" content="Công cụ khai thuế đa tờ khai (Lệ phí trước bạ, TNCN chuyển nhượng BĐS...) - v1.2.2">
+<title>Khai Thuế v1.2.3</title>
+<meta name="description" content="Công cụ khai thuế đa tờ khai (Lệ phí trước bạ, TNCN chuyển nhượng BĐS...) - v1.2.3">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
   :root{
     --gold:#ad8a3d; --gold-dark:#8a6e2f; --gold-light:#f7f1e3;
@@ -220,6 +221,55 @@
     pointer-events:none;transition:opacity .2s, bottom .2s;
   }
   .toast.show{opacity:1;bottom:110px}
+
+  /* ═══ THANH ĐỒNG BỘ ĐÁM MÂY (kiểu app Mua Mủ) ═══ */
+  .gd-bar{
+    background:rgba(255,255,255,.13);border-radius:8px;
+    padding:5px 11px;display:flex;align-items:center;gap:7px;
+    cursor:pointer;border:1px solid rgba(255,255,255,.22);
+    margin:2px 12px 6px;transition:background .15s;
+  }
+  .gd-bar:active{background:rgba(255,255,255,.22)}
+  #gd-bar-ico{font-size:16px;filter:drop-shadow(0 0 3px rgba(255,255,255,.5));display:inline-block;line-height:1;flex:0 0 auto}
+  .gd-name-clip{flex:1;overflow:hidden;position:relative;height:1.5em}
+  .gd-name{font-size:11px;font-weight:600;color:rgba(255,255,255,.9);display:inline-block;white-space:nowrap;position:relative;left:0}
+  .gd-name-synced{color:#86efac}
+  .gd-name-syncing{color:#fde68a}
+  .gd-name-offline{color:#fca5a5}
+  @keyframes khTickerIn{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+  @keyframes gdReloginPulse{0%,100%{opacity:1}50%{opacity:.6}}
+  .gd-bar-relogin{animation:gdReloginPulse 1.6s ease-in-out infinite;cursor:pointer!important}
+
+  /* ═══ MODAL CLOUD ═══ */
+  .modal-cloud{z-index:700}
+  .cloud-form-row{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+  .cloud-form-row label{font-size:11.5px;font-weight:700;color:var(--g600)}
+  .cloud-form-row input{
+    width:100%;border:1px solid var(--g300);border-radius:8px;padding:9px 10px;
+    font-size:14px;color:var(--ink);background:var(--g50);box-sizing:border-box;
+  }
+  .cloud-form-row input:focus{outline:none;border-color:var(--gold);background:#fff}
+  .cloud-form-row .hint{font-size:10.5px;color:var(--g500);line-height:1.4;margin-top:3px}
+  .cloud-info-row{
+    background:var(--g100);border-radius:9px;padding:9px 11px;
+    font-size:12px;color:var(--g700);display:flex;align-items:center;justify-content:space-between;
+    gap:8px;margin-bottom:10px;
+  }
+  .cloud-section-title{font-size:11px;font-weight:800;color:var(--gold-dark);letter-spacing:.3px;
+    margin:14px 0 8px;padding-bottom:6px;border-bottom:1.5px solid var(--g200)}
+  .cloud-status-row{
+    display:flex;align-items:center;gap:6px;font-size:12px;color:var(--g600);
+    margin-bottom:8px;background:var(--g50);border-radius:8px;padding:8px 10px;
+  }
+  .cloud-tab-row{display:flex;gap:6px;margin-bottom:14px}
+  .cloud-tab{flex:1;padding:8px 4px;border-radius:8px;border:1.5px solid var(--g300);background:var(--g50);color:var(--g600);font-size:13px;font-weight:700;cursor:pointer;text-align:center}
+  .cloud-tab.active{background:var(--gold-light);border-color:var(--gold);color:var(--gold-dark)}
+  .cloud-err{font-size:12px;color:var(--red);background:#fff0f0;border-radius:7px;padding:7px 10px;margin-bottom:10px;display:none}
+  .cloud-succ{font-size:12px;color:var(--green,#2ec476);background:#f0fff7;border-radius:7px;padding:7px 10px;margin-bottom:10px;display:none}
+  .btn-cloud-logout{width:100%;padding:10px;border-radius:9px;border:1.5px solid var(--red);background:#fff;color:var(--red);font-size:13px;font-weight:700;cursor:pointer;margin-top:4px}
+  .btn-cloud-login{width:100%;padding:11px;border-radius:9px;border:none;background:var(--gold-dark);color:#fff;font-size:14px;font-weight:700;cursor:pointer}
+  .btn-cloud-action{flex:1;padding:10px 4px;border-radius:9px;border:none;background:var(--gold-dark);color:#fff;font-size:12.5px;font-weight:700;cursor:pointer}
+  .btn-cloud-action.outline{background:#fff;border:1.5px solid var(--gold-dark);color:var(--gold-dark)}
 </style>
 </head>
 <body>
@@ -228,10 +278,15 @@
 <div id="launcher-screen">
   <div class="launcher-header">
     <div>
-      <b>📚 Sổ Tay Khai Thuế</b>
-      <span>Chọn loại tờ khai muốn thực hiện · v1.2.2</span>
+      <b>📚 Khai Thuế</b>
+      <span>Chọn loại tờ khai muốn thực hiện · v1.2.3</span>
     </div>
     <button class="gear-btn" onclick="openGlobalSettings()" title="Cài đặt chung">⚙️</button>
+  </div>
+  <!-- THANH ĐỒNG BỘ ĐÁM MÂY — nhấn để mở menu cloud -->
+  <div class="gd-bar" id="gd-bar-launcher" onclick="openCloudModal()">
+    <span id="gd-bar-ico-launcher">☁️</span>
+    <div class="gd-name-clip"><span class="gd-name gd-name-syncing" id="gd-bar-name-launcher">Đang kiểm tra kết nối…</span></div>
   </div>
   <div class="launcher-wrap">
     <div class="launcher-intro">
@@ -244,18 +299,25 @@
 
 <!-- ═══════════════════ MÀN HÌNH NHẬP LIỆU TỜ KHAI ═══════════════════ -->
 <div id="app-screen" style="display:none">
-<div class="header">
-  <div style="display:flex;gap:6px;flex:0 0 auto">
-    <button class="gear-btn" onclick="goHome()" title="Về danh sách tờ khai">🏠</button>
+<div class="header" style="flex-direction:column;gap:0;padding-bottom:0">
+  <div style="display:flex;width:100%;align-items:center;padding:8px 10px 4px">
+    <div style="display:flex;gap:6px;flex:0 0 auto">
+      <button class="gear-btn" onclick="goHome()" title="Về danh sách tờ khai">🏠</button>
+    </div>
+    <div class="header-title" id="header-title-box" style="flex:1;text-align:center;align-items:center">
+      <b id="header-title-b">📋 Tờ khai</b>
+      <span id="header-title-span">v1.2.3</span>
+    </div>
+    <div style="display:flex;gap:6px;flex:0 0 auto">
+      <button class="gear-btn" onclick="taoToKhaiMoi()" title="Tờ khai mới">➕</button>
+      <button class="gear-btn" onclick="moLichSuToKhai()" title="Lịch sử tờ khai">🕘</button>
+      <button class="gear-btn" id="btn-gear" onclick="openSettings()" title="Chọn mục cần khai">⚙️</button>
+    </div>
   </div>
-  <div class="header-title" id="header-title-box" style="flex:1;text-align:center;align-items:center">
-    <b id="header-title-b">📋 Tờ khai</b>
-    <span id="header-title-span">v1.2.2</span>
-  </div>
-  <div style="display:flex;gap:6px;flex:0 0 auto">
-    <button class="gear-btn" onclick="taoToKhaiMoi()" title="Tờ khai mới">➕</button>
-    <button class="gear-btn" onclick="moLichSuToKhai()" title="Lịch sử tờ khai">🕘</button>
-    <button class="gear-btn" id="btn-gear" onclick="openSettings()" title="Chọn mục cần khai">⚙️</button>
+  <!-- THANH ĐỒNG BỘ ĐÁM MÂY — nhấn để mở menu cloud -->
+  <div class="gd-bar" id="gd-bar-app" onclick="openCloudModal()" style="margin:0 10px 6px">
+    <span id="gd-bar-ico-app">☁️</span>
+    <div class="gd-name-clip"><span class="gd-name gd-name-syncing" id="gd-bar-name-app">Đang kiểm tra kết nối…</span></div>
   </div>
 </div>
 
@@ -315,6 +377,81 @@
     <button onclick="taiPdfToKhai()" id="tk-tai-pdf-btn" style="flex:1.3;padding:12px 2px;background:var(--gold-dark);color:#fff;border:none;border-radius:10px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap">⬇️ Tải PDF</button>
   </div>
 </div>
+<!-- MODAL ĐÁM MÂY / SUPABASE SYNC -->
+<div class="modal modal-cloud" id="modal-cloud">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title">☁️ Đồng bộ đám mây</div>
+
+    <!-- KHI CHƯA CÀI ĐẶT SUPABASE -->
+    <div id="cloud-setup-section">
+      <div class="modal-sub">Nhập thông tin dự án Supabase của bạn để bật tính năng lưu & đồng bộ dữ liệu lên đám mây.</div>
+      <div class="cloud-form-row">
+        <label>Supabase URL</label>
+        <input type="url" id="supa-url-input" placeholder="https://xxxx.supabase.co" autocomplete="off" autocorrect="off" spellcheck="false">
+        <div class="hint">Vào Supabase → Project Settings → API → Project URL</div>
+      </div>
+      <div class="cloud-form-row">
+        <label>Anon / Public Key</label>
+        <input type="text" id="supa-key-input" placeholder="eyJhb..." autocomplete="off" autocorrect="off" spellcheck="false">
+        <div class="hint">Vào Supabase → Project Settings → API → anon public key</div>
+      </div>
+      <div class="cloud-err" id="setup-err"></div>
+      <button class="btn-cloud-login" onclick="saveSupabaseConfig()" style="margin-top:4px">💾 Lưu cấu hình</button>
+      <div style="font-size:11px;color:var(--g500);margin-top:10px;line-height:1.5">
+        Sau khi lưu cấu hình, bạn sẽ đăng ký hoặc đăng nhập tài khoản.<br>
+        Dữ liệu <b>chỉ thuộc về bạn</b> — Supabase Row Level Security (RLS) đảm bảo chỉ đúng tài khoản mới xem được.
+      </div>
+    </div>
+
+    <!-- KHI ĐÃ CÀI ĐẶT, CHƯA ĐĂNG NHẬP -->
+    <div id="cloud-auth-section" style="display:none">
+      <div class="cloud-info-row">
+        <span>🔗 <b id="supa-url-display"></b></span>
+        <button onclick="resetSupabaseConfig()" style="font-size:11px;color:var(--g500);background:none;border:none;cursor:pointer;text-decoration:underline">Đổi</button>
+      </div>
+      <div class="cloud-tab-row">
+        <div class="cloud-tab active" id="tab-login" onclick="switchCloudTab('login')">Đăng nhập</div>
+        <div class="cloud-tab" id="tab-signup" onclick="switchCloudTab('signup')">Tạo tài khoản</div>
+      </div>
+      <div class="cloud-form-row">
+        <label>Email</label>
+        <input type="email" id="auth-email" placeholder="email@example.com" autocomplete="email">
+      </div>
+      <div class="cloud-form-row">
+        <label>Mật khẩu</label>
+        <input type="password" id="auth-password" placeholder="Mật khẩu" autocomplete="current-password">
+      </div>
+      <div class="cloud-err" id="auth-err"></div>
+      <div class="cloud-succ" id="auth-succ"></div>
+      <button class="btn-cloud-login" id="auth-submit-btn" onclick="doAuth()">🔐 Đăng nhập</button>
+    </div>
+
+    <!-- KHI ĐÃ ĐĂNG NHẬP -->
+    <div id="cloud-loggedin-section" style="display:none">
+      <div class="cloud-info-row" style="flex-direction:column;align-items:flex-start;gap:3px">
+        <span style="font-size:11px;color:var(--g500)">Tài khoản đang đăng nhập</span>
+        <b id="cloud-user-email" style="font-size:13px;color:var(--ink);word-break:break-all"></b>
+      </div>
+      <div class="cloud-section-title">Đồng bộ thủ công</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <button class="btn-cloud-action" onclick="cloudPushAll(true)">⬆️ Đẩy lên đám mây</button>
+        <button class="btn-cloud-action outline" onclick="cloudPullAll(true)">⬇️ Kéo về máy</button>
+      </div>
+      <div class="cloud-info-row" style="font-size:11.5px">
+        <span>⏱ Tự động đồng bộ ngầm mỗi <b>15 giây</b> khi không có thao tác nào</span>
+      </div>
+      <div class="cloud-section-title">Lần đồng bộ cuối</div>
+      <div id="cloud-last-sync" style="font-size:12px;color:var(--g600);background:var(--g50);border-radius:8px;padding:8px 10px;margin-bottom:12px">—</div>
+      <button class="btn-cloud-logout" onclick="doLogout()">🚪 Đăng xuất</button>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-huy" onclick="closeM('modal-cloud')" style="flex:none;width:100%">Đóng</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <!-- MODAL LỊCH SỬ TỜ KHAI -->
@@ -1047,7 +1184,7 @@ function openForm(formId){
   valuesMap = lsGetO(K(currentForm.id,'values'));
   tablesState = lsGetO(K(currentForm.id,'tables'));
   document.getElementById('header-title-b').textContent = currentForm.headerTitle;
-  document.getElementById('header-title-span').textContent = 'Mẫu ' + currentForm.mauSo + ' · ' + currentForm.thongTu + ' · v1.2.2';
+  document.getElementById('header-title-span').textContent = 'Mẫu ' + currentForm.mauSo + ' · ' + currentForm.thongTu + ' · v1.2.3';
   document.getElementById('launcher-screen').style.display = 'none';
   document.getElementById('app-screen').style.display = 'block';
   renderMain();
@@ -1756,6 +1893,383 @@ function chiaSeToKhai(){
   });
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// CLOUD SYNC — Supabase Auth + đồng bộ qua bảng `khai_thue_data`
+//
+// SQL tạo bảng (chạy 1 lần trong Supabase SQL Editor):
+//   create table khai_thue_data (
+//     id uuid primary key default gen_random_uuid(),
+//     user_id uuid references auth.users not null,
+//     data_key text not null,
+//     data_val text not null,
+//     updated_at timestamptz default now(),
+//     unique(user_id, data_key)
+//   );
+//   alter table khai_thue_data enable row level security;
+//   create policy "user own data" on khai_thue_data
+//     for all using (auth.uid() = user_id)
+//     with check (auth.uid() = user_id);
+// ═══════════════════════════════════════════════════════════════════════════
+
+var _supa = null;
+var _supaUser = null;
+var _cloudBusy = false;
+var _cloudAutoTimer = null;
+var _lastUserAction = Date.now();
+var _cloudAuthTab = 'login';
+var _lastSyncAt = null;
+// Trạng thái thanh — luôn lưu để _notifyTick dùng đúng nội dung mới nhất khi tới lượt
+var _gdBarConnStatus = { msg: 'Đang kiểm tra kết nối…', cls: 'syncing' };
+var _gdBarFirstShown = false; // updGDBarStatus chỉ hiện trực tiếp lên thanh ĐÚNG 1 LẦN (lần mở app)
+
+var LS_SUPA_URL = 'kt_supa_url';
+var LS_SUPA_KEY = 'kt_supa_key';
+var LS_CLOUD_LAST_SYNC = 'kt_cloud_last_sync';
+
+// ── Khởi tạo Supabase client ──
+function _initSupabase(){
+  var url = localStorage.getItem(LS_SUPA_URL);
+  var key = localStorage.getItem(LS_SUPA_KEY);
+  if (!url || !key){ _supa = null; return false; }
+  try {
+    _supa = window.supabase.createClient(url, key, {
+      auth:{ persistSession:true, autoRefreshToken:true, detectSessionInUrl:false }
+    });
+    return true;
+  } catch(e){ _supa = null; return false; }
+}
+
+// ── Lấy tất cả key localStorage thuộc app ──
+function _getAllAppKeys(){
+  var keys = [];
+  for (var i = 0; i < localStorage.length; i++){
+    var k = localStorage.key(i);
+    if (k && (k.startsWith('tk2_') || k === LS_STARTUP_MODE)) keys.push(k);
+  }
+  return keys;
+}
+
+// ── Đẩy toàn bộ lên Supabase (upsert) ──
+async function cloudPushAll(showFeedback){
+  if (!_supa || !_supaUser || _cloudBusy) return;
+  _cloudBusy = true;
+  updGDBarStatus('🔄 Đang đồng bộ lên đám mây…', 'syncing');
+  try {
+    var keys = _getAllAppKeys();
+    if (keys.length){
+      var rows = keys.map(function(k){
+        return { user_id:_supaUser.id, data_key:k, data_val:localStorage.getItem(k)||'', updated_at:new Date().toISOString() };
+      });
+      for (var i = 0; i < rows.length; i += 50){
+        var batch = rows.slice(i, i + 50);
+        var res = await _supa.from('khai_thue_data').upsert(batch, { onConflict:'user_id,data_key' });
+        if (res.error) throw res.error;
+      }
+    }
+    var now = new Date().toISOString();
+    localStorage.setItem(LS_CLOUD_LAST_SYNC, now);
+    updGDBarStatus('Đã kết nối', 'synced');
+    if (showFeedback) toast('☁️ Đã đẩy dữ liệu lên đám mây!');
+  } catch(e){
+    updGDBarStatus('Lỗi đồng bộ', 'offline');
+    if (showFeedback) toast('❌ Lỗi đẩy lên đám mây: ' + (e.message || e));
+  }
+  _cloudBusy = false;
+}
+
+// ── Kéo dữ liệu từ Supabase về local ──
+async function cloudPullAll(showFeedback){
+  if (!_supa || !_supaUser || _cloudBusy) return;
+  _cloudBusy = true;
+  updGDBarStatus('🔄 Đang kéo từ đám mây…', 'syncing');
+  try {
+    var res = await _supa.from('khai_thue_data').select('data_key,data_val').eq('user_id',_supaUser.id);
+    if (res.error) throw res.error;
+    (res.data||[]).forEach(function(r){
+      if (r.data_key && r.data_val != null) localStorage.setItem(r.data_key, r.data_val);
+    });
+    // Cập nhật state đang mở (không reload trang)
+    if (currentForm){
+      checkedMap = lsGetO(K(currentForm.id,'checked'));
+      valuesMap  = lsGetO(K(currentForm.id,'values'));
+      tablesState = lsGetO(K(currentForm.id,'tables'));
+      renderMain();
+    }
+    localStorage.setItem(LS_CLOUD_LAST_SYNC, new Date().toISOString());
+    updGDBarStatus('Đã kết nối', 'synced');
+    if (showFeedback) toast('☁️ Đã kéo dữ liệu từ đám mây về máy!');
+  } catch(e){
+    updGDBarStatus('Lỗi đồng bộ', 'offline');
+    if (showFeedback) toast('❌ Lỗi kéo từ đám mây: ' + (e.message || e));
+  }
+  _cloudBusy = false;
+}
+
+// ── Auto-sync 15s (chỉ khi idle ≥ 15s, ngầm, không toast) ──
+function _startAutoSync(){
+  if (_cloudAutoTimer) clearInterval(_cloudAutoTimer);
+  _cloudAutoTimer = setInterval(function(){
+    if (!_supa || !_supaUser || _cloudBusy) return;
+    if ((Date.now() - _lastUserAction) >= 15000) cloudPushAll(false);
+  }, 15000);
+}
+function _stopAutoSync(){
+  if (_cloudAutoTimer){ clearInterval(_cloudAutoTimer); _cloudAutoTimer = null; }
+}
+function _markUserAction(){ _lastUserAction = Date.now(); }
+
+// ── updGDBarStatus: cập nhật trạng thái thanh ──
+// Chỉ hiện trực tiếp lên thanh 1 lần duy nhất (lần đầu mở app).
+// Các lần sau chỉ lưu vào _gdBarConnStatus để _notifyTick dùng đúng lúc.
+function updGDBarStatus(msg, cls){
+  var out;
+  if (cls === 'synced'){
+    _lastSyncAt = new Date();
+    var d = _lastSyncAt;
+    var ts = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0') + ':' + String(d.getSeconds()).padStart(2,'0')
+           + ' ngày ' + String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0');
+    out = '✅ Đã kết nối - cập nhật lúc ' + ts;
+  } else if (cls === 'offline'){
+    var isErr = /lỗi/i.test(msg||'');
+    out = isErr ? '❌ ' + msg : '⚠️ Mất kết nối';
+  } else {
+    out = msg;
+  }
+  _gdBarConnStatus = { msg: out, cls: cls };
+  if (!_gdBarFirstShown){
+    _gdBarFirstShown = true;
+    _applyBarUI('☁️', out, cls);
+  }
+}
+
+// ── Áp style trực tiếp lên CẢ 2 thanh (launcher + app-screen) ──
+function _applyBarUI(icon, text, cls){
+  ['launcher','app'].forEach(function(sc){
+    var ico = document.getElementById('gd-bar-ico-' + sc);
+    var nm  = document.getElementById('gd-bar-name-' + sc);
+    if (!nm) return;
+    if (icon && ico) ico.textContent = icon;
+    nm.className = 'gd-name gd-name-' + cls;
+    nm.style.animation = 'none';
+    void nm.offsetWidth;
+    nm.style.animation = 'khTickerIn .35s ease';
+    nm.textContent = text;
+  });
+}
+
+// ── _notifyTick: xoay nội dung trên thanh (slide kết nối + mở rộng sau) ──
+var _notifyTimer = null;
+var _notifySlideIdx = -1;
+function _notifyBuildSlides(){
+  return [_gdBarConnStatus]; // hiện tại 1 slide; có thể thêm thông báo khác sau
+}
+function _notifyShowContent(icon, text, cls){
+  ['launcher','app'].forEach(function(sc){
+    var ico = document.getElementById('gd-bar-ico-' + sc);
+    var nm  = document.getElementById('gd-bar-name-' + sc);
+    var clip = nm ? nm.parentElement : null;
+    if (!nm || !clip) return;
+    if (_notifyTimer){ clearTimeout(_notifyTimer); _notifyTimer = null; }
+    if (icon && ico) ico.textContent = icon;
+    nm.className = 'gd-name gd-name-' + cls;
+    nm.style.transition = 'none';
+    nm.style.transform  = 'translateX(0)';
+    nm.textContent = text;
+    nm.style.animation = 'none';
+    void nm.offsetWidth;
+    nm.style.animation = 'khTickerIn .35s ease';
+    var NORMAL_MS = 10000, ERROR_MS = 15000, MAX_MS = 30000, START_PAUSE = 500, END_PAUSE = 5000;
+    var baseMs = (cls === 'offline') ? ERROR_MS : NORMAL_MS;
+    requestAnimationFrame(function(){
+      var overflow = nm.scrollWidth - clip.clientWidth;
+      if (overflow > 10){
+        var dist = overflow + 6;
+        var scrollMs = Math.min(Math.max(dist * 28, 2500), MAX_MS - START_PAUSE - END_PAUSE);
+        setTimeout(function(){
+          nm.style.transition = 'transform ' + (scrollMs/1000).toFixed(2) + 's linear';
+          nm.style.transform  = 'translateX(-' + dist + 'px)';
+        }, START_PAUSE);
+        _notifyTimer = setTimeout(_notifyTick, Math.min(START_PAUSE + scrollMs + END_PAUSE, MAX_MS));
+      } else {
+        _notifyTimer = setTimeout(_notifyTick, baseMs);
+      }
+    });
+  });
+}
+function _notifyTick(){
+  try {
+    var slides = _notifyBuildSlides();
+    if (!slides.length) return;
+    _notifySlideIdx = (_notifySlideIdx + 1) % slides.length;
+    var s = slides[_notifySlideIdx];
+    _notifyShowContent('☁️', s.msg, s.cls);
+  } catch(e){
+    _notifyTimer = setTimeout(_notifyTick, 10000);
+  }
+}
+// Canh gác: cứ 45s kiểm tra xem timer còn sống không
+setInterval(function(){ if (!_notifyTimer) _notifyTick(); }, 45000);
+// Khi app trở lại foreground: refresh ngay
+document.addEventListener('visibilitychange', function(){
+  if (document.visibilityState === 'visible'){
+    if (_notifyTimer){ clearTimeout(_notifyTimer); _notifyTimer = null; }
+    _notifySlideIdx = -1;
+    _notifyTick();
+  }
+});
+
+// ── Mở modal Cloud ──
+function openCloudModal(){
+  var hasConfig = !!localStorage.getItem(LS_SUPA_URL);
+  document.getElementById('cloud-setup-section').style.display  = hasConfig ? 'none' : '';
+  document.getElementById('cloud-auth-section').style.display   = (hasConfig && !_supaUser) ? '' : 'none';
+  document.getElementById('cloud-loggedin-section').style.display = _supaUser ? '' : 'none';
+  if (hasConfig){
+    var u = localStorage.getItem(LS_SUPA_URL)||'';
+    var el = document.getElementById('supa-url-display');
+    if (el) el.textContent = u.replace('https://','').split('.supabase.co')[0] + '.supabase.co';
+  }
+  if (_supaUser){
+    var em = document.getElementById('cloud-user-email');
+    if (em) em.textContent = _supaUser.email || _supaUser.id;
+    _updateLastSyncDisplay();
+  }
+  _clearCloudMsg();
+  openM('modal-cloud');
+}
+function _updateLastSyncDisplay(){
+  var el = document.getElementById('cloud-last-sync');
+  if (!el) return;
+  var iso = localStorage.getItem(LS_CLOUD_LAST_SYNC);
+  if (!iso){ el.textContent = '—'; return; }
+  try {
+    var d = new Date(iso);
+    el.textContent = d.toLocaleString('vi-VN',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit',day:'2-digit',month:'2-digit',year:'numeric'});
+  } catch(e){ el.textContent = iso; }
+}
+function _clearCloudMsg(){
+  ['setup-err','auth-err','auth-succ'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el){ el.style.display='none'; el.textContent=''; }
+  });
+}
+function _showCloudErr(id, msg){ var el=document.getElementById(id); if(el){el.textContent=msg;el.style.display='';} }
+function _showCloudSucc(id, msg){ var el=document.getElementById(id); if(el){el.textContent=msg;el.style.display='';} }
+
+// ── Lưu cấu hình Supabase ──
+function saveSupabaseConfig(){
+  var url = (document.getElementById('supa-url-input').value||'').trim().replace(/\/+$/,'');
+  var key = (document.getElementById('supa-key-input').value||'').trim();
+  if (!url || !url.startsWith('http')){ _showCloudErr('setup-err','URL không hợp lệ (phải bắt đầu bằng https://)'); return; }
+  if (!key || key.length < 20){ _showCloudErr('setup-err','Key quá ngắn — kiểm tra lại anon public key'); return; }
+  localStorage.setItem(LS_SUPA_URL, url);
+  localStorage.setItem(LS_SUPA_KEY, key);
+  if (!_initSupabase()){ _showCloudErr('setup-err','Không khởi tạo được Supabase — kiểm tra URL/Key'); return; }
+  _clearCloudMsg();
+  document.getElementById('cloud-setup-section').style.display = 'none';
+  document.getElementById('cloud-auth-section').style.display  = '';
+  var el = document.getElementById('supa-url-display');
+  if (el) el.textContent = url.replace('https://','').split('.supabase.co')[0] + '.supabase.co';
+  updGDBarStatus('Chưa đăng nhập','offline');
+}
+function resetSupabaseConfig(){
+  showConfirm('🔧 Đổi cấu hình Supabase','Xoá cấu hình URL / Key hiện tại?',function(){
+    localStorage.removeItem(LS_SUPA_URL); localStorage.removeItem(LS_SUPA_KEY);
+    _supa = null; _supaUser = null; _stopAutoSync();
+    document.getElementById('cloud-setup-section').style.display    = '';
+    document.getElementById('cloud-auth-section').style.display     = 'none';
+    document.getElementById('cloud-loggedin-section').style.display = 'none';
+    updGDBarStatus('Chưa cấu hình đám mây','offline');
+  },'Xoá',true);
+}
+
+// ── Tab đăng nhập / tạo tài khoản ──
+function switchCloudTab(tab){
+  _cloudAuthTab = tab;
+  document.getElementById('tab-login').classList.toggle('active',  tab==='login');
+  document.getElementById('tab-signup').classList.toggle('active', tab==='signup');
+  var btn = document.getElementById('auth-submit-btn');
+  if (btn) btn.textContent = tab==='login' ? '🔐 Đăng nhập' : '📝 Tạo tài khoản';
+  _clearCloudMsg();
+}
+
+// ── Đăng nhập / Đăng ký ──
+async function doAuth(){
+  if (!_supa){ toast('Chưa có cấu hình Supabase'); return; }
+  var email = (document.getElementById('auth-email').value||'').trim();
+  var pass  = (document.getElementById('auth-password').value||'').trim();
+  if (!email||!email.includes('@')){ _showCloudErr('auth-err','Email không hợp lệ'); return; }
+  if (!pass||pass.length<6){ _showCloudErr('auth-err','Mật khẩu tối thiểu 6 ký tự'); return; }
+  var btn = document.getElementById('auth-submit-btn');
+  if (btn){ btn.disabled=true; btn.textContent='⏳ Đang xử lý…'; }
+  _clearCloudMsg();
+  updGDBarStatus('⏳ Đang đăng nhập…','syncing');
+  try {
+    var res;
+    if (_cloudAuthTab === 'signup'){
+      res = await _supa.auth.signUp({ email:email, password:pass });
+      if (res.error) throw res.error;
+      if (res.data && res.data.user && !res.data.session){
+        _showCloudSucc('auth-succ','📧 Kiểm tra email để xác nhận tài khoản, rồi đăng nhập lại.');
+        if (btn){ btn.disabled=false; btn.textContent='📝 Tạo tài khoản'; }
+        updGDBarStatus('Chờ xác nhận email','syncing');
+        return;
+      }
+    } else {
+      res = await _supa.auth.signInWithPassword({ email:email, password:pass });
+      if (res.error) throw res.error;
+    }
+    _supaUser = (res.data && res.data.user) || (res.data && res.data.session && res.data.session.user);
+    if (!_supaUser) throw new Error('Không lấy được thông tin tài khoản');
+    closeM('modal-cloud');
+    toast('✅ Đăng nhập thành công! Đang đồng bộ…');
+    updGDBarStatus('Đã kết nối','synced');
+    _startAutoSync();
+    await cloudPullAll(false);
+    await cloudPushAll(false);
+    toast('☁️ Đồng bộ hoàn tất!');
+  } catch(e){
+    _showCloudErr('auth-err', e.message || 'Lỗi đăng nhập — kiểm tra email/mật khẩu');
+    updGDBarStatus('Chưa đăng nhập','offline');
+    if (btn){ btn.disabled=false; btn.textContent=(_cloudAuthTab==='login'?'🔐 Đăng nhập':'📝 Tạo tài khoản'); }
+  }
+}
+
+// ── Đăng xuất ──
+async function doLogout(){
+  showConfirm('🚪 Đăng xuất','Đăng xuất khỏi tài khoản đám mây?', async function(){
+    _stopAutoSync();
+    if (_supa) await _supa.auth.signOut().catch(function(){});
+    _supaUser = null;
+    updGDBarStatus('Chưa đăng nhập','offline');
+    closeM('modal-cloud');
+    toast('Đã đăng xuất khỏi đám mây');
+  },'Đăng xuất',true);
+}
+
+// ── Hook: đẩy cloud sau mỗi lần luuLichSu ──
+(function _hookCloudPush(){
+  var _orig = luuLichSu;
+  luuLichSu = function(){
+    _orig.apply(this, arguments);
+    _markUserAction();
+    if (_supaUser && _supa && !_cloudBusy) setTimeout(function(){ cloudPushAll(false); }, 300);
+  };
+})();
+
+// ── Đẩy khi trang bị đóng / ẩn ──
+window.addEventListener('visibilitychange', function(){
+  if (document.visibilityState === 'hidden' && _supaUser && _supa && !_cloudBusy) cloudPushAll(false);
+});
+window.addEventListener('pagehide', function(){
+  if (_supaUser && _supa && !_cloudBusy) cloudPushAll(false);
+});
+
+// ── Ghi nhận hành động người dùng ──
+document.addEventListener('touchstart', _markUserAction, { passive:true });
+document.addEventListener('mousedown',  _markUserAction);
+document.addEventListener('keydown',    _markUserAction);
+
 // ═══════════════════════ KHỞI TẠO ═══════════════════════
 document.addEventListener('DOMContentLoaded', function(){
   renderLauncher();
@@ -1764,6 +2278,32 @@ document.addEventListener('DOMContentLoaded', function(){
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(function(){});
   }
+
+  // ── Khởi tạo cloud sync ──
+  var hasConfig = _initSupabase();
+  if (!hasConfig){
+    // Chưa cấu hình → hiện ngay trạng thái offline
+    updGDBarStatus('Nhấn để bật đồng bộ đám mây', 'offline');
+  } else {
+    // Đã có config → thử lấy session đang lưu
+    _supa.auth.getSession().then(function(result){
+      var session = result && result.data && result.data.session;
+      if (session && session.user){
+        _supaUser = session.user;
+        updGDBarStatus('Đã kết nối', 'synced');
+        _startAutoSync();
+        // Kéo cloud về ngầm sau 1.5s (đợi renderMain xong)
+        setTimeout(function(){ cloudPullAll(false); }, 1500);
+      } else {
+        updGDBarStatus('Chưa đăng nhập — nhấn để đăng nhập', 'offline');
+      }
+    }).catch(function(){
+      updGDBarStatus('Không kết nối được đám mây', 'offline');
+    });
+  }
+
+  // Bắt đầu vòng xoay slide sau 10 giây
+  _notifyTimer = setTimeout(_notifyTick, 10000);
 });
 </script>
 </body>

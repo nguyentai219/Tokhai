@@ -1,4 +1,4 @@
-const CACHE = 'so-tay-khai-thue-v1.2.2';
+const CACHE = 'khai-thue-v1.2.3';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', function(e){
@@ -17,6 +17,8 @@ self.addEventListener('activate', function(e){
 // Cache-first, tự cập nhật cache ngầm khi có bản mới (stale-while-revalidate đơn giản)
 self.addEventListener('fetch', function(e){
   if (e.request.method !== 'GET') return;
+  // Không cache các request đến Supabase API
+  if (e.request.url.includes('supabase.co')) return;
   e.respondWith(
     caches.match(e.request).then(function(cached){
       var fetchPromise = fetch(e.request).then(function(res){
