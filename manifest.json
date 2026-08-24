@@ -1,7 +1,7 @@
 {
   "name": "Sổ Tay Khai Thuế",
   "short_name": "Sổ Tay Khai Thuế",
-  "description": "Công cụ khai thuế đa tờ khai (Lệ phí trước bạ, TNCN chuyển nhượng BĐS...) - v1.2.1",
+  "description": "Công cụ khai thuế đa tờ khai (Lệ phí trước bạ, TNCN chuyển nhượng BĐS...) - v1.2.2",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

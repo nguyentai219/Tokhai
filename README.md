@@ -2,11 +2,13 @@
 
 Công cụ web đơn file (HTML/CSS/JS thuần, không framework) giúp nhập liệu nhanh
 **nhiều loại tờ khai thuế** — chỉ hiện đúng các mục cần khai cho từng lần, tự nhớ
-dữ liệu, và xuất/in ra bản tờ khai đã điền. Hiện có 2 loại tờ khai:
+dữ liệu, và xuất/in ra bản tờ khai đã điền. Hiện có 3 loại tờ khai:
 
 - **📋 Tờ khai lệ phí trước bạ** (Mẫu 01/LPTB, TT80/2021/TT-BTC) — áp dụng với nhà, đất
 - **💰 Tờ khai thuế TNCN chuyển nhượng bất động sản** (Mẫu 03/BĐS-TNCN, TT80/2021/TT-BTC)
   — áp dụng với chuyển nhượng, nhận thừa kế, nhận quà tặng là bất động sản
+- **🏞️ Tờ khai tiền sử dụng đất** (Mẫu 01/TSDĐ, TT156/2013/TT-BTC) — kê khai tiền sử
+  dụng đất phải nộp khi được giao đất, công nhận quyền sử dụng đất, chuyển mục đích sử dụng đất
 
 Mở app lên sẽ luôn thấy **màn hình chọn loại tờ khai** trước tiên; chọn vào 1 loại
 sẽ vào màn hình nhập liệu riêng của loại đó.
@@ -162,7 +164,7 @@ riêng (namespace theo `form.id`, hàm `K(formId, tên)`), không lẫn vào nha
 1 cài đặt DUY NHẤT dùng chung cho mọi loại là "Khi chọn 1 tờ khai" (mở lại cũ/mới).
 
 Muốn thêm 1 loại tờ khai mới: tạo 1 `SCHEMA_...` + các hàm `xayHtml..Trang..()` theo
-đúng khuôn mẫu 2 tờ khai đã có, rồi thêm 1 phần tử vào `FORM_DEFS`.
+đúng khuôn mẫu các tờ khai đã có, rồi thêm 1 phần tử vào `FORM_DEFS`.
 
 Đây vẫn là kỹ thuật **"Master Data theo mục có thể bật/tắt"** (schema-driven form
 với field-level visibility toggle + tự nhớ dữ liệu qua localStorage) như bản gốc,
@@ -192,6 +194,7 @@ số riêng lẻ như trước. Từ v1.1.0, mỗi số phiên bản phản ánh
 
 | Phiên bản | Ngày | Thay đổi |
 |-----------|------|----------|
+| **v1.2.2** | 2026-08-24 | ✨ Thêm loại tờ khai mới **🏞️ Tờ khai tiền sử dụng đất (Mẫu 01/TSDĐ, TT156/2013/TT-BTC)** vào danh sách chọn ở màn hình khởi động — đầy đủ mục [01]-[03] và 1-6 theo đúng mẫu gốc (thông tin người SDĐ & đại lý thuế, giấy tờ về quyền SDĐ, đặc điểm thửa đất, diện tích nộp tiền SDĐ theo từng loại đất, các khoản giảm trừ/miễn giảm), áp dụng đúng cơ chế chung của app: tick chọn mục cần khai, tự nhớ dữ liệu, mục tiền tệ tự có dấu chấm phân cách, tự động đề xuất khi gõ, lịch sử tờ khai và xuất/in PDF riêng biệt, không lẫn với 2 tờ khai đã có |
 | **v1.2.1** | 2026-08-24 | 🚀✨ **Chuyển sang kiến trúc ĐA TỜ KHAI**: (1) Đổi tên app thành "Sổ Tay Khai Thuế", **icon mới**, màn hình khởi động giờ là **danh sách chọn loại tờ khai** (hiện có Tờ khai lệ phí trước bạ + **Tờ khai thuế TNCN chuyển nhượng bất động sản — Mẫu 03/BĐS-TNCN mới thêm**, đầy đủ mục [01]-[51] + VII, tự động tính thuế TNCN phát sinh/được miễn/phải nộp theo đúng công thức, có autocomplete/lịch sử/xuất PDF y hệt tờ khai trước bạ). Mỗi loại tờ khai có dữ liệu, lịch sử, cấu hình mục hoàn toàn riêng biệt (namespace theo `localStorage`), dữ liệu cũ tự động di trú không mất. (2) Nút **🖨️ In/Xuất** chuyển xuống cuối tờ khai (không còn nổi cố định) + thêm nút **💾 Lưu** để chủ động chốt 1 bản vào Lịch sử mà không cần mở bản xem trước. (3) Các mục tiền tệ (VD mục 1.7, 2.4, 3, [45], [47]...) tự thêm **dấu chấm phân cách hàng nghìn** khi gõ, in ra cũng định dạng lại cho dễ đọc. (4) **Tách bạch "⚙️ Cài đặt chung"** (chế độ mở lại/mở mới, dùng chung mọi tờ khai, ở màn hình danh sách) **khỏi "⚙️ Chọn mục cần khai"** (riêng từng tờ khai) — bỏ nút "Bỏ chọn tất cả"; nút Đóng/Huỷ/Đồng ý ở MỌI modal trong app không còn nổi cố định ở đáy nữa, nằm trong luồng nội dung, kéo hết mới thấy |
 | **v1.2.0** | 2026-08-23 | 🐛✨ (1) **Sửa lỗi mất góc dưới trang khi xem trước** — nguyên nhân do khung xem trước dùng kéo (pan) tự chế bằng transform + chặn hẳn cuộn mặc định (`touch-action:none`), khiến phần cuối trang 2 (bảng đồng sở hữu, mục 6, chữ ký) vượt quá khung nhìn không thể chạm tới bằng thao tác cuộn thông thường; đã đổi sang **cuộn tự nhiên** của trình duyệt (vuốt 1 ngón cuộn bình thường), chỉ can thiệp khi chụm đúng 2 ngón để phóng to/thu nhỏ. (2) **Chuyển dropdown "Khi mở lại ứng dụng" vào trong ⚙️ Cài đặt**, đặt ngay trên đầu (trước đây tách riêng thành 1 thanh ngang dưới header). (3) **"➕ Tờ khai mới" giờ CHỈ xoá dữ liệu đã nhập, GIỮ NGUYÊN các mục đang tick chọn** ở Cài đặt (trước đây lỡ xoá luôn cả mục đã chọn) — các mục chỉ mất khi tự tay bỏ tick trong Cài đặt; áp dụng logic này cho cả chế độ khởi động "Mở tờ khai mới". (4) **Thay toàn bộ hộp thoại `confirm()` mặc định của trình duyệt bằng popup xác nhận riêng của app** — đẹp hơn, đồng bộ giao diện, không còn hộp thoại trắng đơn điệu của hệ thống |
 | **v1.1.0** | 2026-08-22 | ✨ (1) Chọn "Mở lại tờ khai cũ / Mở tờ khai mới" dạng dropdown ngay trên đầu trang, tự nhớ lựa chọn. (2) 2 nút mới cạnh icon ⚙️: "➕ Tờ khai mới" và "🕘 Lịch sử tờ khai" (xem nhanh từ màn hình chính). (3) Tự động đề xuất khi gõ cho các trường nhập chữ ở "Thông tin người nộp thuế" và "Đặc điểm nhà, đất" — gợi ý lấy từ Lịch sử, giống kiểu chọn nhanh tên khách hàng ở app Mua Bán Mủ Cao Su |

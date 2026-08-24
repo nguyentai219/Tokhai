@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#8a6e2f">
-<title>Sổ Tay Khai Thuế v1.2.1</title>
-<meta name="description" content="Công cụ khai thuế đa tờ khai (Lệ phí trước bạ, TNCN chuyển nhượng BĐS...) - v1.2.1">
+<title>Sổ Tay Khai Thuế v1.2.2</title>
+<meta name="description" content="Công cụ khai thuế đa tờ khai (Lệ phí trước bạ, TNCN chuyển nhượng BĐS...) - v1.2.2">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -229,7 +229,7 @@
   <div class="launcher-header">
     <div>
       <b>📚 Sổ Tay Khai Thuế</b>
-      <span>Chọn loại tờ khai muốn thực hiện · v1.2.1</span>
+      <span>Chọn loại tờ khai muốn thực hiện · v1.2.2</span>
     </div>
     <button class="gear-btn" onclick="openGlobalSettings()" title="Cài đặt chung">⚙️</button>
   </div>
@@ -250,7 +250,7 @@
   </div>
   <div class="header-title" id="header-title-box" style="flex:1;text-align:center;align-items:center">
     <b id="header-title-b">📋 Tờ khai</b>
-    <span id="header-title-span">v1.2.1</span>
+    <span id="header-title-span">v1.2.2</span>
   </div>
   <div style="display:flex;gap:6px;flex:0 0 auto">
     <button class="gear-btn" onclick="taoToKhaiMoi()" title="Tờ khai mới">➕</button>
@@ -839,6 +839,125 @@ function xayHtmlTncnTrang4(){
   return html;
 }
 
+// ═══════════════════════ SCHEMA: TỜ KHAI TIỀN SỬ DỤNG ĐẤT (Mẫu 01/TSDĐ) ═══════════════════
+const SCHEMA_TSDD = [
+  // ===== 1. THÔNG TIN NGƯỜI SỬ DỤNG ĐẤT & ĐẠI LÝ THUẾ =====
+  { id:'d01', section:'A', ma:'[01]', label:'Kỳ tính thuế (ngày phát sinh)', type:'date' },
+  { id:'d0203', section:'A', ma:'[02]/[03]', label:'Loại tờ khai', type:'choice',
+    options:[{v:'dau',label:'Lần đầu'},{v:'bosung',label:'Bổ sung lần thứ',hasExtra:true,extraLabel:'Lần thứ mấy',extraType:'number'}] },
+  { id:'d1', section:'A', ma:'1', label:'Tên tổ chức, cá nhân sử dụng đất (SDĐ)', type:'text' },
+  { id:'d11', section:'A', ma:'1.1', label:'Địa chỉ gửi thông báo nộp tiền SDĐ', type:'text' },
+  { id:'d12', section:'A', ma:'1.2', label:'Điện thoại liên hệ / Fax / Email (người SDĐ)', type:'multi',
+    subs:[{k:'dienthoai',label:'Điện thoại liên hệ (nếu có)'},{k:'fax',label:'Fax'},{k:'email',label:'Email'}] },
+  { id:'d13', section:'A', ma:'1.3', label:'Đại lý thuế (nếu có)', type:'text' },
+  { id:'d14', section:'A', ma:'1.4', label:'Mã số thuế (đại lý thuế)', type:'text' },
+  { id:'d15', section:'A', ma:'1.5', label:'Địa chỉ (đại lý thuế)', type:'text' },
+  { id:'d16', section:'A', ma:'1.6', label:'Quận/huyện / Tỉnh/Thành phố (đại lý thuế)', type:'multi',
+    subs:[{k:'quanhuyen',label:'Quận/huyện'},{k:'tinh',label:'Tỉnh/Thành phố'}] },
+  { id:'d17', section:'A', ma:'1.7', label:'Điện thoại / Fax / Email (đại lý thuế)', type:'multi',
+    subs:[{k:'dienthoai',label:'Điện thoại'},{k:'fax',label:'Fax'},{k:'email',label:'Email'}] },
+  { id:'d18', section:'A', ma:'1.8', label:'Hợp đồng đại lý thuế: Số / Ngày', type:'multi',
+    subs:[{k:'so',label:'Số hợp đồng'},{k:'ngay',label:'Ngày ký hợp đồng',type:'date'}] },
+
+  // ===== 2-3. GIẤY TỜ VỀ QUYỀN SDĐ & ĐẶC ĐIỂM THỬA ĐẤT =====
+  { id:'d2', section:'B', ma:'2', label:'Giấy tờ về quyền SDĐ (quy định tại khoản 1, 2 và 5 Điều 50 Luật Đất đai), gồm', type:'textarea' },
+  { id:'d31', section:'B', ma:'3.1', label:'Địa chỉ thửa đất (mô tả chung)', type:'text' },
+  { id:'d31b', section:'B', ma:'3.1', label:'Số nhà / Ngõ (ngách, hẻm...) / Đường phố / Phường (xã, thị trấn) / Quận (huyện) / Tỉnh (Thành phố)', type:'multi',
+    subs:[{k:'sonha',label:'Số nhà'},{k:'ngo',label:'Ngõ (ngách, hẻm...)'},{k:'duongpho',label:'Đường phố'},
+          {k:'phuongxa',label:'Phường (xã, thị trấn)'},{k:'quanhuyen',label:'Quận (huyện)'},{k:'tinh',label:'Tỉnh (Thành phố)'}] },
+  { id:'d32', section:'B', ma:'3.2', label:'Vị trí thửa đất (mặt tiền đường phố hay ngõ, hẻm)', type:'text' },
+  { id:'d33', section:'B', ma:'3.3', label:'Loại đất trước khi chuyển mục đích sử dụng', type:'text' },
+  { id:'d34', section:'B', ma:'3.4', label:'Loại đất sau khi chuyển mục đích sử dụng', type:'text' },
+  { id:'d35', section:'B', ma:'3.5', label:'Thời điểm được quyền sử dụng đất', type:'date' },
+  { id:'d36', section:'B', ma:'3.6', label:'Nguồn gốc sử dụng đất', type:'text' },
+
+  // ===== 4. DIỆN TÍCH NỘP TIỀN SỬ DỤNG ĐẤT =====
+  { id:'d4', section:'C', ma:'4', label:'Diện tích nộp tiền sử dụng đất (m²)', type:'number' },
+  { id:'d41a', section:'C', ma:'4.1.a', label:'Đất ở tại nông thôn - Trong hạn mức giao đất ở (m²)', type:'number' },
+  { id:'d41a2', section:'C', ma:'4.1.a', label:'Trong đó: Diện tích trong hạn mức giao đất ở lựa chọn tính giá UBND cấp tỉnh quy định (nếu có, m²)', type:'number' },
+  { id:'d41b', section:'C', ma:'4.1.b', label:'Đất ở tại nông thôn - Ngoài hạn mức giao đất ở (m²)', type:'number' },
+  { id:'d42a', section:'C', ma:'4.2.a', label:'Đất ở tại đô thị - Diện tích sử dụng riêng (m²)', type:'number' },
+  { id:'d42a2', section:'C', ma:'4.2.a', label:'Trong đó: Diện tích trong hạn mức giao đất ở lựa chọn tính giá UBND cấp tỉnh quy định (nếu có, m²)', type:'number' },
+  { id:'d42b', section:'C', ma:'4.2.b', label:'Đất ở tại đô thị - Diện tích sử dụng chung (m²)', type:'number' },
+  { id:'d43', section:'C', ma:'4.3', label:'Diện tích đất sản xuất, kinh doanh, dịch vụ (m²)', type:'number' },
+  { id:'d44', section:'C', ma:'4.4', label:'Diện tích đất sản xuất nông nghiệp, lâm nghiệp, nuôi trồng thuỷ sản, làm muối (m²)', type:'number' },
+
+  // ===== 5-6. GIẢM TRỪ, MIỄN GIẢM TIỀN SDĐ =====
+  { id:'d51', section:'D', ma:'5.1', label:'Số tiền thực tế bồi thường thiệt hại, hỗ trợ về đất (đồng)', type:'number', money:true },
+  { id:'d52', section:'D', ma:'5.2', label:'Số tiền sử dụng đất, thuê đất đã nộp trước (nếu có, đồng)', type:'number', money:true },
+  { id:'d53', section:'D', ma:'5.3', label:'Miễn, giảm tiền sử dụng đất (ghi rõ căn cứ văn bản quy phạm pháp luật áp dụng)', type:'textarea' },
+  { id:'d6', section:'D', ma:'6', label:'Giấy tờ chứng minh thuộc đối tượng được miễn, giảm (hoặc giảm trừ) tiền sử dụng đất và các chứng từ liên quan', type:'textarea' },
+
+  // ===== KÝ TÊN =====
+  { id:'dky1', section:'E', ma:'', label:'Nơi, ngày ký tờ khai', type:'multi',
+    subs:[{k:'noi',label:'Địa danh (VD: TP. Hồ Chí Minh)'},{k:'ngay',label:'Ngày ký',type:'date'}] },
+  { id:'dky2', section:'E', ma:'', label:'Người ký (Người nộp thuế / Đại diện hợp pháp)', type:'multi',
+    subs:[{k:'hoten',label:'Họ và tên'},{k:'chucvu',label:'Chức vụ (nếu là đại diện tổ chức)'}] },
+];
+const SECTION_LABEL_TSDD = {
+  A:'1. THÔNG TIN NGƯỜI SỬ DỤNG ĐẤT & ĐẠI LÝ THUẾ',
+  B:'2-3. GIẤY TỜ VỀ QUYỀN SDĐ & ĐẶC ĐIỂM THỬA ĐẤT',
+  C:'4. DIỆN TÍCH NỘP TIỀN SỬ DỤNG ĐẤT',
+  D:'5-6. GIẢM TRỪ, MIỄN GIẢM TIỀN SDĐ',
+  E:'KÝ TÊN'
+};
+
+// ── In / Xuất Tờ khai Tiền sử dụng đất — 1 trang (mẫu gốc ngắn, vừa 1 trang A4).
+function xayHtmlTsddTrang1(){
+  var html = '<div class="tk-print-doc">';
+  html += '<div class="mausotop">Mẫu số: <b>01/TSDĐ</b><br>(Ban hành kèm theo Thông tư số 156/2013/TT-BTC ngày 6/11/2013 của Bộ Tài chính)</div>';
+  html += '<div class="quochieu">CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM<br>Độc lập - Tự do - Hạnh phúc</div>';
+  html += '<div class="tieude">Tờ khai tiền sử dụng đất</div>';
+
+  html += '<div class="pl">[01] Kỳ tính thuế: Theo từng lần phát sinh, ngày ' + fmtDateVN(vGet('d01')) + '</div>';
+  var c0203 = (isChecked('d0203') && vGet('d0203')) ? vGet('d0203') : {};
+  html += '<div class="pl">[02] ' + (c0203.value==='dau' ? '☑' : '☐') + ' Lần đầu: &nbsp;&nbsp;&nbsp; [03] '
+    + (c0203.value==='bosung' ? '☑' : '☐') + ' Bổ sung lần thứ: ' + (c0203.value==='bosung' ? ('<b>'+esc(c0203.extra||'…')+'</b>') : '…') + '</div>';
+
+  html += '<div class="pl"><b>1. Tên tổ chức, cá nhân sử dụng đất (SDĐ):</b> ' + vText('d1') + '</div>';
+  html += '<div class="pl"><b>1.1. Địa chỉ gửi thông báo nộp tiền SDĐ:</b> ' + vText('d11') + '</div>';
+  html += '<div class="pl">1.2. Điện thoại liên hệ (nếu có): ' + vSub('d12','dienthoai') + ' &nbsp; Fax: ' + vSub('d12','fax') + ' &nbsp; Email: ' + vSub('d12','email') + '</div>';
+  html += '<div class="pl"><b>1.3. Đại lý thuế (nếu có):</b> ' + vText('d13') + '</div>';
+  html += '<div class="pl"><b>1.4. Mã số thuế:</b> ' + vText('d14') + '</div>';
+  html += '<div class="pl">1.5. Địa chỉ: ' + vText('d15') + '</div>';
+  html += '<div class="pl">1.6. Quận/huyện: ' + vSub('d16','quanhuyen') + ' &nbsp; Tỉnh/Thành phố: ' + vSub('d16','tinh') + '</div>';
+  html += '<div class="pl">1.7. Điện thoại: ' + vSub('d17','dienthoai') + ' &nbsp; Fax: ' + vSub('d17','fax') + ' &nbsp; Email: ' + vSub('d17','email') + '</div>';
+  html += '<div class="pl">1.8. Hợp đồng đại lý thuế số: ' + vSub('d18','so') + ' &nbsp; ngày ' + (isChecked('d18') ? ('<b>'+fmtDateVN((vGet('d18')||{}).ngay)+'</b>') : '…../…../20….') + '</div>';
+
+  html += '<div class="pl"><b>2. Giấy tờ về quyền SDĐ (quy định tại các khoản 1, 2 và 5 Điều 50 Luật Đất đai), gồm:</b> ' + vText('d2') + '</div>';
+
+  html += '<div class="pl" style="font-weight:700">3. Đặc điểm thửa đất:</div>';
+  html += '<div class="pl">3.1. Địa chỉ thửa đất: ' + vText('d31') + '</div>';
+  html += '<div class="pl">Số nhà: ' + vSub('d31b','sonha') + '; Ngõ (ngách, hẻm...): ' + vSub('d31b','ngo') + '; Đường phố: ' + vSub('d31b','duongpho') + '<br>Phường (xã, thị trấn): ' + vSub('d31b','phuongxa') + '; Quận (huyện): ' + vSub('d31b','quanhuyen') + '; Tỉnh (Thành phố): ' + vSub('d31b','tinh') + '</div>';
+  html += '<div class="pl">3.2. Vị trí thửa đất (mặt tiền đường phố hay ngõ, hẻm): ' + vText('d32') + '</div>';
+  html += '<div class="pl">3.3. Loại đất trước khi chuyển mục đích sử dụng: ' + vText('d33') + '</div>';
+  html += '<div class="pl">3.4. Loại đất sau khi chuyển mục đích sử dụng: ' + vText('d34') + '</div>';
+  html += '<div class="pl">3.5. Thời điểm được quyền sử dụng đất: ' + (isChecked('d35') ? ('Ngày <b>'+fmtDateVN(vGet('d35'))+'</b>') : 'Ngày ......... tháng ........ năm ........') + '</div>';
+  html += '<div class="pl">3.6. Nguồn gốc sử dụng đất: ' + vText('d36') + '</div>';
+
+  html += '<div class="pl"><b>4. Diện tích nộp tiền sử dụng đất (m²):</b> ' + vText('d4') + '</div>';
+  html += '<div class="pl">4.1. Đất ở tại nông thôn:</div>';
+  html += '<div class="pl">a) Trong hạn mức giao đất ở: ' + vText('d41a') + ' m². Trong đó: Diện tích trong hạn mức giao đất ở lựa chọn tính giá UBND cấp tỉnh quy định (nếu có): ' + vText('d41a2') + ' m²</div>';
+  html += '<div class="pl">b) Ngoài hạn mức giao đất ở: ' + vText('d41b') + ' m²</div>';
+  html += '<div class="pl">4.2. Đất ở tại đô thị:</div>';
+  html += '<div class="pl">a) Diện tích sử dụng riêng: ' + vText('d42a') + ' m². Trong đó: Diện tích trong hạn mức giao đất ở lựa chọn tính giá UBND cấp tỉnh quy định (nếu có): ' + vText('d42a2') + ' m²</div>';
+  html += '<div class="pl">b) Diện tích sử dụng chung: ' + vText('d42b') + ' m²</div>';
+  html += '<div class="pl">4.3. Diện tích đất sản xuất, kinh doanh, dịch vụ: ' + vText('d43') + ' m²</div>';
+  html += '<div class="pl">4.4. Diện tích đất sản xuất nông nghiệp, lâm nghiệp, nuôi trồng thuỷ sản, làm muối: ' + vText('d44') + ' m²</div>';
+
+  html += '<div class="pl" style="font-weight:700">5. Các khoản được giảm trừ tiền SDĐ hoặc thuộc đối tượng được miễn, giảm tiền sử dụng đất (nếu có):</div>';
+  html += '<div class="pl">5.1. Số tiền thực tế bồi thường thiệt hại, hỗ trợ về đất: ' + vTextMoney('d51') + ' đồng</div>';
+  html += '<div class="pl">5.2. Số tiền sử dụng đất, thuê đất đã nộp trước (nếu có): ' + vTextMoney('d52') + ' đồng</div>';
+  html += '<div class="pl">5.3. Miễn, giảm tiền sử dụng đất (ghi rõ căn cứ văn bản quy phạm pháp luật áp dụng): ' + vText('d53') + '</div>';
+
+  html += '<div class="pl">6. Giấy tờ chứng minh thuộc đối tượng được miễn, giảm (hoặc giảm trừ) tiền sử dụng đất (nếu bản sao thì phải có công chứng) và các chứng từ về chi phí bồi thường đất, hỗ trợ đất, chứng từ về tiền sử dụng đất, tiền thuê đất đã nộp trước...: ' + vText('d6') + '</div>';
+
+  html += '<div class="pl" style="margin-top:10px">Tôi xin cam đoan số liệu kê khai trên là đúng và chịu trách nhiệm trước pháp luật về số liệu kê khai./.</div>';
+  html += vKyTenBlock('dky1','dky2');
+  html += '</div>';
+  return html;
+}
+
 // ═══════════════════════ DANH SÁCH CÁC LOẠI TỜ KHAI (FORM_DEFS) ═══════════════════════
 const FORM_DEFS = [
   { id:'ltb', icon:'📋', tenNgan:'Lệ phí trước bạ', mauSo:'01/LPTB', thongTu:'TT80/2021/TT-BTC',
@@ -851,6 +970,11 @@ const FORM_DEFS = [
     schema:SCHEMA_TNCN, sectionLabel:SECTION_LABEL_TNCN, sectionOrder:['A','B','C','D','E','F'],
     tenFieldId:'t04', fileName:'ToKhaiTNCN_BDS', shareText:'Tờ khai thuế TNCN (Mẫu 03/BĐS-TNCN)',
     buildPages:function(){ return [xayHtmlTncnTrang1(), xayHtmlTncnTrang2(), xayHtmlTncnTrang3(), xayHtmlTncnTrang4()]; } },
+  { id:'tsdd', icon:'🏞️', tenNgan:'Tiền sử dụng đất', mauSo:'01/TSDĐ', thongTu:'TT156/2013/TT-BTC',
+    moTa:'Kê khai tiền sử dụng đất phải nộp', headerTitle:'🏞️ Tờ Khai Tiền Sử Dụng Đất',
+    schema:SCHEMA_TSDD, sectionLabel:SECTION_LABEL_TSDD, sectionOrder:['A','B','C','D','E'],
+    tenFieldId:'d1', fileName:'ToKhaiTienSuDungDat', shareText:'Tờ khai tiền sử dụng đất (Mẫu 01/TSDĐ)',
+    buildPages:function(){ return [xayHtmlTsddTrang1()]; } },
 ];
 function formById(id){ return FORM_DEFS.find(function(f){ return f.id===id; }); }
 
@@ -923,7 +1047,7 @@ function openForm(formId){
   valuesMap = lsGetO(K(currentForm.id,'values'));
   tablesState = lsGetO(K(currentForm.id,'tables'));
   document.getElementById('header-title-b').textContent = currentForm.headerTitle;
-  document.getElementById('header-title-span').textContent = 'Mẫu ' + currentForm.mauSo + ' · ' + currentForm.thongTu + ' · v1.2.1';
+  document.getElementById('header-title-span').textContent = 'Mẫu ' + currentForm.mauSo + ' · ' + currentForm.thongTu + ' · v1.2.2';
   document.getElementById('launcher-screen').style.display = 'none';
   document.getElementById('app-screen').style.display = 'block';
   renderMain();
