@@ -1,4 +1,4 @@
-const CACHE = 'to-khai-truoc-ba-v1.2.0';
+const CACHE = 'so-tay-khai-thue-v1.2.1';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', function(e){

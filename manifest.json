@@ -1,7 +1,7 @@
 {
-  "name": "Tờ Khai Lệ Phí Trước Bạ",
-  "short_name": "Tờ Khai Trước Bạ",
-  "description": "Công cụ nhập liệu Tờ khai Lệ phí trước bạ (Mẫu 01/LPTB) - v1.2.0",
+  "name": "Sổ Tay Khai Thuế",
+  "short_name": "Sổ Tay Khai Thuế",
+  "description": "Công cụ khai thuế đa tờ khai (Lệ phí trước bạ, TNCN chuyển nhượng BĐS...) - v1.2.1",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

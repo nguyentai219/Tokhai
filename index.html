@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#8a6e2f">
-<title>Tờ Khai Lệ Phí Trước Bạ v1.2.0</title>
-<meta name="description" content="Công cụ nhập liệu Tờ khai Lệ phí trước bạ (Mẫu 01/LPTB) - chỉ hiện các mục cần khai, tự nhớ dữ liệu">
+<title>Sổ Tay Khai Thuế v1.2.1</title>
+<meta name="description" content="Công cụ khai thuế đa tờ khai (Lệ phí trước bạ, TNCN chuyển nhượng BĐS...) - v1.2.1">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -20,7 +20,7 @@
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0;background:var(--g50);color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;}
-  body{padding-bottom:90px}
+  body{padding-bottom:10px}
   .header{
     position:sticky;top:0;z-index:50;background:linear-gradient(135deg,var(--gold-dark),var(--gold));
     color:#fff;padding:14px 16px calc(14px + env(safe-area-inset-top,0px));
@@ -66,6 +66,11 @@
   }
   .field-input:focus, .field-select:focus, .field-textarea:focus{outline:none;border-color:var(--gold);background:#fff}
   .field-textarea{min-height:56px;resize:vertical}
+  .field-computed{
+    width:100%;border:1px solid var(--g300);border-radius:8px;padding:9px 10px;font-size:14px;
+    color:var(--gold-dark);background:var(--g100);font-weight:800;
+  }
+  .field-hint{font-size:11px;color:var(--g500);margin-top:5px;line-height:1.4}
   .sub-grid{display:flex;flex-direction:column;gap:8px}
   .sub-row{display:flex;flex-direction:column;gap:4px}
   .ac-wrap{position:relative}
@@ -80,9 +85,9 @@
   .sub-row label{font-size:11px;color:var(--g500);font-weight:600}
   .two-col{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 
-  .choice-row{display:flex;gap:8px;margin-bottom:8px}
+  .choice-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
   .choice-btn{
-    flex:1;border:1px solid var(--g300);background:var(--g50);border-radius:8px;padding:9px 8px;
+    flex:1;min-width:110px;border:1px solid var(--g300);background:var(--g50);border-radius:8px;padding:9px 8px;
     font-size:12.5px;font-weight:700;color:var(--g600);text-align:center;cursor:pointer;
   }
   .choice-btn.active{background:var(--gold-light);border-color:var(--gold);color:var(--gold-dark)}
@@ -103,17 +108,48 @@
     padding:7px 10px;font-size:12px;font-weight:700;color:var(--g600);cursor:pointer;width:100%;
   }
 
-  .bottom-bar{
-    position:fixed;left:0;right:0;bottom:0;z-index:40;background:#fff;border-top:1px solid var(--line);
-    padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));
-    display:flex;gap:8px;box-shadow:0 -2px 10px rgba(0,0,0,.06);
-  }
+  /* Khối nút Lưu/In nằm TRONG luồng nội dung, ở cuối tờ khai — không nổi cố định nữa, phải kéo
+     xuống hết trang mới thấy (đúng yêu cầu: không làm nút nổi như bản trước). */
+  .bottom-actions{display:flex;gap:8px;margin:22px 0 34px}
   .btn-print{
-    flex:1;background:var(--gold-dark);color:#fff;border:none;border-radius:10px;
+    flex:1.4;background:var(--gold-dark);color:#fff;border:none;border-radius:10px;
     padding:13px;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;
     justify-content:center;gap:6px;
   }
   .btn-print:active{background:var(--gold)}
+  .btn-luu-tk{
+    flex:1;background:var(--g100);color:var(--gold-dark);border:1.5px solid var(--gold);border-radius:10px;
+    padding:13px;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;
+    justify-content:center;gap:6px;
+  }
+  .btn-luu-tk:active{background:var(--gold-light)}
+
+  /* ===== Màn hình chọn loại tờ khai (launcher) ===== */
+  #launcher-screen{display:none}
+  .launcher-wrap{max-width:640px;margin:0 auto;padding:18px 14px 30px}
+  .launcher-intro{padding:4px 2px 16px}
+  .launcher-intro b{font-size:16.5px;color:var(--g800);display:block;margin-bottom:4px}
+  .launcher-intro span{font-size:12.5px;color:var(--g500);line-height:1.5}
+  .form-card{
+    background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px;margin-bottom:12px;
+    display:flex;gap:12px;align-items:center;cursor:pointer;
+  }
+  .form-card:active{background:var(--gold-light);border-color:var(--gold)}
+  .form-card .ico{font-size:28px;flex:0 0 auto;width:46px;height:46px;border-radius:12px;background:var(--gold-light);
+    display:flex;align-items:center;justify-content:center}
+  .form-card .info{flex:1;min-width:0}
+  .form-card .info b{display:block;font-size:14.5px;color:var(--g800)}
+  .form-card .info .mauso{font-size:11px;color:var(--gold-dark);font-weight:700;margin-top:2px}
+  .form-card .info .sub{font-size:11.5px;color:var(--g500);margin-top:3px;line-height:1.4}
+  .form-card .chev{color:var(--g400);font-size:20px;flex:0 0 auto}
+  .launcher-header{
+    position:sticky;top:0;z-index:50;background:linear-gradient(135deg,var(--gold-dark),var(--gold));
+    color:#fff;padding:14px 16px calc(14px + env(safe-area-inset-top,0px));
+    padding-top:calc(14px + env(safe-area-inset-top,0px));
+    display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 2px 10px rgba(0,0,0,.15);
+  }
+  .launcher-header b{font-size:16px}
+  .launcher-header span{font-size:11px;opacity:.85;display:block;margin-top:2px}
 
   /* ===== Modal cài đặt (chọn mục) ===== */
   .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;
@@ -137,7 +173,10 @@
   .set-row input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin-top:1px;accent-color:var(--gold-dark)}
   .set-row .set-label{font-size:13px;color:var(--g700);line-height:1.4}
   .set-row .set-label .ma{color:var(--gold-dark);font-family:var(--mono);font-weight:800;margin-right:4px}
-  .modal-footer{display:flex;gap:8px;margin-top:14px;position:sticky;bottom:0;background:#fff;padding-top:6px}
+  /* Nút ở cuối modal (Đóng/Huỷ/Đồng ý...) nằm TRONG luồng nội dung modal, KHÔNG dính nổi ở đáy nữa —
+     modal nào nội dung dài (VD danh sách mục cần khai, lịch sử) thì phải kéo cuộn xuống hết mới thấy,
+     đúng yêu cầu áp dụng đồng bộ cho MỌI vị trí có nút dạng này trong app. */
+  .modal-footer{display:flex;gap:8px;margin-top:16px}
   .btn-huy, .btn-luu{flex:1;border:none;border-radius:10px;padding:12px;font-size:13.5px;font-weight:700;cursor:pointer}
   .btn-huy{background:var(--g100);color:var(--g700)}
   .btn-luu{background:var(--gold-dark);color:#fff}
@@ -152,11 +191,11 @@
   /* QUAN TRỌNG: dùng CUỘN TỰ NHIÊN của trình duyệt (overflow-y:auto) để xem hết nội dung, KHÔNG dùng
      kéo (pan) tự chế bằng transform như bản trước — bản trước đặt #tk-panzoom-wrap là position:absolute;
      inset:0 (khít đúng khung nhìn) + touch-action:none (chặn hẳn cuộn mặc định), khiến phần cuối trang
-     2 (bảng đồng sở hữu, mục 6, chữ ký) vượt quá khung nhìn KHÔNG THỂ cuộn tới được bằng thao tác cuộn
-     thông thường — đây chính là lỗi "mất góc dưới trang" khi xem trước. Giờ để trình duyệt tự cuộn dọc
-     bình thường (vuốt 1 ngón), CHỈ can thiệp JS khi có đúng 2 ngón chạm (chụm để phóng to/thu nhỏ).
-     Phóng to bằng CSS `zoom` (không dùng transform:scale) vì `zoom` làm thay đổi kích thước bố cục
-     thật sự, nên vùng cuộn tự mở rộng theo đúng kích thước đã phóng to — cuộn vẫn luôn chạm tới đáy. */
+     bị vượt quá khung nhìn KHÔNG THỂ cuộn tới được bằng thao tác cuộn thông thường — đây chính là lỗi
+     "mất góc dưới trang" khi xem trước. Giờ để trình duyệt tự cuộn dọc bình thường (vuốt 1 ngón), CHỈ
+     can thiệp JS khi có đúng 2 ngón chạm (chụm để phóng to/thu nhỏ). Phóng to bằng CSS `zoom` (không
+     dùng transform:scale) vì `zoom` làm thay đổi kích thước bố cục thật sự, nên vùng cuộn tự mở rộng
+     theo đúng kích thước đã phóng to — cuộn vẫn luôn chạm tới đáy. */
   #tk-preview-scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;position:relative}
   #tk-panzoom-wrap{display:flex;flex-direction:column;align-items:center;padding:14px 0;transform-origin:top center}
   #tk-preview-img, .tk-preview-page-img{max-width:88vw;display:block;box-shadow:0 2px 16px rgba(0,0,0,.35)}
@@ -173,6 +212,7 @@
   .tk-print-doc .kytenwrap{display:flex;justify-content:space-between;margin-top:22px}
   .tk-print-doc .kyten{width:47%;text-align:center;font-size:12px}
   .tk-print-doc .kyten b{display:block;margin:4px 0}
+  .tk-print-doc .muctitle{font-weight:700;margin-top:10px}
 
   .toast{
     position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:var(--g900);color:#fff;
@@ -184,10 +224,33 @@
 </head>
 <body>
 
+<!-- ═══════════════════ MÀN HÌNH CHỌN LOẠI TỜ KHAI (launcher) ═══════════════════ -->
+<div id="launcher-screen">
+  <div class="launcher-header">
+    <div>
+      <b>📚 Sổ Tay Khai Thuế</b>
+      <span>Chọn loại tờ khai muốn thực hiện · v1.2.1</span>
+    </div>
+    <button class="gear-btn" onclick="openGlobalSettings()" title="Cài đặt chung">⚙️</button>
+  </div>
+  <div class="launcher-wrap">
+    <div class="launcher-intro">
+      <b>Chọn 1 loại tờ khai bên dưới</b>
+      <span>Mỗi loại tờ khai có dữ liệu, lịch sử và cấu hình mục cần khai riêng biệt. Chọn vào 1 tờ khai để tiếp tục nhập hoặc bắt đầu tờ khai mới (tuỳ theo cài đặt "Khi mở lại ứng dụng").</span>
+    </div>
+    <div id="form-list"><!-- render động bằng JS --></div>
+  </div>
+</div>
+
+<!-- ═══════════════════ MÀN HÌNH NHẬP LIỆU TỜ KHAI ═══════════════════ -->
+<div id="app-screen" style="display:none">
 <div class="header">
-  <div class="header-title">
-    <b>📋 Tờ Khai Lệ Phí Trước Bạ</b>
-    <span>Mẫu 01/LPTB · TT80/2021/TT-BTC · v1.2.0</span>
+  <div style="display:flex;gap:6px;flex:0 0 auto">
+    <button class="gear-btn" onclick="goHome()" title="Về danh sách tờ khai">🏠</button>
+  </div>
+  <div class="header-title" id="header-title-box" style="flex:1;text-align:center;align-items:center">
+    <b id="header-title-b">📋 Tờ khai</b>
+    <span id="header-title-span">v1.2.1</span>
   </div>
   <div style="display:flex;gap:6px;flex:0 0 auto">
     <button class="gear-btn" onclick="taoToKhaiMoi()" title="Tờ khai mới">➕</button>
@@ -200,27 +263,38 @@
   <!-- render động bằng JS -->
 </div>
 
-<div class="bottom-bar">
-  <button class="btn-print" onclick="inToKhai()">🖨️ In / Xuất Tờ Khai</button>
 </div>
 
-<!-- MODAL CÀI ĐẶT: chọn các mục cần hiển thị -->
+<!-- MODAL CÀI ĐẶT: chọn các mục cần hiển thị — RIÊNG cho tờ khai đang mở, TÁCH BIỆT hoàn toàn khỏi
+     "Cài đặt chung" (chế độ khởi động) vì đây là 2 phần cấu hình khác nhau: 1 cái thuộc về TỪNG loại
+     tờ khai, 1 cái áp dụng CHUNG cho mọi tờ khai (xem modal-global-settings ở màn hình danh sách). -->
 <div class="modal" id="modal-settings">
   <div class="modal-box">
     <div class="modal-handle"></div>
     <div class="modal-title">⚙️ Chọn mục cần khai</div>
-    <div id="startup-mode-box" style="background:var(--g100);border-radius:10px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px">
-      <label style="font-size:12px;color:var(--g600);font-weight:700">🔄 Khi mở lại ứng dụng:</label>
-      <select id="startup-mode-select" onchange="suaCheDoKhoiDong(this.value)" style="border:1px solid var(--g300);border-radius:7px;padding:6px 8px;font-size:12px;font-weight:700;color:var(--gold-dark);background:#fff">
+    <div class="modal-sub">Tick chọn mục nào thì mục đó mới hiện ô nhập liệu ở màn hình chính. Bỏ tick sẽ ẩn đi <b>và xoá luôn dữ liệu đã nhập</b> của mục đó. Mục đã tick sẽ tự nhớ dữ liệu cho lần sau. Cài đặt này áp dụng RIÊNG cho tờ khai đang mở.</div>
+    <div id="settings-list"><!-- render động bằng JS --></div>
+    <div class="modal-footer">
+      <button class="btn-huy" onclick="closeSettings()" style="flex:none;width:100%">Đóng</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CÀI ĐẶT CHUNG (từ màn hình chọn tờ khai) -->
+<div class="modal" id="modal-global-settings">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title">⚙️ Cài đặt chung</div>
+    <div class="modal-sub">Áp dụng cho MỌI loại tờ khai: khi chọn 1 tờ khai ở danh sách, app sẽ mở lại đúng như đang dở hay bắt đầu tờ khai mới.</div>
+    <div style="background:var(--g100);border-radius:10px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px">
+      <label style="font-size:12px;color:var(--g600);font-weight:700">🔄 Khi chọn 1 tờ khai:</label>
+      <select id="startup-mode-select-global" onchange="suaCheDoKhoiDong(this.value)" style="border:1px solid var(--g300);border-radius:7px;padding:6px 8px;font-size:12px;font-weight:700;color:var(--gold-dark);background:#fff">
         <option value="keep">Mở lại tờ khai cũ</option>
         <option value="clear">Mở tờ khai mới</option>
       </select>
     </div>
-    <div class="modal-sub">Tick chọn mục nào thì mục đó mới hiện ô nhập liệu ở màn hình chính. Bỏ tick sẽ ẩn đi <b>và xoá luôn dữ liệu đã nhập</b> của mục đó. Mục đã tick sẽ tự nhớ dữ liệu cho lần sau.</div>
-    <div id="settings-list"><!-- render động bằng JS --></div>
     <div class="modal-footer">
-      <button class="btn-huy" onclick="closeSettings()">Đóng</button>
-      <button class="btn-luu" onclick="boChonTatCa()">🗑️ Bỏ chọn tất cả</button>
+      <button class="btn-huy" onclick="closeM('modal-global-settings')" style="flex:none;width:100%">Đóng</button>
     </div>
   </div>
 </div>
@@ -248,7 +322,7 @@
   <div class="modal-box">
     <div class="modal-handle"></div>
     <div class="modal-title">🕘 Lịch sử tờ khai</div>
-    <div class="modal-sub">Mỗi lần bấm "In / Xuất Tờ Khai" sẽ tự lưu 1 bản vào đây. Nhấn vào 1 tờ khai để nạp lại toàn bộ dữ liệu đã nhập, chỉnh sửa tiếp nếu cần.</div>
+    <div class="modal-sub">Mỗi lần bấm "In / Xuất Tờ Khai" sẽ tự lưu 1 bản vào đây (riêng cho loại tờ khai đang mở). Nhấn vào 1 tờ khai để nạp lại toàn bộ dữ liệu đã nhập, chỉnh sửa tiếp nếu cần.</div>
     <div id="history-list"></div>
     <div class="modal-footer">
       <button class="btn-huy" onclick="closeM('modal-history')">Đóng</button>
@@ -271,37 +345,76 @@
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════════
-// TỜ KHAI LỆ PHÍ TRƯỚC BẠ (Mẫu 01/LPTB - TT80/2021/TT-BTC)
-// Kỹ thuật: "Thông Tin Đơn Vị / Master Data theo mục có thể bật-tắt" — mỗi mục
-// trên tờ khai giấy được khai báo thành 1 phần tử trong SCHEMA bên dưới; toàn bộ
-// giao diện (cả khung nhập liệu chính lẫn danh sách tick chọn trong ⚙️ Cài đặt)
-// được RENDER TỰ ĐỘNG từ SCHEMA này — không có phần nào code cứng lặp lại 2 nơi.
-// Muốn thêm/sửa/bớt 1 mục trên tờ khai, chỉ cần sửa đúng 1 chỗ trong SCHEMA.
+// SỔ TAY KHAI THUẾ — nền tảng ĐA TỜ KHAI (mỗi loại tờ khai là 1 phần tử trong
+// FORM_DEFS, có SCHEMA/lịch sử/cấu hình mục riêng). Kỹ thuật kế thừa từ app
+// "Tờ Khai Lệ Phí Trước Bạ" gốc: "Master Data theo mục có thể bật/tắt" — mỗi
+// mục trên tờ khai giấy là 1 phần tử trong SCHEMA của form đó; khung nhập liệu
+// + danh sách tick chọn ở ⚙️ Cài đặt đều RENDER TỰ ĐỘNG từ SCHEMA, không lặp
+// code ở 2 nơi. Muốn thêm 1 loại tờ khai mới, chỉ cần thêm 1 phần tử vào
+// FORM_DEFS theo đúng khuôn mẫu của 2 tờ khai đã có bên dưới.
 // ═══════════════════════════════════════════════════════════════════════════
 
-const LS_CHECKED = 'ltb_checked_v1';   // { [id]: true }  — mục nào đang được tick chọn hiển thị
-const LS_VALUES  = 'ltb_values_v1';    // { [id]: string | {sub:val,...} | [{...}] } — dữ liệu đã nhập
-const LS_TABLE5  = 'ltb_table5_v1';    // mảng riêng cho bảng "đồng chủ sở hữu" (mục 5)
-const LS_HISTORY = 'ltb_history_v1';   // [{id, savedAt, ten, checkedMap, valuesMap, table5Rows}] — lịch sử các tờ khai đã lưu
-const LS_CURRENT_ID = 'ltb_current_id_v1'; // id của tờ khai đang chỉnh (khớp với 1 phần tử trong LS_HISTORY), rỗng nếu là tờ khai chưa từng lưu lần nào
-const LS_STARTUP_MODE = 'ltb_startup_mode_v1'; // 'keep' (mặc định, giữ nguyên tờ khai đang dở) | 'clear' (mỗi lần mở app tự xoá, bắt đầu tờ khai mới)
-const LICH_SU_TOI_DA = 200; // giới hạn số tờ khai lưu trong lịch sử, tránh phình to dữ liệu mãi theo thời gian
+const LS_PREFIX = 'tk2_';
+const LS_STARTUP_MODE = LS_PREFIX + 'startup_mode_v1'; // dùng CHUNG cho mọi loại tờ khai
+const LICH_SU_TOI_DA = 200;
 
 function lsGetO(k){ try{ var v=JSON.parse(localStorage.getItem(k)); return (v&&typeof v==='object'&&!Array.isArray(v))?v:{}; }catch(e){ return {}; } }
 function lsGetA(k){ try{ var v=JSON.parse(localStorage.getItem(k)); return Array.isArray(v)?v:[]; }catch(e){ return []; } }
 function lsSet(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
+// Khoá lưu trữ được namespace riêng theo từng loại tờ khai (form.id), để dữ liệu/lịch sử/cấu hình
+// mục của các loại tờ khai không lẫn vào nhau.
+function K(formId, name){ return LS_PREFIX + formId + '_' + name + '_v1'; }
 
-// ── SCHEMA: khai báo TOÀN BỘ mục số trên tờ khai, kể cả mục con ──
-// type: 'text' | 'number' | 'date' | 'textarea' | 'multi' (nhiều ô nhỏ gộp 1 mục) |
-//       'choice' (chọn 1 trong nhiều lựa chọn, có thể kèm ô phụ) | 'yesno' (1 checkbox) | 'table5'
-const SCHEMA = [
+// ── DI TRÚ DỮ LIỆU CŨ: bản trước (chỉ có 1 tờ khai LPTB) lưu dưới các khoá không có prefix
+// ('ltb_checked_v1', 'ltb_values_v1', 'ltb_table5_v1', 'ltb_history_v1', 'ltb_current_id_v1',
+// 'ltb_startup_mode_v1'). Chạy 1 lần duy nhất, chuyển toàn bộ sang khoá mới theo namespace 'ltb'
+// để KHÔNG MẤT dữ liệu đã khai từ trước khi nâng cấp lên bản đa tờ khai này. ──
+(function _diTruDuLieuCu(){
+  if (localStorage.getItem(LS_PREFIX + 'migrated_v1')) return;
+  try {
+    var oldChecked = localStorage.getItem('ltb_checked_v1');
+    if (oldChecked !== null && localStorage.getItem(K('ltb','checked')) === null) {
+      lsSet(K('ltb','checked'), lsGetO('ltb_checked_v1'));
+      lsSet(K('ltb','values'), lsGetO('ltb_values_v1'));
+      lsSet(K('ltb','tables'), { m5: lsGetA('ltb_table5_v1') });
+      var oldHist = lsGetA('ltb_history_v1');
+      var newHist = oldHist.map(function(h){
+        return { id:h.id, savedAt:h.savedAt, ten:h.ten, checkedMap:h.checkedMap||{}, valuesMap:h.valuesMap||{}, tables:{ m5: h.table5Rows||[] } };
+      });
+      lsSet(K('ltb','history'), newHist);
+      var oldCur = localStorage.getItem('ltb_current_id_v1');
+      if (oldCur) localStorage.setItem(K('ltb','current_id'), oldCur);
+      var oldMode = localStorage.getItem('ltb_startup_mode_v1');
+      if (oldMode) localStorage.setItem(LS_STARTUP_MODE, oldMode);
+    }
+  } catch(e) {}
+  localStorage.setItem(LS_PREFIX + 'migrated_v1', '1');
+})();
+
+function esc(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+function fmtDateVN(iso){
+  if (!iso) return '…../…../20….';
+  var p = iso.split('-'); if (p.length!==3) return esc(iso);
+  return p[2] + '/' + p[1] + '/' + p[0];
+}
+function fmtSoTien(n){
+  n = Number(n) || 0;
+  return n.toLocaleString('vi-VN', { maximumFractionDigits:0 });
+}
+
+// ═══════════════════════ SCHEMA: TỜ KHAI LỆ PHÍ TRƯỚC BẠ (Mẫu 01/LPTB) ═══════════════════════
+const SCHEMA_LTB = [
   // ===== I. THÔNG TIN NGƯỜI NỘP THUẾ =====
   { id:'f01', section:'A', ma:'[01]', label:'Kỳ tính thuế (ngày phát sinh)', type:'date' },
   { id:'f0203', section:'A', ma:'[02]/[03]', label:'Loại tờ khai', type:'choice',
     options:[{v:'dau',label:'Lần đầu'},{v:'bosung',label:'Bổ sung lần thứ',hasExtra:true,extraLabel:'Lần thứ mấy',extraType:'number'}] },
   { id:'uyquyen', section:'A', ma:'', label:'Tổ chức, cá nhân được uỷ quyền khai thay cho người nộp thuế', type:'yesno' },
   { id:'f04', section:'A', ma:'[04]', label:'Tên người nộp thuế', type:'text' },
-  { id:'f05', section:'A', ma:'[05]', label:'Mã số thuế', type:'text' },
+  { id:'f05', section:'A', ma:'[05]', label:'Mã số thuế', type:'text', mstBox:true },
   { id:'f06', section:'A', ma:'[06]', label:'Số CMND/CCCD/Hộ chiếu (trường hợp chưa có mã số thuế)', type:'text' },
   { id:'f07', section:'A', ma:'[07]', label:'Địa chỉ', type:'text' },
   { id:'f08', section:'A', ma:'[08]', label:'Xã/phường', type:'text' },
@@ -331,7 +444,7 @@ const SCHEMA = [
   { id:'m1_6_a', section:'B', ma:'1.6.a', label:'Tên tổ chức, cá nhân chuyển giao QSDĐ', type:'multi',
     subs:[{k:'ten',label:'Tên tổ chức/cá nhân chuyển giao QSDĐ'},{k:'mst',label:'Mã số thuế'},{k:'cmnd',label:'Số CMND/CCCD/Hộ chiếu'},{k:'diachi',label:'Địa chỉ người giao QSDĐ'}] },
   { id:'m1_6_b', section:'B', ma:'1.6.b', label:'Thời điểm làm giấy tờ chuyển giao QSDĐ', type:'date' },
-  { id:'m1_7', section:'B', ma:'1.7', label:'Giá trị đất thực tế chuyển giao (đồng)', type:'number' },
+  { id:'m1_7', section:'B', ma:'1.7', label:'Giá trị đất thực tế chuyển giao (đồng)', type:'number', money:true },
 
   { id:'m2_1', section:'B', ma:'2.1', label:'Cấp nhà / Loại nhà / Hạng nhà', type:'multi',
     subs:[{k:'cap',label:'Cấp nhà'},{k:'loai',label:'Loại nhà'},{k:'hang',label:'Hạng nhà'}] },
@@ -346,11 +459,18 @@ const SCHEMA = [
   { id:'m2_3', section:'B', ma:'2.3', label:'Nguồn gốc nhà', type:'text' },
   { id:'m2_3a', section:'B', ma:'2.3.a', label:'Năm hoàn công (tự xây dựng / năm bắt đầu sử dụng)', type:'text' },
   { id:'m2_3b', section:'B', ma:'2.3.b', label:'Thời điểm làm giấy tờ chuyển giao nhà (mua, thừa kế, tặng cho)', type:'date' },
-  { id:'m2_4', section:'B', ma:'2.4', label:'Giá trị nhà (đồng)', type:'number' },
+  { id:'m2_4', section:'B', ma:'2.4', label:'Giá trị nhà (đồng)', type:'number', money:true },
 
-  { id:'m3', section:'B', ma:'3', label:'Giá trị nhà, đất thực tế nhận chuyển nhượng/thừa kế/tặng cho (đồng)', type:'number' },
+  { id:'m3', section:'B', ma:'3', label:'Giá trị nhà, đất thực tế nhận chuyển nhượng/thừa kế/tặng cho (đồng)', type:'number', money:true },
   { id:'m4', section:'B', ma:'4', label:'Tài sản thuộc diện được miễn lệ phí trước bạ (lý do)', type:'textarea' },
-  { id:'m5', section:'B', ma:'5', label:'Thông tin đồng chủ sở hữu nhà, đất (nếu có)', type:'table5' },
+  { id:'m5', section:'B', ma:'5', label:'Thông tin đồng chủ sở hữu nhà, đất (nếu có)', type:'table',
+    addLabel:'➕ Thêm đồng chủ sở hữu',
+    columns:[
+      {k:'ten', label:'Tên tổ chức/cá nhân đồng sở hữu', type:'text'},
+      {k:'mst', label:'Mã số thuế', type:'text'},
+      {k:'cmnd', label:'Số CMND/CCCD/Hộ chiếu', type:'text'},
+      {k:'tyle', label:'Tỷ lệ (%)', type:'number', width:'60px'}
+    ] },
 
   // ===== III. KÝ TÊN =====
   { id:'ky1', section:'C', ma:'', label:'Nơi, ngày ký tờ khai', type:'multi',
@@ -358,45 +478,387 @@ const SCHEMA = [
   { id:'ky2', section:'C', ma:'', label:'Người ký (Người nộp thuế / Đại diện hợp pháp)', type:'multi',
     subs:[{k:'hoten',label:'Họ và tên'},{k:'chucvu',label:'Chức vụ (nếu là đại diện tổ chức)'}] },
 ];
+const SECTION_LABEL_LTB = { A:'I. THÔNG TIN NGƯỜI NỘP THUẾ', B:'II. ĐẶC ĐIỂM NHÀ, ĐẤT', C:'III. KÝ TÊN' };
 
-const SECTION_LABEL = { A:'I. THÔNG TIN NGƯỜI NỘP THUẾ', B:'II. ĐẶC ĐIỂM NHÀ, ĐẤT', C:'III. KÝ TÊN' };
+// ── In / Xuất Tờ khai LPTB — 2 trang, ngắt trang KHỚP ĐÚNG mẫu gốc (trang 1 hết ở mục 1.7, trang 2
+// bắt đầu từ "2. Nhà:"). Ô [05] Mã số thuế dùng renderMSTBoxes (10+4 ô vuông, dùng chung cho mọi form).
+function xayHtmlLtbTrang1(){
+  var html = '<div class="tk-print-doc">';
+  html += '<div class="mausotop">Mẫu số: <b>01/LPTB</b><br>(Ban hành kèm theo Thông tư số 80/2021/TT-BTC ngày 29/9/2021 của Bộ trưởng Bộ Tài chính)</div>';
+  html += '<div class="quochieu">CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM<br>Độc lập - Tự do - Hạnh phúc</div>';
+  html += '<div class="tieude">Tờ khai lệ phí trước bạ</div>';
+  html += '<div style="text-align:center;font-style:italic;margin-bottom:10px">(Áp dụng đối với nhà, đất)</div>';
 
-function schemaById(id){ return SCHEMA.find(function(x){ return x.id===id; }); }
+  html += '<div class="pl">[01] Kỳ tính thuế: Theo từng lần phát sinh ngày ' + fmtDateVN(vGet('f01')) + '</div>';
+  var c0203 = (isChecked('f0203') && vGet('f0203')) ? vGet('f0203') : {};
+  html += '<div class="pl">[02] ' + (c0203.value==='dau' ? '☑' : '☐') + ' Lần đầu: &nbsp;&nbsp;&nbsp; [03] '
+    + (c0203.value==='bosung' ? '☑' : '☐') + ' Bổ sung lần thứ: ' + (c0203.value==='bosung' ? ('<b>'+esc(c0203.extra||'…')+'</b>') : '…') + '</div>';
+  html += '<div class="pl">' + (isChecked('uyquyen') && vGet('uyquyen') ? '☑' : '☐') + ' Tổ chức, cá nhân được uỷ quyền khai thay cho người nộp thuế</div>';
+  html += '<div class="pl"><b>[04] Tên Người nộp thuế:</b> ' + vText('f04') + '</div>';
+  html += '<div class="pl">[05] Mã số thuế: ' + renderMSTBoxes('f05') + '</div>';
+  html += '<div class="pl">[06] Số CMND/CCCD/Hộ chiếu (trường hợp chưa có mã số thuế): ' + vText('f06') + '</div>';
+  html += '<div class="pl">[07] Địa chỉ: ' + vText('f07') + '</div>';
+  html += '<div class="pl">[08] Xã/phường: ' + vText('f08') + ' &nbsp;&nbsp; [09] Tỉnh/Thành phố: ' + vText('f09') + '</div>';
+  html += '<div class="pl">[10] Điện thoại: ' + vText('f10') + ' &nbsp; [11] Fax: ' + vText('f11') + ' &nbsp; [12] Email: ' + vText('f12') + '</div>';
+  html += '<div class="pl"><b>[13] Đại lý thuế; hoặc Tổ chức, cá nhân được uỷ quyền khai thay (nếu có):</b> ' + vText('f13') + '</div>';
+  html += '<div class="pl">[14] Mã số thuế: ' + vText('f14') + '</div>';
+  html += '<div class="pl">[15] Hợp đồng đại lý thuế: Số ' + vSub('f15','so') + ' &nbsp; ngày ' + (isChecked('f15') ? ('<b>'+fmtDateVN((vGet('f15')||{}).ngay)+'</b>') : '…../…../20….') + '</div>';
 
-// ── Áp dụng chế độ khởi động (chạy 1 lần duy nhất khi mở app, TRƯỚC khi đọc state vào bộ nhớ) ──
-// Nếu người dùng chọn "clear": tờ khai đang nhập dở (nếu có nội dung) được LƯU VÀO LỊCH SỬ trước
-// (không mất dữ liệu), rồi CHỈ xoá phần DỮ LIỆU đã nhập (valuesMap/table5Rows) — GIỮ NGUYÊN các mục
-// đang tick chọn (checkedMap), vì đó là cấu hình khung nhập liệu chứ không phải dữ liệu riêng của 1
-// tờ khai. Chỉ mất mục đã chọn khi người dùng TỰ TAY bỏ tick trong ⚙️ Cài đặt.
-(function _apDungCheDoKhoiDong(){
-  var che = localStorage.getItem(LS_STARTUP_MODE) || 'keep';
-  if (che !== 'clear') return;
-  var checkedCu = lsGetO(LS_CHECKED);
-  var coNoiDung = Object.keys(checkedCu).some(function(k){ return checkedCu[k]; });
-  if (coNoiDung) {
-    var valuesCu = lsGetO(LS_VALUES);
-    var table5Cu = lsGetA(LS_TABLE5);
-    var hist = lsGetA(LS_HISTORY);
-    var curId = localStorage.getItem(LS_CURRENT_ID);
-    var ten = (checkedCu.f04 && valuesCu.f04) ? valuesCu.f04 : '(Chưa có tên người nộp thuế)';
-    var snap = { id: curId || ('tk_' + Date.now()), savedAt: new Date().toISOString(), ten: ten, checkedMap: checkedCu, valuesMap: valuesCu, table5Rows: table5Cu };
-    var idx = hist.findIndex(function(h){ return h.id === snap.id; });
-    if (idx >= 0) hist[idx] = snap; else hist.unshift(snap);
-    if (hist.length > LICH_SU_TOI_DA) hist = hist.slice(0, LICH_SU_TOI_DA);
-    lsSet(LS_HISTORY, hist);
-  }
-  lsSet(LS_VALUES, {});
-  lsSet(LS_TABLE5, []);
-  localStorage.removeItem(LS_CURRENT_ID);
-  // LƯU Ý: KHÔNG đụng tới LS_CHECKED ở đây — giữ nguyên các mục đang tick để lần mở này vẫn hiện đúng
-  // khung nhập liệu như trước, chỉ có ô nhập là trống.
-})();
+  html += '<div class="pl" style="font-weight:700;margin-top:10px">ĐẶC ĐIỂM NHÀ ĐẤT:</div>';
+  html += '<div class="pl">1. Đất: ' + vText('m1') + '</div>';
+  html += '<div class="pl">1.1. Thửa đất số (Số hiệu thửa đất): ' + vSub('m1_1','thua') + '; Tờ bản đồ số: ' + vSub('m1_1','tbd') + '</div>';
+  html += '<div class="pl">1.2. Địa chỉ thửa đất: ' + vText('m1_2') + '</div>';
+  html += '<div class="pl">1.2.1. Số nhà: ' + vSub('m1_2_1','sonha') + '; Toà nhà: ' + vSub('m1_2_1','toanha') + '; Ngõ/Hẻm: ' + vSub('m1_2_1','ngohem') + '<br>Đường/Phố: ' + vSub('m1_2_1','duongpho') + '; Thôn/xóm/ấp: ' + vSub('m1_2_1','thonxom') + '</div>';
+  html += '<div class="pl">1.2.2. Phường/xã: ' + vText('m1_2_2') + '</div>';
+  html += '<div class="pl">1.2.3. Quận/huyện: ' + vText('m1_2_3') + '</div>';
+  html += '<div class="pl">1.2.4. Tỉnh/thành phố: ' + vText('m1_2_4') + '</div>';
+  html += '<div class="pl">1.3. Vị trí thửa đất (mặt tiền đường phố hay ngõ, hẻm): ' + vText('m1_3') + '</div>';
+  html += '<div class="pl">1.4. Mục đích sử dụng đất: ' + vText('m1_4') + '</div>';
+  html += '<div class="pl">1.5. Diện tích (m²): ' + vText('m1_5') + '</div>';
+  html += '<div class="pl">1.6. Nguồn gốc nhà đất (đất được Nhà nước giao, cho thuê; nhận chuyển nhượng; nhận thừa kế, hoặc nhận tặng cho): ' + vText('m1_6') + '</div>';
+  html += '<div class="pl">a) Tên tổ chức, cá nhân chuyển giao QSDĐ: ' + vSub('m1_6_a','ten') + '<br>'
+    + '- Mã số thuế: ' + vSub('m1_6_a','mst') + '; Số CMND/CCCD/Hộ chiếu: ' + vSub('m1_6_a','cmnd') + '<br>'
+    + '- Địa chỉ người giao QSDĐ: ' + vSub('m1_6_a','diachi') + '</div>';
+  html += '<div class="pl">b) Thời điểm làm giấy tờ chuyển giao QSDĐ ngày ' + (isChecked('m1_6_b') ? ('<b>'+fmtDateVN(vGet('m1_6_b'))+'</b>') : '.......... tháng .......... năm ……') + '</div>';
+  html += '<div class="pl">1.7. Giá trị đất thực tế chuyển giao (nếu có): ' + vTextMoney('m1_7') + ' đồng</div>';
+  html += '</div>';
+  return html;
+}
+function xayHtmlLtbTrang2(){
+  var html = '<div class="tk-print-doc">';
+  html += '<div class="pl">2. Nhà:</div>';
+  html += '<div class="pl">2.1. Thông tin về nhà ở, nhà làm việc, nhà sử dụng cho mục đích khác:</div>';
+  html += '<div class="pl">Cấp nhà: ' + vSub('m2_1','cap') + ' &nbsp; Loại nhà: ' + vSub('m2_1','loai') + ' &nbsp; Hạng nhà: ' + vSub('m2_1','hang') + '</div>';
+  html += '<div class="pl">Trường hợp là nhà ở chung cư:</div>';
+  html += '<div class="pl">Chủ dự án: ' + vSub('m2_1cc1','chudt') + ' &nbsp; Địa chỉ dự án, công trình: ' + vSub('m2_1cc1','diachidt') + '</div>';
+  html += '<div class="pl">Kết cấu: ' + vSub('m2_1cc2','ketcau') + ' &nbsp; Số tầng nổi: ' + vSub('m2_1cc2','tangnoi') + ' &nbsp; Số tầng hầm: ' + vSub('m2_1cc2','tangham') + '</div>';
+  html += '<div class="pl">Diện tích sở hữu chung (m²): ' + vSub('m2_1cc3','schung') + ' &nbsp; Diện tích sở hữu riêng (m²): ' + vSub('m2_1cc3','srieng') + '</div>';
+  html += '<div class="pl">2.2. Diện tích nhà (m²):</div>';
+  html += '<div class="pl">Diện tích xây dựng (m²): ' + vSub('m2_2','dtxd') + '</div>';
+  html += '<div class="pl">Diện tích sàn xây dựng (m²): ' + vSub('m2_2','dtsan') + '</div>';
+  html += '<div class="pl">2.3. Nguồn gốc nhà: ' + vText('m2_3') + '</div>';
+  html += '<div class="pl">a) Tự xây dựng - Năm hoàn công (hoặc năm bắt đầu sử dụng nhà): ' + vText('m2_3a') + '</div>';
+  html += '<div class="pl">b) Mua, thừa kế, tặng cho - Thời điểm làm giấy tờ chuyển giao nhà: ' + (isChecked('m2_3b') ? ('Ngày <b>'+fmtDateVN(vGet('m2_3b'))+'</b>') : 'Ngày ......... tháng ........ năm ........') + '</div>';
+  html += '<div class="pl">2.4. Giá trị nhà (đồng): ' + vTextMoney('m2_4') + '</div>';
 
-// ── State ──
-let checkedMap = lsGetO(LS_CHECKED);
-let valuesMap  = lsGetO(LS_VALUES);
-let table5Rows = lsGetA(LS_TABLE5);
+  html += '<div class="pl">3. Giá trị nhà, đất thực tế nhận chuyển nhượng, nhận thừa kế, nhận tặng cho (đồng): ' + vTextMoney('m3') + '</div>';
+  html += '<div class="pl">4. Tài sản thuộc diện được miễn lệ phí trước bạ (lý do): ' + vText('m4') + '</div>';
 
+  html += '<div class="pl">5. Thông tin đồng chủ sở hữu nhà, đất (nếu có):</div>';
+  html += vTablePrint('m5', 2);
+
+  html += '<div class="pl" style="margin-top:6px">6. Giấy tờ có liên quan, gồm:</div>'
+    + '<div class="pl">- Mỗi hợp đồng chuyển nhượng, tặng cho, thừa kế; 1 bản vẽ, 1 GCN QSDĐ photocopy</div>'
+    + '<div class="pl">- quan hệ nhân thân nếu có, tờ khai trước bạ + thuế thu nhập cá nhân.</div>';
+
+  html += '<div class="pl" style="margin-top:10px">Tôi cam đoan số liệu khai trên là đúng và chịu trách nhiệm trước pháp luật về số liệu đã khai./.</div>';
+  html += vKyTenBlock('ky1','ky2');
+  html += '</div>';
+  return html;
+}
+
+// ═══════════════════════ SCHEMA: TỜ KHAI THUẾ TNCN - CHUYỂN NHƯỢNG BĐS (Mẫu 03/BĐS-TNCN) ═══════
+const SCHEMA_TNCN = [
+  // ===== I. THÔNG TIN NGƯỜI CHUYỂN NHƯỢNG, NHẬN THỪA KẾ, QUÀ TẶNG =====
+  { id:'t01', section:'A', ma:'[01]', label:'Kỳ tính thuế: Lần phát sinh (ngày)', type:'date' },
+  { id:'t0203', section:'A', ma:'[02]/[03]', label:'Loại tờ khai', type:'choice',
+    options:[{v:'dau',label:'Lần đầu'},{v:'bosung',label:'Bổ sung lần thứ',hasExtra:true,extraLabel:'Lần thứ mấy',extraType:'number'}] },
+  { id:'t04', section:'A', ma:'[04]', label:'Tên người nộp thuế', type:'text' },
+  { id:'t05', section:'A', ma:'[05]', label:'Mã số thuế (nếu có)', type:'text', mstBox:true },
+  { id:'t06', section:'A', ma:'[06]', label:'Số CMND/CCCD/Hộ chiếu (cá nhân quốc tịch Việt Nam)', type:'text' },
+  { id:'t0601', section:'A', ma:'[06.1]/[06.2]', label:'Ngày cấp / Nơi cấp (CMND/CCCD)', type:'multi',
+    subs:[{k:'ngaycap',label:'Ngày cấp',type:'date'},{k:'noicap',label:'Nơi cấp'}] },
+  { id:'t07', section:'A', ma:'[07]', label:'Hộ chiếu (trường hợp không có quốc tịch Việt Nam)', type:'text' },
+  { id:'t0701', section:'A', ma:'[07.1]/[07.2]', label:'Ngày cấp / Nơi cấp (Hộ chiếu)', type:'multi',
+    subs:[{k:'ngaycap',label:'Ngày cấp',type:'date'},{k:'noicap',label:'Nơi cấp'}] },
+  { id:'t08', section:'A', ma:'[08]', label:'Địa chỉ chỗ ở hiện tại', type:'text' },
+  { id:'t09', section:'A', ma:'[09]', label:'Quận/huyện', type:'text' },
+  { id:'t10', section:'A', ma:'[10]', label:'Tỉnh/Thành phố', type:'text' },
+  { id:'t11', section:'A', ma:'[11]', label:'Điện thoại', type:'text' },
+  { id:'t12', section:'A', ma:'[12]', label:'Email', type:'text' },
+  { id:'t13', section:'A', ma:'[13]', label:'Tên tổ chức, cá nhân khai thay (nếu có)', type:'text' },
+  { id:'t14', section:'A', ma:'[14]', label:'Mã số thuế (tổ chức/cá nhân khai thay)', type:'text' },
+  { id:'t15', section:'A', ma:'[15]', label:'Địa chỉ (tổ chức/cá nhân khai thay)', type:'text' },
+  { id:'t16', section:'A', ma:'[16]', label:'Quận/huyện (khai thay)', type:'text' },
+  { id:'t17', section:'A', ma:'[17]', label:'Tỉnh/Thành phố (khai thay)', type:'text' },
+  { id:'t20', section:'A', ma:'[20]', label:'Tên đại lý thuế (nếu có)', type:'text' },
+  { id:'t21', section:'A', ma:'[21]', label:'Mã số thuế (đại lý thuế)', type:'text' },
+  { id:'t22', section:'A', ma:'[22]', label:'Địa chỉ (đại lý thuế)', type:'text' },
+  { id:'t23', section:'A', ma:'[23]', label:'Quận/huyện (đại lý thuế)', type:'text' },
+  { id:'t24', section:'A', ma:'[24]', label:'Tỉnh/Thành phố (đại lý thuế)', type:'text' },
+  { id:'t25', section:'A', ma:'[25]', label:'Điện thoại (đại lý thuế)', type:'text' },
+  { id:'t26', section:'A', ma:'[26]', label:'Email (đại lý thuế)', type:'text' },
+  { id:'t272829', section:'A', ma:'[27]/[28]/[29]', label:'Hợp đồng đại lý thuế: Số / Ngày', type:'multi',
+    subs:[{k:'so',label:'Số hợp đồng'},{k:'ngay',label:'Ngày ký hợp đồng',type:'date'}] },
+  { id:'t30', section:'A', ma:'[30]', label:'Giấy tờ về quyền sử dụng đất, quyền sở hữu nhà ở và tài sản gắn liền với đất', type:'textarea' },
+  { id:'t3001', section:'A', ma:'[30.1]-[30.3]', label:'Số / Do cơ quan / Cấp ngày (giấy tờ trên)', type:'multi',
+    subs:[{k:'so',label:'Số'},{k:'coquan',label:'Do cơ quan'},{k:'ngay',label:'Cấp ngày',type:'date'}] },
+  { id:'t31', section:'A', ma:'[31]', label:'Hợp đồng mua bán nhà ở, công trình xây dựng hình thành trong tương lai ký với chủ dự án cấp 1, cấp 2 hoặc Sàn giao dịch của chủ dự án', type:'textarea' },
+  { id:'t3101', section:'A', ma:'[31.1]/[31.2]', label:'Số / Ngày (hợp đồng mua bán trên)', type:'multi',
+    subs:[{k:'so',label:'Số'},{k:'ngay',label:'Ngày',type:'date'}] },
+  { id:'t32', section:'A', ma:'[32]', label:'Hợp đồng chuyển nhượng, trao đổi bất động sản', type:'multi',
+    subs:[{k:'so',label:'[32.1] Số'},{k:'noilap',label:'[32.2] Nơi lập'},{k:'ngaylap',label:'[32.3] Ngày lập',type:'date'},
+          {k:'coquanct',label:'[32.4] Cơ quan chứng thực'},{k:'ngaycc',label:'[32.5] Ngày chứng thực',type:'date'}] },
+
+  // ===== II. THÔNG TIN NGƯỜI NHẬN CHUYỂN NHƯỢNG, NHẬN THỪA KẾ, QUÀ TẶNG =====
+  { id:'t33', section:'B', ma:'[33]', label:'Họ và tên đại diện', type:'text' },
+  { id:'t34', section:'B', ma:'[34]', label:'Mã số thuế (nếu có)', type:'text', mstBox:true },
+  { id:'t35', section:'B', ma:'[35]', label:'Số CMND/CCCD/Hộ chiếu (trường hợp chưa có mã số thuế)', type:'text' },
+  { id:'t3501', section:'B', ma:'[35.1]/[35.2]', label:'Ngày cấp / Nơi cấp', type:'multi',
+    subs:[{k:'ngaycap',label:'Ngày cấp',type:'date'},{k:'noicap',label:'Nơi cấp'}] },
+  { id:'t36', section:'B', ma:'[36]', label:'Văn bản Phân chia di sản thừa kế, quà tặng là Bất động sản', type:'multi',
+    subs:[{k:'noilap',label:'[36.1] Nơi lập hồ sơ nhận thừa kế, quà tặng'},{k:'ngaylap',label:'[36.2] Ngày lập',type:'date'},
+          {k:'coquan',label:'[36.3] Cơ quan chứng thực'},{k:'ngaycc',label:'[36.4] Ngày chứng thực',type:'date'}] },
+
+  // ===== III. LOẠI BẤT ĐỘNG SẢN CHUYỂN NHƯỢNG, NHẬN THỪA KẾ, QUÀ TẶNG =====
+  { id:'t37', section:'C', ma:'[37]', label:'Quyền sử dụng đất và tài sản gắn liền trên đất', type:'yesno' },
+  { id:'t38', section:'C', ma:'[38]', label:'Quyền sở hữu hoặc sử dụng nhà ở', type:'yesno' },
+  { id:'t39', section:'C', ma:'[39]', label:'Quyền thuê đất, thuê mặt nước', type:'yesno' },
+  { id:'t40', section:'C', ma:'[40]', label:'Bất động sản khác', type:'yesno' },
+
+  // ===== IV. ĐẶC ĐIỂM BẤT ĐỘNG SẢN CHUYỂN NHƯỢNG, NHẬN THỪA KẾ, QUÀ TẶNG =====
+  { id:'t4101', section:'D', ma:'[41.1]', label:'Thửa đất số / Tờ bản đồ số', type:'multi',
+    subs:[{k:'thua',label:'Thửa đất số (số hiệu thửa đất)'},{k:'tbd',label:'Tờ bản đồ số'}] },
+  { id:'t4102', section:'D', ma:'[41.2]', label:'Địa chỉ (thửa đất)', type:'text' },
+  { id:'t4103', section:'D', ma:'[41.3]', label:'Số nhà / Toà nhà / Ngõ, hẻm / Đường, phố / Thôn, xóm, ấp', type:'multi',
+    subs:[{k:'sonha',label:'Số nhà'},{k:'toanha',label:'Toà nhà'},{k:'ngohem',label:'Ngõ/Hẻm'},{k:'duongpho',label:'Đường/Phố'},{k:'thonxom',label:'Thôn/xóm/ấp'}] },
+  { id:'t4104', section:'D', ma:'[41.4]', label:'Phường/xã', type:'text' },
+  { id:'t4105', section:'D', ma:'[41.5]', label:'Quận/huyện', type:'text' },
+  { id:'t4106', section:'D', ma:'[41.6]', label:'Tỉnh/thành phố', type:'text' },
+  { id:'t4107', section:'D', ma:'[41.7]', label:'Loại đất, vị trí thửa đất', type:'table',
+    addLabel:'➕ Thêm loại đất/vị trí',
+    columns:[
+      {k:'loaidat', label:'Loại đất', type:'text'},
+      {k:'vitri', label:'Vị trí', type:'text'},
+      {k:'dientich', label:'Diện tích (m²)', type:'number', width:'80px'}
+    ] },
+  { id:'t4108', section:'D', ma:'[41.8]', label:'Hệ số (nếu có)', type:'text' },
+  { id:'t4109', section:'D', ma:'[41.9]', label:'Nguồn gốc đất (Nhà nước giao/cho thuê; nhận chuyển nhượng; thừa kế; tặng cho)', type:'textarea' },
+  { id:'t4110', section:'D', ma:'[41.10]', label:'Giá trị đất thực tế chuyển giao (nếu có, đồng)', type:'number', money:true },
+
+  { id:'t422', section:'D', ma:'[42.2]', label:'Nhà ở riêng lẻ - Loại 1: Cấp nhà ở / Diện tích sàn xây dựng (m²)', type:'multi',
+    subs:[{k:'cap',label:'Cấp nhà ở'},{k:'dtsan',label:'Diện tích sàn xây dựng (m²)',type:'number'}] },
+  { id:'t423', section:'D', ma:'[42.3]', label:'Nhà ở riêng lẻ - Loại 2: Cấp nhà ở / Diện tích sàn xây dựng (m²)', type:'multi',
+    subs:[{k:'cap',label:'Cấp nhà ở'},{k:'dtsan',label:'Diện tích sàn xây dựng (m²)',type:'number'}] },
+  { id:'t424', section:'D', ma:'[42.4]', label:'Giá trị nhà (riêng lẻ) thực tế chuyển giao (nếu có, đồng)', type:'number', money:true },
+  { id:'t4267', section:'D', ma:'[42.6]/[42.7]', label:'Nhà chung cư - Chủ dự án / Địa chỉ dự án, công trình', type:'multi',
+    subs:[{k:'chudt',label:'Chủ dự án'},{k:'diachidt',label:'Địa chỉ dự án, công trình'}] },
+  { id:'t4289', section:'D', ma:'[42.8]/[42.9]', label:'Nhà chung cư - Diện tích xây dựng / Diện tích sàn xây dựng (m²)', type:'multi',
+    subs:[{k:'dtxd',label:'Diện tích xây dựng (m²)',type:'number'},{k:'dtsan',label:'Diện tích sàn xây dựng (m²)',type:'number'}] },
+  { id:'t421011', section:'D', ma:'[42.10]/[42.11]', label:'Nhà chung cư - Diện tích sở hữu chung / riêng (m²)', type:'multi',
+    subs:[{k:'schung',label:'Diện tích sở hữu chung (m²)',type:'number'},{k:'srieng',label:'Diện tích sở hữu riêng (m²)',type:'number'}] },
+  { id:'t421214', section:'D', ma:'[42.12]-[42.14]', label:'Nhà chung cư - Kết cấu / Số tầng nổi / Số tầng hầm', type:'multi',
+    subs:[{k:'ketcau',label:'Kết cấu'},{k:'tangnoi',label:'Số tầng nổi',type:'number'},{k:'tangham',label:'Số tầng hầm',type:'number'}] },
+  { id:'t4215', section:'D', ma:'[42.15]', label:'Năm hoàn công (nhà chung cư)', type:'text' },
+  { id:'t4216', section:'D', ma:'[42.16]', label:'Giá trị nhà (chung cư) thực tế chuyển giao (nếu có, đồng)', type:'number', money:true },
+  { id:'t4217', section:'D', ma:'[42.17]', label:'Nguồn gốc nhà', type:'choice',
+    options:[{v:'tuxd',label:'Tự xây dựng',hasExtra:true,extraLabel:'[42.18] Năm hoàn thành (hoặc năm bắt đầu sử dụng nhà)',extraType:'text'},
+             {v:'chuyennhuong',label:'Chuyển nhượng',hasExtra:true,extraLabel:'[42.19] Thời điểm làm giấy tờ chuyển giao nhà',extraType:'date'}] },
+  { id:'t422122', section:'D', ma:'[42.21]/[42.22]', label:'Công trình xây dựng (trừ nhà ở) - Chủ dự án / Địa chỉ dự án, công trình', type:'multi',
+    subs:[{k:'chudt',label:'Chủ dự án'},{k:'diachidt',label:'Địa chỉ dự án, công trình'}] },
+  { id:'t4223', section:'D', ma:'[42.23]', label:'Loại công trình / Hạng mục công trình / Cấp công trình', type:'multi',
+    subs:[{k:'loai',label:'Loại công trình'},{k:'hangmuc',label:'Hạng mục công trình'},{k:'cap',label:'Cấp công trình'}] },
+  { id:'t422425', section:'D', ma:'[42.24]/[42.25]', label:'Diện tích xây dựng / Diện tích sàn xây dựng (công trình, m²)', type:'multi',
+    subs:[{k:'dtxd',label:'Diện tích xây dựng (m²)',type:'number'},{k:'dtsan',label:'Diện tích sàn xây dựng (m²)',type:'number'}] },
+  { id:'t4226', section:'D', ma:'[42.26]', label:'Hệ số (nếu có, công trình)', type:'text' },
+  { id:'t4227', section:'D', ma:'[42.27]', label:'Đơn giá (công trình)', type:'number', money:true },
+  { id:'t4228', section:'D', ma:'[42.28]', label:'Giá trị công trình thực tế chuyển giao (nếu có, đồng)', type:'number', money:true },
+
+  { id:'t431', section:'D', ma:'[43.1]', label:'Loại tài sản gắn liền với đất', type:'text' },
+  { id:'t432', section:'D', ma:'[43.2]', label:'Giá trị tài sản gắn liền với đất thực tế chuyển giao (nếu có, đồng)', type:'number', money:true },
+
+  // ===== V. THU NHẬP TỪ CHUYỂN NHƯỢNG BĐS; TỪ NHẬN THỪA KẾ, QUÀ TẶNG LÀ BĐS =====
+  { id:'t44', section:'E', ma:'[44]', label:'Loại thu nhập', type:'choice',
+    options:[{v:'chuyennhuong',label:'Thu nhập từ chuyển nhượng BĐS'},{v:'thuake',label:'Thu nhập từ nhận thừa kế, quà tặng'}] },
+  { id:'t45', section:'E', ma:'[45]', label:'Giá trị chuyển nhượng BĐS (và tài sản gắn liền với đất) hoặc giá trị BĐS nhận thừa kế, quà tặng (đồng)', type:'number', money:true },
+  { id:'t46', section:'E', ma:'[46]', label:'Thuế TNCN phát sinh đối với chuyển nhượng BĐS ([46]=[45]×2%)', type:'computed',
+    deps:['t45'], compute:function(v){ return (Number(v.t45)||0) * 0.02; } },
+  { id:'t47', section:'E', ma:'[47]', label:'Thu nhập miễn thuế (đồng)', type:'number', money:true },
+  { id:'t48', section:'E', ma:'[48]', label:'Thuế TNCN được miễn ([48]=[47]×2%)', type:'computed',
+    deps:['t47'], compute:function(v){ return (Number(v.t47)||0) * 0.02; } },
+  { id:'t49', section:'E', ma:'[49]', label:'Thuế TNCN phải nộp đối với chuyển nhượng BĐS ([49]=[46]-[48])', type:'computed',
+    deps:['t46','t48'], compute:function(v){ return (Number(v.t46)||0) - (Number(v.t48)||0); } },
+  { id:'t50', section:'E', ma:'[50]', label:'Thuế TNCN phải nộp đối với nhận thừa kế, quà tặng ([50]=([45]-[47]-10.000.000)×10%)', type:'computed',
+    deps:['t45','t47'], compute:function(v){ return Math.max(0, (Number(v.t45)||0) - (Number(v.t47)||0) - 10000000) * 0.10; } },
+  { id:'t51', section:'E', ma:'[51]', label:'Số thuế phải nộp, được miễn của chủ sở hữu (trường hợp có đồng sở hữu, hoặc chủ sở hữu/đồng sở hữu được miễn thuế)', type:'table',
+    addLabel:'➕ Thêm chủ sở hữu',
+    columns:[
+      {k:'hoten', label:'Họ và tên', type:'text'},
+      {k:'mst', label:'Mã số thuế', type:'text'},
+      {k:'tyle', label:'Tỷ lệ sở hữu (%)', type:'number', width:'55px'},
+      {k:'phainop', label:'Số thuế phải nộp', type:'number', money:true},
+      {k:'duocmien', label:'Số thuế được miễn', type:'number', money:true},
+      {k:'lydo1', label:'Lý do miễn (nhà ở, đất ở duy nhất)', type:'text'},
+      {k:'lydo2', label:'Lý do miễn khác', type:'text'}
+    ] },
+
+  // ===== VII. HỒ SƠ KÈM THEO + KÝ TÊN =====
+  { id:'thoso', section:'F', ma:'', label:'Hồ sơ kèm theo gồm (liệt kê từng loại giấy tờ)', type:'textarea' },
+  { id:'tky1', section:'F', ma:'', label:'Nơi, ngày ký tờ khai', type:'multi',
+    subs:[{k:'noi',label:'Địa danh (VD: TP. Hồ Chí Minh)'},{k:'ngay',label:'Ngày ký',type:'date'}] },
+  { id:'tky2', section:'F', ma:'', label:'Người ký (Người nộp thuế / Đại diện hợp pháp)', type:'multi',
+    subs:[{k:'hoten',label:'Họ và tên'},{k:'chucvu',label:'Chức vụ (nếu là đại diện tổ chức)'}] },
+];
+const SECTION_LABEL_TNCN = {
+  A:'I. THÔNG TIN NGƯỜI CHUYỂN NHƯỢNG, NHẬN THỪA KẾ, QUÀ TẶNG',
+  B:'II. THÔNG TIN NGƯỜI NHẬN CHUYỂN NHƯỢNG, NHẬN THỪA KẾ, QUÀ TẶNG',
+  C:'III. LOẠI BẤT ĐỘNG SẢN',
+  D:'IV. ĐẶC ĐIỂM BẤT ĐỘNG SẢN',
+  E:'V. THU NHẬP TỪ CHUYỂN NHƯỢNG / THỪA KẾ, QUÀ TẶNG',
+  F:'VII. HỒ SƠ KÈM THEO & KÝ TÊN'
+};
+
+// ── In / Xuất Tờ khai TNCN — 4 trang theo đúng thứ tự mục của mẫu gốc.
+function xayHtmlTncnTrang1(){
+  var html = '<div class="tk-print-doc">';
+  html += '<div class="mausotop">Mẫu số: <b>03/BĐS-TNCN</b><br>(Ban hành kèm theo Thông tư số 80/2021/TT-BTC ngày 29/9/2021 của Bộ trưởng Bộ Tài chính)</div>';
+  html += '<div class="quochieu">CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM<br>Độc lập - Tự do - Hạnh phúc</div>';
+  html += '<div class="tieude">Tờ khai thuế thu nhập cá nhân</div>';
+  html += '<div style="text-align:center;font-style:italic;margin-bottom:10px">(Áp dụng đối với cá nhân có thu nhập từ chuyển nhượng bất động sản; thu nhập từ nhận thừa kế và nhận quà tặng là bất động sản)</div>';
+
+  html += '<div class="pl">[01] Kỳ tính thuế: Lần phát sinh: Ngày ' + fmtDateVN(vGet('t01')) + '</div>';
+  var c0203 = (isChecked('t0203') && vGet('t0203')) ? vGet('t0203') : {};
+  html += '<div class="pl">[02] ' + (c0203.value==='dau' ? '☑' : '☐') + ' Lần đầu: &nbsp;&nbsp;&nbsp; [03] '
+    + (c0203.value==='bosung' ? '☑' : '☐') + ' Bổ sung lần thứ: ' + (c0203.value==='bosung' ? ('<b>'+esc(c0203.extra||'…')+'</b>') : '…') + '</div>';
+
+  html += '<div class="muctitle">I. THÔNG TIN NGƯỜI CHUYỂN NHƯỢNG, NHẬN THỪA KẾ, QUÀ TẶNG</div>';
+  html += '<div class="pl"><b>[04] Tên người nộp thuế:</b> ' + vText('t04') + '</div>';
+  html += '<div class="pl">[05] Mã số thuế (nếu có): ' + renderMSTBoxes('t05') + '</div>';
+  html += '<div class="pl">[06] Số CMND/CCCD/Hộ chiếu (cá nhân quốc tịch Việt Nam): ' + vText('t06') + '</div>';
+  html += '<div class="pl">[06.1] Ngày cấp: ' + (isChecked('t0601') ? ('<b>'+fmtDateVN((vGet('t0601')||{}).ngaycap)+'</b>') : '…../…../20….') + ' &nbsp; [06.2] Nơi cấp: ' + vSub('t0601','noicap') + '</div>';
+  html += '<div class="pl">[07] Hộ chiếu (trường hợp không có quốc tịch Việt Nam): ' + vText('t07') + '</div>';
+  html += '<div class="pl">[07.1] Ngày cấp: ' + (isChecked('t0701') ? ('<b>'+fmtDateVN((vGet('t0701')||{}).ngaycap)+'</b>') : '…../…../20….') + ' &nbsp; [07.2] Nơi cấp: ' + vSub('t0701','noicap') + '</div>';
+  html += '<div class="pl">[08] Địa chỉ chỗ ở hiện tại: ' + vText('t08') + '</div>';
+  html += '<div class="pl">[09] Quận/huyện: ' + vText('t09') + ' &nbsp; [10] Tỉnh/Thành phố: ' + vText('t10') + '</div>';
+  html += '<div class="pl">[11] Điện thoại: ' + vText('t11') + ' &nbsp; [12] Email: ' + vText('t12') + '</div>';
+  html += '<div class="pl">[13] Tên tổ chức, cá nhân khai thay (nếu có): ' + vText('t13') + '</div>';
+  html += '<div class="pl">[14] Mã số thuế: ' + vText('t14') + '</div>';
+  html += '<div class="pl">[15] Địa chỉ: ' + vText('t15') + '</div>';
+  html += '<div class="pl">[16] Quận/huyện: ' + vText('t16') + ' &nbsp; [17] Tỉnh/Thành phố: ' + vText('t17') + '</div>';
+  html += '<div class="pl">[20] Tên đại lý thuế (nếu có): ' + vText('t20') + '</div>';
+  html += '<div class="pl">[21] Mã số thuế: ' + vText('t21') + '</div>';
+  html += '<div class="pl">[22] Địa chỉ: ' + vText('t22') + '</div>';
+  html += '<div class="pl">[23] Quận/huyện: ' + vText('t23') + ' &nbsp; [24] Tỉnh/Thành phố: ' + vText('t24') + '</div>';
+  html += '<div class="pl">[25] Điện thoại: ' + vText('t25') + ' &nbsp; [26] Email: ' + vText('t26') + '</div>';
+  html += '<div class="pl">[27] Hợp đồng đại lý thuế: [28] Số ' + vSub('t272829','so') + ' &nbsp; [29] Ngày ' + (isChecked('t272829') ? ('<b>'+fmtDateVN((vGet('t272829')||{}).ngay)+'</b>') : '…../…../20….') + '</div>';
+  html += '<div class="pl">[30] Giấy tờ về quyền sử dụng đất, quyền sở hữu nhà ở và tài sản gắn liền với đất: ' + vText('t30') + '</div>';
+  html += '<div class="pl">[30.1] Số: ' + vSub('t3001','so') + ' &nbsp; [30.2] Do cơ quan: ' + vSub('t3001','coquan') + ' &nbsp; [30.3] Cấp ngày: ' + (isChecked('t3001') ? ('<b>'+fmtDateVN((vGet('t3001')||{}).ngay)+'</b>') : '…../…../20….') + '</div>';
+  html += '<div class="pl">[31] Hợp đồng mua bán nhà ở, công trình xây dựng hình thành trong tương lai ký với chủ dự án cấp 1, cấp 2 hoặc Sàn giao dịch của chủ dự án: ' + vText('t31') + '</div>';
+  html += '<div class="pl">[31.1] Số: ' + vSub('t3101','so') + ' &nbsp; [31.2] Ngày: ' + (isChecked('t3101') ? ('<b>'+fmtDateVN((vGet('t3101')||{}).ngay)+'</b>') : '…../…../20….') + '</div>';
+  html += '<div class="pl">[32] Hợp đồng chuyển nhượng, trao đổi bất động sản:</div>';
+  html += '<div class="pl">[32.1] Số: ' + vSub('t32','so') + ' &nbsp; [32.2] Nơi lập: ' + vSub('t32','noilap') + '</div>';
+  html += '<div class="pl">[32.3] Ngày lập: ' + (isChecked('t32') ? ('<b>'+fmtDateVN((vGet('t32')||{}).ngaylap)+'</b>') : '…../…../20….') + '</div>';
+  html += '<div class="pl">[32.4] Cơ quan chứng thực: ' + vSub('t32','coquanct') + '</div>';
+  html += '<div class="pl">[32.5] Ngày chứng thực: ' + (isChecked('t32') ? ('<b>'+fmtDateVN((vGet('t32')||{}).ngaycc)+'</b>') : '…../…../20….') + '</div>';
+  html += '</div>';
+  return html;
+}
+function xayHtmlTncnTrang2(){
+  var html = '<div class="tk-print-doc">';
+  html += '<div class="muctitle">II. THÔNG TIN NGƯỜI NHẬN CHUYỂN NHƯỢNG, NHẬN THỪA KẾ, QUÀ TẶNG</div>';
+  html += '<div class="pl">[33] Họ và tên đại diện: ' + vText('t33') + '</div>';
+  html += '<div class="pl">[34] Mã số thuế (nếu có): ' + renderMSTBoxes('t34') + '</div>';
+  html += '<div class="pl">[35] Số CMND/CCCD/Hộ chiếu (trường hợp chưa có mã số thuế): ' + vText('t35') + '</div>';
+  html += '<div class="pl">[35.1] Ngày cấp: ' + (isChecked('t3501') ? ('<b>'+fmtDateVN((vGet('t3501')||{}).ngaycap)+'</b>') : '…../…../20….') + ' &nbsp; [35.2] Nơi cấp: ' + vSub('t3501','noicap') + '</div>';
+  html += '<div class="pl">[36] Văn bản Phân chia di sản thừa kế, quà tặng là Bất động sản</div>';
+  html += '<div class="pl">[36.1] Nơi lập hồ sơ nhận thừa kế, quà tặng: ' + vSub('t36','noilap') + '</div>';
+  html += '<div class="pl">[36.2] Ngày lập: ' + (isChecked('t36') ? ('<b>'+fmtDateVN((vGet('t36')||{}).ngaylap)+'</b>') : '…../…../20….') + '</div>';
+  html += '<div class="pl">[36.3] Cơ quan chứng thực: ' + vSub('t36','coquan') + '</div>';
+  html += '<div class="pl">[36.4] Ngày chứng thực: ' + (isChecked('t36') ? ('<b>'+fmtDateVN((vGet('t36')||{}).ngaycc)+'</b>') : '…../…../20….') + '</div>';
+
+  html += '<div class="muctitle">III. LOẠI BẤT ĐỘNG SẢN CHUYỂN NHƯỢNG, NHẬN THỪA KẾ, QUÀ TẶNG</div>';
+  html += '<div class="pl">[37] ' + (isChecked('t37') && vGet('t37') ? '☑' : '☐') + ' Quyền sử dụng đất và tài sản gắn liền trên đất</div>';
+  html += '<div class="pl">[38] ' + (isChecked('t38') && vGet('t38') ? '☑' : '☐') + ' Quyền sở hữu hoặc sử dụng nhà ở</div>';
+  html += '<div class="pl">[39] ' + (isChecked('t39') && vGet('t39') ? '☑' : '☐') + ' Quyền thuê đất, thuê mặt nước</div>';
+  html += '<div class="pl">[40] ' + (isChecked('t40') && vGet('t40') ? '☑' : '☐') + ' Bất động sản khác</div>';
+
+  html += '<div class="muctitle">IV. ĐẶC ĐIỂM BẤT ĐỘNG SẢN CHUYỂN NHƯỢNG, NHẬN THỪA KẾ, QUÀ TẶNG</div>';
+  html += '<div class="pl">[41] Thông tin về đất:</div>';
+  html += '<div class="pl">[41.1] Thửa đất số: ' + vSub('t4101','thua') + '; Tờ bản đồ số: ' + vSub('t4101','tbd') + '</div>';
+  html += '<div class="pl">[41.2] Địa chỉ: ' + vText('t4102') + '</div>';
+  html += '<div class="pl">[41.3] Số nhà: ' + vSub('t4103','sonha') + '; Toà nhà: ' + vSub('t4103','toanha') + '; Ngõ/Hẻm: ' + vSub('t4103','ngohem') + '<br>Đường/Phố: ' + vSub('t4103','duongpho') + '; Thôn/xóm/ấp: ' + vSub('t4103','thonxom') + '</div>';
+  html += '<div class="pl">[41.4] Phường/xã: ' + vText('t4104') + ' &nbsp; [41.5] Quận/huyện: ' + vText('t4105') + ' &nbsp; [41.6] Tỉnh/thành phố: ' + vText('t4106') + '</div>';
+  html += '<div class="pl">[41.7] Loại đất, vị trí thửa đất:</div>' + vTablePrint('t4107', 2);
+  html += '<div class="pl">[41.8] Hệ số (nếu có): ' + vText('t4108') + '</div>';
+  html += '<div class="pl">[41.9] Nguồn gốc đất: ' + vText('t4109') + '</div>';
+  html += '<div class="pl">[41.10] Giá trị đất thực tế chuyển giao (nếu có): ' + vTextMoney('t4110') + ' đồng</div>';
+  html += '</div>';
+  return html;
+}
+function xayHtmlTncnTrang3(){
+  var html = '<div class="tk-print-doc">';
+  html += '<div class="pl">[42] Thông tin về nhà ở, công trình xây dựng:</div>';
+  html += '<div class="pl">[42.1] Nhà ở riêng lẻ:</div>';
+  html += '<div class="pl">[42.2] Loại 1: Cấp nhà ở: ' + vSub('t422','cap') + '; Diện tích sàn xây dựng: ' + vSub('t422','dtsan') + ' m²</div>';
+  html += '<div class="pl">[42.3] Loại 2: Cấp nhà ở: ' + vSub('t423','cap') + '; Diện tích sàn xây dựng: ' + vSub('t423','dtsan') + ' m²</div>';
+  html += '<div class="pl">[42.4] Giá trị nhà thực tế chuyển giao (nếu có): ' + vTextMoney('t424') + ' đồng</div>';
+  html += '<div class="pl">[42.5] Nhà ở chung cư:</div>';
+  html += '<div class="pl">[42.6] Chủ dự án: ' + vSub('t4267','chudt') + ' &nbsp; [42.7] Địa chỉ dự án, công trình: ' + vSub('t4267','diachidt') + '</div>';
+  html += '<div class="pl">[42.8] Diện tích xây dựng: ' + vSub('t4289','dtxd') + ' m² &nbsp; [42.9] Diện tích sàn xây dựng: ' + vSub('t4289','dtsan') + ' m²</div>';
+  html += '<div class="pl">[42.10] Diện tích sở hữu chung: ' + vSub('t421011','schung') + ' m² &nbsp; [42.11] Diện tích sở hữu riêng: ' + vSub('t421011','srieng') + ' m²</div>';
+  html += '<div class="pl">[42.12] Kết cấu: ' + vSub('t421214','ketcau') + ' &nbsp; [42.13] Số tầng nổi: ' + vSub('t421214','tangnoi') + ' &nbsp; [42.14] Số tầng hầm: ' + vSub('t421214','tangham') + '</div>';
+  html += '<div class="pl">[42.15] Năm hoàn công: ' + vText('t4215') + '</div>';
+  html += '<div class="pl">[42.16] Giá trị nhà thực tế chuyển giao (nếu có): ' + vTextMoney('t4216') + ' đồng</div>';
+  html += '<div class="pl">[42.17] Nguồn gốc nhà:</div>';
+  var ngNha = (isChecked('t4217') && vGet('t4217')) ? vGet('t4217') : {};
+  html += '<div class="pl">' + (ngNha.value==='tuxd'?'☑':'☐') + ' Tự xây dựng — [42.18] Năm hoàn thành (hoặc năm bắt đầu sử dụng nhà): ' + (ngNha.value==='tuxd' ? ('<b>'+esc(ngNha.extra||'…')+'</b>') : '……') + '</div>';
+  html += '<div class="pl">' + (ngNha.value==='chuyennhuong'?'☑':'☐') + ' Chuyển nhượng — [42.19] Thời điểm làm giấy tờ chuyển giao nhà: ' + (ngNha.value==='chuyennhuong' ? ('<b>'+fmtDateVN(ngNha.extra)+'</b>') : '…../…../20….') + '</div>';
+  html += '<div class="pl">[42.20] Công trình xây dựng (trừ nhà ở):</div>';
+  html += '<div class="pl">[42.21] Chủ dự án: ' + vSub('t422122','chudt') + ' &nbsp; [42.22] Địa chỉ dự án, công trình: ' + vSub('t422122','diachidt') + '</div>';
+  html += '<div class="pl">[42.23] Loại công trình: ' + vSub('t4223','loai') + '; Hạng mục công trình: ' + vSub('t4223','hangmuc') + '; Cấp công trình: ' + vSub('t4223','cap') + '</div>';
+  html += '<div class="pl">[42.24] Diện tích xây dựng: ' + vSub('t422425','dtxd') + ' m² &nbsp; [42.25] Diện tích sàn xây dựng: ' + vSub('t422425','dtsan') + ' m²</div>';
+  html += '<div class="pl">[42.26] Hệ số (nếu có): ' + vText('t4226') + ' &nbsp; [42.27] Đơn giá: ' + vTextMoney('t4227') + '</div>';
+  html += '<div class="pl">[42.28] Giá trị công trình thực tế chuyển giao (nếu có): ' + vTextMoney('t4228') + ' đồng</div>';
+  html += '<div class="pl">[43] Tài sản gắn liền với đất:</div>';
+  html += '<div class="pl">[43.1] Loại tài sản gắn liền với đất: ' + vText('t431') + '</div>';
+  html += '<div class="pl">[43.2] Giá trị tài sản gắn liền với đất thực tế chuyển giao (nếu có): ' + vTextMoney('t432') + ' đồng</div>';
+
+  html += '<div class="muctitle">V. THU NHẬP TỪ CHUYỂN NHƯỢNG BẤT ĐỘNG SẢN; TỪ NHẬN THỪA KẾ, QUÀ TẶNG LÀ BẤT ĐỘNG SẢN</div>';
+  var loaiThuNhap = (isChecked('t44') && vGet('t44')) ? vGet('t44') : {};
+  html += '<div class="pl">[44] Loại thu nhập: &nbsp; [44.1] ' + (loaiThuNhap.value==='chuyennhuong'?'☑':'☐') + ' Thu nhập từ chuyển nhượng BĐS &nbsp;&nbsp; [44.2] ' + (loaiThuNhap.value==='thuake'?'☑':'☐') + ' Thu nhập từ nhận thừa kế, quà tặng</div>';
+  html += '<div class="pl">[45] Giá trị chuyển nhượng BĐS (và tài sản khác gắn liền với đất) hoặc giá trị BĐS nhận thừa kế, quà tặng: ' + vTextMoney('t45') + ' đồng</div>';
+  html += '<div class="pl">[46] Thuế TNCN phát sinh đối với chuyển nhượng BĐS ([46]=[45]×2%): <b>' + fmtSoTien(vGet('t46')) + '</b> đồng</div>';
+  html += '<div class="pl">[47] Thu nhập miễn thuế: ' + vTextMoney('t47') + ' đồng</div>';
+  html += '<div class="pl">[48] Thuế TNCN được miễn ([48]=[47]×2%): <b>' + fmtSoTien(vGet('t48')) + '</b> đồng</div>';
+  html += '<div class="pl">[49] Thuế TNCN phải nộp đối với chuyển nhượng BĐS ([49]=[46]-[48]): <b>' + fmtSoTien(vGet('t49')) + '</b> đồng</div>';
+  html += '<div class="pl">[50] Thuế TNCN phải nộp đối với nhận thừa kế, quà tặng ([50]=([45]-[47]-10.000.000)×10%): <b>' + fmtSoTien(vGet('t50')) + '</b> đồng</div>';
+  html += '</div>';
+  return html;
+}
+function xayHtmlTncnTrang4(){
+  var html = '<div class="tk-print-doc">';
+  html += '<div class="pl">[51] Số thuế phải nộp, được miễn của chủ sở hữu (chỉ khai trong trường hợp có đồng sở hữu hoặc chủ sở hữu/đồng sở hữu được miễn thuế theo quy định):</div>';
+  html += vTablePrint('t51', 2);
+
+  html += '<div class="muctitle">VII. HỒ SƠ KÈM THEO GỒM:</div>';
+  html += '<div class="pl">' + (isChecked('thoso') && vGet('thoso') ? esc(vGet('thoso')).replace(/\\n/g,'<br>') : '- ……………………………………………………………………………;<br>- ……………………………………………………………………………;') + '</div>';
+
+  html += '<div class="pl" style="margin-top:10px">Tôi cam đoan những nội dung kê khai là đúng và chịu trách nhiệm trước pháp luật về những nội dung đã khai./.</div>';
+  html += vKyTenBlock('tky1','tky2', 'NHÂN VIÊN ĐẠI LÝ THUẾ', 'NGƯỜI NỘP THUẾ hoặc<br>ĐẠI DIỆN HỢP PHÁP CỦA NGƯỜI NỘP THUẾ');
+  html += '</div>';
+  return html;
+}
+
+// ═══════════════════════ DANH SÁCH CÁC LOẠI TỜ KHAI (FORM_DEFS) ═══════════════════════
+const FORM_DEFS = [
+  { id:'ltb', icon:'📋', tenNgan:'Lệ phí trước bạ', mauSo:'01/LPTB', thongTu:'TT80/2021/TT-BTC',
+    moTa:'Áp dụng đối với nhà, đất', headerTitle:'📋 Tờ Khai Lệ Phí Trước Bạ',
+    schema:SCHEMA_LTB, sectionLabel:SECTION_LABEL_LTB, sectionOrder:['A','B','C'],
+    tenFieldId:'f04', fileName:'ToKhaiTruocBa', shareText:'Tờ khai lệ phí trước bạ (Mẫu 01/LPTB)',
+    buildPages:function(){ return [xayHtmlLtbTrang1(), xayHtmlLtbTrang2()]; } },
+  { id:'tncn_bds', icon:'🏠', tenNgan:'TNCN chuyển nhượng BĐS', mauSo:'03/BĐS-TNCN', thongTu:'TT80/2021/TT-BTC',
+    moTa:'Chuyển nhượng, thừa kế, quà tặng bất động sản', headerTitle:'💰 Tờ Khai Thuế TNCN (BĐS)',
+    schema:SCHEMA_TNCN, sectionLabel:SECTION_LABEL_TNCN, sectionOrder:['A','B','C','D','E','F'],
+    tenFieldId:'t04', fileName:'ToKhaiTNCN_BDS', shareText:'Tờ khai thuế TNCN (Mẫu 03/BĐS-TNCN)',
+    buildPages:function(){ return [xayHtmlTncnTrang1(), xayHtmlTncnTrang2(), xayHtmlTncnTrang3(), xayHtmlTncnTrang4()]; } },
+];
+function formById(id){ return FORM_DEFS.find(function(f){ return f.id===id; }); }
+
+// ── State hiện hành (được nạp lại mỗi khi mở 1 loại tờ khai từ danh sách) ──
+let currentForm = null;
+let checkedMap = {}, valuesMap = {}, tablesState = {};
+
+function schemaById(id){ return currentForm.schema.find(function(x){ return x.id===id; }); }
 function isChecked(id){ return !!checkedMap[id]; }
 
 function toast(msg){
@@ -423,20 +885,78 @@ function _confirmYes(){
   if (cb) cb();
 }
 function _confirmNo(){ closeM('modal-confirm'); _confirmCallback = null; }
-function esc(s){
-  return String(s==null?'':s).replace(/[&<>"']/g, function(c){
-    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
-  });
-}
 // Cuộn ô đang nhập lên trên 1 chút khi focus, tránh bị bàn phím ảo che mất trên điện thoại.
 function scrollInputUp(el){
   setTimeout(function(){ el.scrollIntoView({ block:'center', behavior:'smooth' }); }, 250);
 }
 
-// ═══════════════════════ RENDER MÀN HÌNH CHÍNH ═══════════════════════
+// ═══════════════════════ MÀN HÌNH CHỌN LOẠI TỜ KHAI (LAUNCHER) ═══════════════════════
+function renderLauncher(){
+  var box = document.getElementById('form-list');
+  box.innerHTML = FORM_DEFS.map(function(f){
+    return '<div class="form-card" onclick="openForm(\'' + f.id + '\')">'
+      + '<div class="ico">' + f.icon + '</div>'
+      + '<div class="info"><b>' + esc(f.tenNgan) + '</b>'
+      + '<div class="mauso">Mẫu ' + esc(f.mauSo) + ' · ' + esc(f.thongTu) + '</div>'
+      + '<div class="sub">' + esc(f.moTa) + '</div></div>'
+      + '<div class="chev">›</div></div>';
+  }).join('');
+}
+function goHome(){
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('launcher-screen').style.display = 'block';
+  closeTkPreview();
+  currentForm = null;
+}
+function openGlobalSettings(){
+  var sel = document.getElementById('startup-mode-select-global');
+  sel.value = localStorage.getItem(LS_STARTUP_MODE) || 'keep';
+  openM('modal-global-settings');
+}
+
+// Mở 1 loại tờ khai — áp dụng chế độ khởi động (keep/clear, cài đặt CHUNG) rồi nạp state riêng của
+// đúng loại tờ khai đó (namespace theo form.id, không đụng tới dữ liệu của các loại tờ khai khác).
+function openForm(formId){
+  currentForm = formById(formId);
+  _apDungCheDoKhoiDong(currentForm);
+  checkedMap = lsGetO(K(currentForm.id,'checked'));
+  valuesMap = lsGetO(K(currentForm.id,'values'));
+  tablesState = lsGetO(K(currentForm.id,'tables'));
+  document.getElementById('header-title-b').textContent = currentForm.headerTitle;
+  document.getElementById('header-title-span').textContent = 'Mẫu ' + currentForm.mauSo + ' · ' + currentForm.thongTu + ' · v1.2.1';
+  document.getElementById('launcher-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+  renderMain();
+}
+// Nếu người dùng chọn "clear": tờ khai đang nhập dở (nếu có nội dung) được LƯU VÀO LỊCH SỬ trước
+// (không mất dữ liệu), rồi CHỈ xoá phần DỮ LIỆU đã nhập (values/tables) — GIỮ NGUYÊN các mục đang
+// tick chọn (checked), vì đó là cấu hình khung nhập liệu chứ không phải dữ liệu riêng của 1 tờ khai.
+function _apDungCheDoKhoiDong(form){
+  var che = localStorage.getItem(LS_STARTUP_MODE) || 'keep';
+  if (che !== 'clear') return;
+  var checkedCu = lsGetO(K(form.id,'checked'));
+  var coNoiDung = Object.keys(checkedCu).some(function(k){ return checkedCu[k]; });
+  if (coNoiDung) {
+    var valuesCu = lsGetO(K(form.id,'values'));
+    var tablesCu = lsGetO(K(form.id,'tables'));
+    var hist = lsGetA(K(form.id,'history'));
+    var curId = localStorage.getItem(K(form.id,'current_id'));
+    var ten = (checkedCu[form.tenFieldId] && valuesCu[form.tenFieldId]) ? valuesCu[form.tenFieldId] : '(Chưa có tên người nộp thuế)';
+    var snap = { id: curId || ('tk_' + Date.now()), savedAt: new Date().toISOString(), ten: ten, checkedMap: checkedCu, valuesMap: valuesCu, tables: tablesCu };
+    var idx = hist.findIndex(function(h){ return h.id === snap.id; });
+    if (idx >= 0) hist[idx] = snap; else hist.unshift(snap);
+    if (hist.length > LICH_SU_TOI_DA) hist = hist.slice(0, LICH_SU_TOI_DA);
+    lsSet(K(form.id,'history'), hist);
+  }
+  lsSet(K(form.id,'values'), {});
+  lsSet(K(form.id,'tables'), {});
+  localStorage.removeItem(K(form.id,'current_id'));
+}
+
+// ═══════════════════════ RENDER MÀN HÌNH NHẬP LIỆU ═══════════════════════
 function renderMain(){
   var box = document.getElementById('main-container');
-  var checkedSchemas = SCHEMA.filter(function(f){ return isChecked(f.id); });
+  var checkedSchemas = currentForm.schema.filter(function(f){ return isChecked(f.id); });
   if (!checkedSchemas.length) {
     box.innerHTML = ''
       + '<div class="empty-state">'
@@ -448,16 +968,22 @@ function renderMain(){
     return;
   }
   var html = '';
-  ['A','B','C'].forEach(function(sec){
+  currentForm.sectionOrder.forEach(function(sec){
     var fields = checkedSchemas.filter(function(f){ return f.section===sec; });
     if (!fields.length) return;
-    html += '<div class="section"><div class="section-title">' + SECTION_LABEL[sec] + '</div>';
+    html += '<div class="section"><div class="section-title">' + currentForm.sectionLabel[sec] + '</div>';
     fields.forEach(function(f){ html += renderFieldCard(f); });
     html += '</div>';
   });
+  // Nút Lưu / In-Xuất nằm Ở CUỐI form, trong luồng nội dung — kéo hết trang mới thấy (không nổi cố định).
+  html += '<div class="bottom-actions">'
+    + '<button class="btn-luu-tk" onclick="luuTamToKhai()">💾 Lưu</button>'
+    + '<button class="btn-print" onclick="inToKhai()">🖨️ In / Xuất Tờ Khai</button>'
+    + '</div>';
   box.innerHTML = html;
   // Sau khi render xong mới gắn giá trị đã lưu vào (tránh mất giá trị đang gõ dở nếu render lại giữa chừng)
   checkedSchemas.forEach(function(f){ fillFieldValue(f); });
+  recomputeComputed();
 }
 
 function renderFieldCard(f){
@@ -468,6 +994,10 @@ function renderFieldCard(f){
       + 'oninput="onSimpleInput(\'' + f.id + '\',this.value);onAutoInput(\'' + f.id + '\',this.value)" '
       + 'onfocus="scrollInputUp(this)" onblur="hideGoiYTruong(\'' + f.id + '\')">'
       + '<div class="ac-list" id="ac-' + f.id + '"></div></div>';
+  } else if (f.type === 'number' && f.money) {
+    inner = '<input class="field-input" type="text" inputmode="decimal" data-id="' + f.id + '" data-money="1" '
+      + 'oninput="onMoneyInput(\'' + f.id + '\',this)">'
+      + '<div class="field-hint">Đơn vị: đồng — dấu chấm phân cách hàng nghìn tự động thêm vào khi gõ.</div>';
   } else if (f.type === 'number') {
     inner = '<input class="field-input" type="number" inputmode="decimal" data-id="' + f.id + '" oninput="onSimpleInput(\'' + f.id + '\',this.value)">';
   } else if (f.type === 'date') {
@@ -476,6 +1006,8 @@ function renderFieldCard(f){
     inner = '<textarea class="field-textarea" data-id="' + f.id + '" oninput="onSimpleInput(\'' + f.id + '\',this.value)"></textarea>';
   } else if (f.type === 'yesno') {
     inner = '<label class="yesno-row"><input type="checkbox" data-id="' + f.id + '" onchange="onYesNoInput(\'' + f.id + '\',this.checked)"><span>Có áp dụng mục này</span></label>';
+  } else if (f.type === 'computed') {
+    inner = '<div class="field-computed" id="computed-' + f.id + '">0 đồng</div><div class="field-hint">Tự động tính, không cần nhập tay.</div>';
   } else if (f.type === 'multi') {
     inner = '<div class="sub-grid">' + f.subs.map(function(s){
       var t = s.type || 'text';
@@ -496,17 +1028,17 @@ function renderFieldCard(f){
       return '<div class="choice-btn" data-v="' + o.v + '" onclick="onChoiceClick(\'' + f.id + '\',\'' + o.v + '\')">' + esc(o.label) + '</div>';
     }).join('') + '</div>'
       + '<div id="choice-extra-' + f.id + '"></div>';
-  } else if (f.type === 'table5') {
-    inner = renderTable5();
+  } else if (f.type === 'table') {
+    inner = renderGenericTable(f);
   }
   return '<div class="field-card"><div class="field-label">' + maHtml + '<span>' + esc(f.label) + '</span></div>' + inner + '</div>';
 }
 // ═══════════════════════ TỰ ĐỘNG ĐỀ XUẤT (giống chọn nhanh tên khách hàng ở app Mua Bán Mủ) ═══════
-// Nguồn gợi ý lấy từ TOÀN BỘ giá trị đã từng nhập cho ĐÚNG trường đó ở các tờ khai trong Lịch sử —
-// càng dùng nhiều, gợi ý càng đầy đủ, không cần danh sách khách hàng dựng sẵn riêng.
+// Nguồn gợi ý lấy từ TOÀN BỘ giá trị đã từng nhập cho ĐÚNG trường đó ở các tờ khai trong Lịch sử
+// CỦA CÙNG LOẠI TỜ KHAI ĐANG MỞ — càng dùng nhiều, gợi ý càng đầy đủ, không cần danh sách dựng sẵn.
 function _fieldGoiYPool(key){
   var parts = key.split('.');
-  var hist = lsGetA(LS_HISTORY);
+  var hist = lsGetA(K(currentForm.id,'history'));
   var set = {};
   hist.forEach(function(h){
     var val = parts.length > 1 ? (h.valuesMap && h.valuesMap[parts[0]] && h.valuesMap[parts[0]][parts[1]]) : (h.valuesMap && h.valuesMap[parts[0]]);
@@ -547,33 +1079,65 @@ function hideGoiYTruong(key){
   setTimeout(function(){ var box = document.getElementById('ac-' + key); if (box) box.style.display='none'; }, 150);
 }
 
-function renderTable5(){
-  var rows = table5Rows.length ? table5Rows : [{ten:'',mst:'',cmnd:'',tyle:''}];
+// ═══════════════════════ BẢNG ĐỘNG (generic table) — thay cho table5 cũ, dùng chung cho mọi loại
+// tờ khai (mục 5 của LPTB, mục [41.7] và [51] của TNCN...), cột được khai báo trong f.columns ═══════
+function _tableRows(f){ return (tablesState[f.id] && tablesState[f.id].length) ? tablesState[f.id] : []; }
+function renderGenericTable(f){
+  var rows = _tableRows(f);
+  if (!rows.length) rows = [_tableBlankRow(f)];
   var trs = rows.map(function(r, i){
-    return '<tr>'
-      + '<td style="text-align:center">' + (i+1) + '</td>'
-      + '<td><input value="' + esc(r.ten) + '" oninput="onTable5Input(' + i + ',\'ten\',this.value)"></td>'
-      + '<td><input value="' + esc(r.mst) + '" oninput="onTable5Input(' + i + ',\'mst\',this.value)"></td>'
-      + '<td><input value="' + esc(r.cmnd) + '" oninput="onTable5Input(' + i + ',\'cmnd\',this.value)"></td>'
-      + '<td><input type="number" value="' + esc(r.tyle) + '" oninput="onTable5Input(' + i + ',\'tyle\',this.value)"></td>'
-      + '<td><button class="row-del" onclick="delTable5Row(' + i + ')">✕</button></td>'
-      + '</tr>';
+    var tds = '<td style="text-align:center;width:24px">' + (i+1) + '</td>';
+    f.columns.forEach(function(c){
+      if (c.money) {
+        tds += '<td' + (c.width?(' style="width:'+c.width+'"'):'') + '><input type="text" inputmode="decimal" '
+          + 'value="' + esc(r[c.k] ? Number(r[c.k]).toLocaleString('vi-VN') : '') + '" '
+          + 'oninput="onTableMoneyInput(\'' + f.id + '\',' + i + ',\'' + c.k + '\',this)"></td>';
+      } else {
+        tds += '<td' + (c.width?(' style="width:'+c.width+'"'):'') + '><input type="' + (c.type==='number'?'number':'text') + '" '
+          + 'value="' + esc(r[c.k]||'') + '" oninput="onTableInput(\'' + f.id + '\',' + i + ',\'' + c.k + '\',this.value)"></td>';
+      }
+    });
+    tds += '<td style="width:26px"><button class="row-del" onclick="delTableRow(\'' + f.id + '\',' + i + ')">✕</button></td>';
+    return '<tr>' + tds + '</tr>';
   }).join('');
-  return '<div class="table-wrap"><table class="ck-table"><thead><tr>'
-    + '<th style="width:26px">STT</th><th>Tên tổ chức/cá nhân đồng sở hữu</th><th>Mã số thuế</th>'
-    + '<th>Số CMND/CCCD/Hộ chiếu</th><th style="width:60px">Tỷ lệ (%)</th><th style="width:26px"></th>'
-    + '</tr></thead><tbody id="table5-body">' + trs + '</tbody></table></div>'
-    + '<button class="add-row-btn" onclick="addTable5Row()">➕ Thêm đồng chủ sở hữu</button>';
+  var ths = '<th style="width:24px">STT</th>' + f.columns.map(function(c){
+    return '<th' + (c.width?(' style="width:'+c.width+'"'):'') + '>' + esc(c.label) + '</th>';
+  }).join('') + '<th style="width:26px"></th>';
+  return '<div class="table-wrap"><table class="ck-table"><thead><tr>' + ths + '</tr></thead>'
+    + '<tbody id="table-body-' + f.id + '">' + trs + '</tbody></table></div>'
+    + '<button class="add-row-btn" onclick="addTableRow(\'' + f.id + '\')">' + esc(f.addLabel||'➕ Thêm dòng') + '</button>';
 }
-function addTable5Row(){
-  table5Rows.push({ten:'',mst:'',cmnd:'',tyle:''});
-  lsSet(LS_TABLE5, table5Rows);
+function _tableBlankRow(f){
+  var r = {}; f.columns.forEach(function(c){ r[c.k]=''; }); return r;
+}
+function onTableInput(fieldId, i, key, val){
+  if (!tablesState[fieldId]) tablesState[fieldId] = [];
+  var f = schemaById(fieldId);
+  while (tablesState[fieldId].length <= i) tablesState[fieldId].push(_tableBlankRow(f));
+  tablesState[fieldId][i][key] = val;
+  lsSet(K(currentForm.id,'tables'), tablesState);
+}
+function addTableRow(fieldId){
+  var f = schemaById(fieldId);
+  if (!tablesState[fieldId]) tablesState[fieldId] = [];
+  if (!tablesState[fieldId].length) tablesState[fieldId].push(_tableBlankRow(f)); // giữ dòng trống hiện có trước khi thêm
+  tablesState[fieldId].push(_tableBlankRow(f));
+  lsSet(K(currentForm.id,'tables'), tablesState);
+  renderMain();
+}
+function delTableRow(fieldId, i){
+  if (!tablesState[fieldId]) return;
+  tablesState[fieldId].splice(i,1);
+  lsSet(K(currentForm.id,'tables'), tablesState);
   renderMain();
 }
 
 function fillFieldValue(f){
   var v = valuesMap[f.id];
-  if (f.type === 'text' || f.type === 'number' || f.type === 'date' || f.type === 'textarea') {
+  if (f.type === 'number' && f.money) {
+    var elM = document.querySelector('[data-id="' + f.id + '"]');
+    if (elM && v != null && v !== '') elM.value = Number(v).toLocaleString('vi-VN');
+  } else if (f.type === 'text' || f.type === 'number' || f.type === 'date' || f.type === 'textarea') {
     var el = document.querySelector('[data-id="' + f.id + '"]');
     if (el && v != null) el.value = v;
   } else if (f.type === 'yesno') {
@@ -587,16 +1151,37 @@ function fillFieldValue(f){
   } else if (f.type === 'choice') {
     if (v && v.value) setChoiceUI(f, v.value, v.extra);
   }
-  // table5 tự lấy từ table5Rows lúc render, không cần fill thêm ở đây
+  // table/computed tự lấy dữ liệu lúc render/recompute, không cần fill thêm ở đây
 }
 
 // ═══════════════════════ XỬ LÝ NHẬP LIỆU (lưu ngay khi gõ) ═══════════════════════
-function onSimpleInput(id, val){ valuesMap[id] = val; lsSet(LS_VALUES, valuesMap); }
-function onYesNoInput(id, checked){ valuesMap[id] = checked; lsSet(LS_VALUES, valuesMap); }
+function onSimpleInput(id, val){ valuesMap[id] = val; lsSet(K(currentForm.id,'values'), valuesMap); recomputeComputed(); }
+// ── Ô nhập SỐ TIỀN (money:true): tự thêm dấu chấm phân cách hàng nghìn NGAY KHI GÕ để dễ đọc (VD
+// 1.500.000), nhưng LƯU giá trị THÔ (không dấu chấm) vào valuesMap để công thức tính thuế TNCN và
+// bản in dùng số đúng. Đưa con trỏ về cuối ô sau khi định dạng lại — đơn giản, đủ dùng vì số tiền
+// luôn gõ tuần tự từ trái qua phải, hiếm khi sửa ở giữa.
+function _raSoThoTuChuoiTien(s){ return String(s||'').replace(/[^0-9]/g,''); }
+function onMoneyInput(id, el){
+  var raw = _raSoThoTuChuoiTien(el.value);
+  valuesMap[id] = raw;
+  el.value = raw ? Number(raw).toLocaleString('vi-VN') : '';
+  lsSet(K(currentForm.id,'values'), valuesMap);
+  recomputeComputed();
+}
+function onTableMoneyInput(fieldId, i, key, el){
+  var raw = _raSoThoTuChuoiTien(el.value);
+  if (!tablesState[fieldId]) tablesState[fieldId] = [];
+  var f = schemaById(fieldId);
+  while (tablesState[fieldId].length <= i) tablesState[fieldId].push(_tableBlankRow(f));
+  tablesState[fieldId][i][key] = raw;
+  el.value = raw ? Number(raw).toLocaleString('vi-VN') : '';
+  lsSet(K(currentForm.id,'tables'), tablesState);
+}
+function onYesNoInput(id, checked){ valuesMap[id] = checked; lsSet(K(currentForm.id,'values'), valuesMap); }
 function onMultiInput(id, subKey, val){
   if (!valuesMap[id] || typeof valuesMap[id] !== 'object') valuesMap[id] = {};
   valuesMap[id][subKey] = val;
-  lsSet(LS_VALUES, valuesMap);
+  lsSet(K(currentForm.id,'values'), valuesMap);
 }
 function onChoiceClick(id, v){
   var f = schemaById(id);
@@ -605,7 +1190,7 @@ function onChoiceClick(id, v){
   cur.value = v;
   if (!opt.hasExtra) delete cur.extra;
   valuesMap[id] = cur;
-  lsSet(LS_VALUES, valuesMap);
+  lsSet(K(currentForm.id,'values'), valuesMap);
   setChoiceUI(f, v, cur.extra);
 }
 function setChoiceUI(f, v, extra){
@@ -617,8 +1202,9 @@ function setChoiceUI(f, v, extra){
   var extraBox = document.getElementById('choice-extra-' + f.id);
   if (!extraBox) return;
   if (opt && opt.hasExtra) {
+    var inpType = opt.extraType==='number' ? 'number' : (opt.extraType==='date' ? 'date' : 'text');
     extraBox.innerHTML = '<div class="sub-row" style="margin-top:6px"><label>' + esc(opt.extraLabel) + '</label>'
-      + '<input class="field-input" type="' + (opt.extraType==='number'?'number':'text') + '" value="' + esc(extra||'') + '" '
+      + '<input class="field-input" type="' + inpType + '" value="' + esc(extra||'') + '" '
       + 'oninput="onChoiceExtraInput(\'' + f.id + '\',this.value)"></div>';
   } else {
     extraBox.innerHTML = '';
@@ -627,28 +1213,30 @@ function setChoiceUI(f, v, extra){
 function onChoiceExtraInput(id, val){
   if (!valuesMap[id] || typeof valuesMap[id]!=='object') valuesMap[id] = {};
   valuesMap[id].extra = val;
-  lsSet(LS_VALUES, valuesMap);
-}
-function onTable5Input(i, key, val){
-  while (table5Rows.length <= i) table5Rows.push({ten:'',mst:'',cmnd:'',tyle:''});
-  table5Rows[i][key] = val;
-  lsSet(LS_TABLE5, table5Rows);
+  lsSet(K(currentForm.id,'values'), valuesMap);
 }
 
-function delTable5Row(i){
-  table5Rows.splice(i,1);
-  lsSet(LS_TABLE5, table5Rows);
-  renderMain();
+// ═══════════════════════ TRƯỜNG TỰ ĐỘNG TÍNH (computed) — dùng cho các công thức thuế TNCN ═══════
+function recomputeComputed(){
+  if (!currentForm) return;
+  currentForm.schema.forEach(function(f){
+    if (f.type !== 'computed') return;
+    var val = f.compute(valuesMap);
+    valuesMap[f.id] = val;
+    var el = document.getElementById('computed-' + f.id);
+    if (el) el.textContent = fmtSoTien(val) + ' đồng';
+  });
+  lsSet(K(currentForm.id,'values'), valuesMap);
 }
 
 // ═══════════════════════ MODAL CÀI ĐẶT (chọn mục) ═══════════════════════
 function renderSettingsList(){
   var box = document.getElementById('settings-list');
   var html = '';
-  ['A','B','C'].forEach(function(sec){
-    var fields = SCHEMA.filter(function(f){ return f.section===sec; });
+  currentForm.sectionOrder.forEach(function(sec){
+    var fields = currentForm.schema.filter(function(f){ return f.section===sec; });
     if (!fields.length) return;
-    html += '<div class="set-group-title">' + SECTION_LABEL[sec] + '</div>';
+    html += '<div class="set-group-title">' + currentForm.sectionLabel[sec] + '</div>';
     fields.forEach(function(f){
       var maHtml = f.ma ? '<span class="ma">' + esc(f.ma) + '</span>' : '';
       html += '<label class="set-row">'
@@ -659,16 +1247,17 @@ function renderSettingsList(){
   });
   box.innerHTML = html;
 }
-function openSettings(){ renderSettingsList(); _capNhatSelectCheDoKhoiDong(); openM('modal-settings'); }
+function openSettings(){ renderSettingsList(); openM('modal-settings'); }
 function closeSettings(){ closeM('modal-settings'); renderMain(); }
 function toggleMuc(id, checked){
   checkedMap[id] = checked;
-  lsSet(LS_CHECKED, checkedMap);
+  lsSet(K(currentForm.id,'checked'), checkedMap);
   if (!checked) {
     // Bỏ tick -> XOÁ LUÔN dữ liệu đã nhập của mục này (đúng yêu cầu: không tick = làm trống ô nhập liệu)
     delete valuesMap[id];
-    lsSet(LS_VALUES, valuesMap);
-    if (id === 'm5') { table5Rows = []; lsSet(LS_TABLE5, table5Rows); }
+    lsSet(K(currentForm.id,'values'), valuesMap);
+    var f = schemaById(id);
+    if (f && f.type === 'table') { delete tablesState[id]; lsSet(K(currentForm.id,'tables'), tablesState); }
   }
 }
 // Lưu tờ khai đang dở vào Lịch sử NẾU đang có nội dung (ít nhất 1 mục đang tick) — dùng chung cho mọi
@@ -678,23 +1267,14 @@ function _luuLichSuNeuCoNoiDung(){
   if (coNoiDung) luuLichSu();
 }
 // Dùng cho "➕ Tờ khai mới" (nút header) và chế độ khởi động "Mở tờ khai mới" — CHỈ xoá DỮ LIỆU đã
-// nhập (valuesMap/table5Rows), GIỮ NGUYÊN các mục đang tick chọn (checkedMap). Các mục đã tick chọn
-// là "cấu hình khung nhập liệu" cho loại hồ sơ đang làm (VD: luôn cần khai đủ [04][05][07] cho mọi
-// tờ khai), không phải dữ liệu riêng của 1 tờ khai — nên KHÔNG được mất khi bắt đầu tờ khai mới; chỉ
-// mất khi người dùng TỰ TAY bỏ tick trong ⚙️ Cài đặt.
+// nhập (values/tables), GIỮ NGUYÊN các mục đang tick chọn (checked). Các mục đã tick chọn là "cấu
+// hình khung nhập liệu" cho loại hồ sơ đang làm, không phải dữ liệu riêng của 1 tờ khai — nên KHÔNG
+// được mất khi bắt đầu tờ khai mới; chỉ mất khi người dùng TỰ TAY bỏ tick trong ⚙️ Cài đặt.
 function _xoaDuLieuGiuMuc(){
   _luuLichSuNeuCoNoiDung();
-  valuesMap = {}; table5Rows = [];
-  lsSet(LS_VALUES, valuesMap); lsSet(LS_TABLE5, table5Rows);
-  localStorage.removeItem(LS_CURRENT_ID);
-}
-// Dùng RIÊNG cho "🗑️ Bỏ chọn tất cả" trong Cài đặt — đây là hành động chủ động của người dùng muốn
-// dọn sạch CẢ cấu hình mục đang chọn, nên mới xoá luôn checkedMap (khác với _xoaDuLieuGiuMuc ở trên).
-function _xoaTatCaKeCaMuc(){
-  _luuLichSuNeuCoNoiDung();
-  checkedMap = {}; valuesMap = {}; table5Rows = [];
-  lsSet(LS_CHECKED, checkedMap); lsSet(LS_VALUES, valuesMap); lsSet(LS_TABLE5, table5Rows);
-  localStorage.removeItem(LS_CURRENT_ID);
+  valuesMap = {}; tablesState = {};
+  lsSet(K(currentForm.id,'values'), valuesMap); lsSet(K(currentForm.id,'tables'), tablesState);
+  localStorage.removeItem(K(currentForm.id,'current_id'));
 }
 function taoToKhaiMoi(){
   showConfirm('➕ Tờ khai mới', 'Bắt đầu tờ khai MỚI?\n\nDữ liệu đã nhập sẽ được xoá (tự lưu vào Lịch sử trước, không mất). Các mục đang chọn ở Cài đặt vẫn giữ nguyên, không cần chọn lại.', function(){
@@ -703,17 +1283,10 @@ function taoToKhaiMoi(){
     toast('✅ Đã bắt đầu tờ khai mới!');
   }, 'Bắt đầu mới');
 }
-function boChonTatCa(){
-  showConfirm('🗑️ Bỏ chọn tất cả', 'Bỏ chọn TẤT CẢ các mục và XOÁ TOÀN BỘ dữ liệu đã nhập?\n\n(Tờ khai hiện tại sẽ được lưu vào Lịch sử trước khi xoá, không mất dữ liệu.)', function(){
-    _xoaTatCaKeCaMuc();
-    renderSettingsList();
-    toast('🗑️ Đã bỏ chọn tất cả!');
-  }, 'Bỏ chọn tất cả', true);
-}
 function openM(id){ document.getElementById(id).classList.add('show'); }
 function closeM(id){ document.getElementById(id).classList.remove('show'); }
 
-// ═══════════════════════ LỊCH SỬ TỜ KHAI ═══════════════════════
+// ═══════════════════════ LỊCH SỬ TỜ KHAI (RIÊNG CHO TỪNG LOẠI TỜ KHAI) ═══════════════════════
 function _fmtNgayGioVN(iso){
   try {
     var d = new Date(iso);
@@ -724,12 +1297,12 @@ function _fmtNgayGioVN(iso){
 function moLichSuToKhai(){ renderHistoryList(); openM('modal-history'); }
 function renderHistoryList(){
   var box = document.getElementById('history-list');
-  var hist = lsGetA(LS_HISTORY);
+  var hist = lsGetA(K(currentForm.id,'history'));
   if (!hist.length) {
     box.innerHTML = '<div style="text-align:center;color:var(--g500);padding:30px 10px;font-size:13px">Chưa có tờ khai nào trong lịch sử.<br>Bấm "In / Xuất Tờ Khai" ở màn hình chính để lưu lại.</div>';
     return;
   }
-  var curId = localStorage.getItem(LS_CURRENT_ID);
+  var curId = localStorage.getItem(K(currentForm.id,'current_id'));
   box.innerHTML = hist.map(function(h){
     var dangMo = h.id === curId;
     return '<div style="display:flex;align-items:center;gap:8px;padding:10px 2px;border-bottom:1px solid var(--g100)' + (dangMo?';background:var(--gold-light)':'') + '">'
@@ -742,17 +1315,17 @@ function renderHistoryList(){
   }).join('');
 }
 function napLichSu(id){
-  var hist = lsGetA(LS_HISTORY);
+  var hist = lsGetA(K(currentForm.id,'history'));
   var h = hist.find(function(x){ return x.id === id; });
   if (!h) return;
   showConfirm('🕘 Nạp lại tờ khai', 'Nạp lại tờ khai "' + h.ten + '" (lưu lúc ' + _fmtNgayGioVN(h.savedAt) + ')?\n\nDữ liệu đang nhập dở ở màn hình chính (nếu có) sẽ được lưu vào lịch sử trước khi thay thế.', function(){
     var coNoiDungHienTai = Object.keys(checkedMap).some(function(k){ return checkedMap[k]; });
-    if (coNoiDungHienTai && localStorage.getItem(LS_CURRENT_ID) !== id) luuLichSu(); // đừng để mất tờ khai đang dở
+    if (coNoiDungHienTai && localStorage.getItem(K(currentForm.id,'current_id')) !== id) luuLichSu(); // đừng để mất tờ khai đang dở
     checkedMap = JSON.parse(JSON.stringify(h.checkedMap || {}));
     valuesMap = JSON.parse(JSON.stringify(h.valuesMap || {}));
-    table5Rows = JSON.parse(JSON.stringify(h.table5Rows || []));
-    lsSet(LS_CHECKED, checkedMap); lsSet(LS_VALUES, valuesMap); lsSet(LS_TABLE5, table5Rows);
-    localStorage.setItem(LS_CURRENT_ID, id);
+    tablesState = JSON.parse(JSON.stringify(h.tables || {}));
+    lsSet(K(currentForm.id,'checked'), checkedMap); lsSet(K(currentForm.id,'values'), valuesMap); lsSet(K(currentForm.id,'tables'), tablesState);
+    localStorage.setItem(K(currentForm.id,'current_id'), id);
     closeM('modal-history');
     closeTkPreview();
     renderMain();
@@ -761,9 +1334,9 @@ function napLichSu(id){
 }
 function xoaLichSu(id){
   showConfirm('🗑️ Xoá khỏi lịch sử', 'Xoá tờ khai này khỏi lịch sử? Không ảnh hưởng tờ khai đang nhập ở màn hình chính.', function(){
-    var hist = lsGetA(LS_HISTORY).filter(function(h){ return h.id !== id; });
-    lsSet(LS_HISTORY, hist);
-    if (localStorage.getItem(LS_CURRENT_ID) === id) localStorage.removeItem(LS_CURRENT_ID);
+    var hist = lsGetA(K(currentForm.id,'history')).filter(function(h){ return h.id !== id; });
+    lsSet(K(currentForm.id,'history'), hist);
+    if (localStorage.getItem(K(currentForm.id,'current_id')) === id) localStorage.removeItem(K(currentForm.id,'current_id'));
     renderHistoryList();
     toast('🗑️ Đã xoá khỏi lịch sử');
   }, 'Xoá', true);
@@ -771,10 +1344,11 @@ function xoaLichSu(id){
 function suaCheDoKhoiDong(mode){
   localStorage.setItem(LS_STARTUP_MODE, mode);
   toast(mode === 'clear' ? '🗑️ Sẽ luôn mở tờ khai mới từ lần sau' : '💾 Sẽ giữ nguyên tờ khai đang dở từ lần sau');
+  _capNhatSelectCheDoKhoiDong();
 }
 function _capNhatSelectCheDoKhoiDong(){
-  var sel = document.getElementById('startup-mode-select');
-  if (sel) sel.value = localStorage.getItem(LS_STARTUP_MODE) || 'keep';
+  var selG = document.getElementById('startup-mode-select-global');
+  if (selG) selG.value = localStorage.getItem(LS_STARTUP_MODE) || 'keep';
 }
 
 // ═══════════════════════ IN / XUẤT TỜ KHAI ═══════════════════════
@@ -792,19 +1366,18 @@ function vSub(id, sub){
   var v = vGet(id);
   return (isChecked(id) && v && v[sub]!=null && v[sub]!=='') ? ('<b>' + esc(v[sub]) + '</b>') : '…………….';
 }
-function fmtDateVN(iso){
-  if (!iso) return '…../…../20….';
-  var p = iso.split('-'); if (p.length!==3) return esc(iso);
-  return p[2] + '/' + p[1] + '/' + p[0];
+// Dùng cho các mục tiền tệ (money:true) trong bản in — valuesMap lưu số THÔ (không dấu chấm), in ra
+// phải định dạng lại có dấu chấm phân cách hàng nghìn cho dễ đọc, giống lúc nhập liệu.
+function vTextMoney(id){
+  var v = vGet(id);
+  return (isChecked(id) && v!=null && v!=='') ? ('<b>' + fmtSoTien(v) + '</b>') : DOTS;
 }
 // Vẽ ô Mã số thuế dạng từng ô vuông riêng biệt (10 ô + khoảng cách + 4 ô, đúng như mẫu gốc) — mỗi
-// chữ số của MST được điền vào đúng 1 ô, lần lượt từ trái qua phải. Chỉ mục [05] Mã số thuế của
-// NGƯỜI NỘP THUẾ dùng dạng ô vuông này (đúng theo mẫu gốc); các mã số thuế khác trên tờ khai (đại lý
-// thuế, người chuyển giao QSDĐ, đồng sở hữu...) vẫn là 1 dòng gạch chân thông thường.
+// chữ số của MST được điền vào đúng 1 ô, lần lượt từ trái qua phải. Dùng chung cho MST chính của
+// mọi tờ khai (người nộp thuế/người chuyển nhượng, người nhận chuyển nhượng...); các mã số thuế phụ
+// khác (đại lý thuế, tổ chức khai thay...) vẫn hiện dạng 1 dòng gạch chân thông thường (vText).
 // LƯU Ý KỸ THUẬT: dùng ĐÚNG 1 bảng <table> duy nhất (không tách 2 bảng riêng rồi đặt cạnh nhau bằng
-// flex) — vì 2 <table> đặt làm flex-item trong 1 container display:flex bị Chrome tính sai độ rộng
-// (cả 2 bảng bị kéo giãn bằng nhau bất kể số ô thật sự bên trong), khiến ô bị to lệch hẳn. Gộp thành
-// 1 bảng với 1 ô trống ở giữa (không viền) để tạo khoảng cách thay vì dùng flex/table riêng.
+// flex) — vì 2 <table> đặt làm flex-item trong 1 container display:flex bị Chrome tính sai độ rộng.
 function renderMSTBoxes(id){
   var raw = (isChecked(id) && vGet(id)) ? String(vGet(id)).replace(/[^0-9]/g,'') : '';
   var tds = '';
@@ -817,131 +1390,79 @@ function renderMSTBoxes(id){
   }
   return '<table style="width:auto;border-collapse:collapse;display:inline-table;vertical-align:middle"><tr>' + tds + '</tr></table>';
 }
-function xayHtmlToKhaiTrang1(){
-  var html = '<div class="tk-print-doc">';
-  html += '<div class="mausotop">Mẫu số: <b>01/LPTB</b><br>(Ban hành kèm theo Thông tư số 80/2021/TT-BTC ngày 29/9/2021 của Bộ trưởng Bộ Tài chính)</div>';
-  html += '<div class="quochieu">CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM<br>Độc lập - Tự do - Hạnh phúc</div>';
-  html += '<div class="tieude">Tờ khai lệ phí trước bạ</div>';
-  html += '<div style="text-align:center;font-style:italic;margin-bottom:10px">(Áp dụng đối với nhà, đất)</div>';
-
-  html += '<div class="pl">[01] Kỳ tính thuế: Theo từng lần phát sinh ngày ' + fmtDateVN(vGet('f01')) + '</div>';
-  var c0203 = (isChecked('f0203') && vGet('f0203')) ? vGet('f0203') : {};
-  html += '<div class="pl">[02] ' + (c0203.value==='dau' ? '☑' : '☐') + ' Lần đầu: &nbsp;&nbsp;&nbsp; [03] '
-    + (c0203.value==='bosung' ? '☑' : '☐') + ' Bổ sung lần thứ: ' + (c0203.value==='bosung' ? ('<b>'+esc(c0203.extra||'…')+'</b>') : '…') + '</div>';
-  html += '<div class="pl">' + (isChecked('uyquyen') && vGet('uyquyen') ? '☑' : '☐') + ' Tổ chức, cá nhân được uỷ quyền khai thay cho người nộp thuế</div>';
-  html += '<div class="pl"><b>[04] Tên Người nộp thuế:</b> ' + vText('f04') + '</div>';
-  html += '<div class="pl">[05] Mã số thuế: ' + renderMSTBoxes('f05') + '</div>';
-  html += '<div class="pl">[06] Số CMND/CCCD/Hộ chiếu (trường hợp chưa có mã số thuế): ' + vText('f06') + '</div>';
-  html += '<div class="pl">[07] Địa chỉ: ' + vText('f07') + '</div>';
-  html += '<div class="pl">[08] Xã/phường: ' + vText('f08') + ' &nbsp;&nbsp; [09] Tỉnh/Thành phố: ' + vText('f09') + '</div>';
-  html += '<div class="pl">[10] Điện thoại: ' + vText('f10') + ' &nbsp; [11] Fax: ' + vText('f11') + ' &nbsp; [12] Email: ' + vText('f12') + '</div>';
-  html += '<div class="pl"><b>[13] Đại lý thuế; hoặc Tổ chức, cá nhân được uỷ quyền khai thay (nếu có):</b> ' + vText('f13') + '</div>';
-  html += '<div class="pl">[14] Mã số thuế: ' + vText('f14') + '</div>';
-  html += '<div class="pl">[15] Hợp đồng đại lý thuế: Số ' + vSub('f15','so') + ' &nbsp; ngày ' + (isChecked('f15') ? ('<b>'+fmtDateVN((vGet('f15')||{}).ngay)+'</b>') : '…../…../20….') + '</div>';
-
-  html += '<div class="pl" style="font-weight:700;margin-top:10px">ĐẶC ĐIỂM NHÀ ĐẤT:</div>';
-  html += '<div class="pl">1. Đất: ' + vText('m1') + '</div>';
-  html += '<div class="pl">1.1. Thửa đất số (Số hiệu thửa đất): ' + vSub('m1_1','thua') + '; Tờ bản đồ số: ' + vSub('m1_1','tbd') + '</div>';
-  html += '<div class="pl">1.2. Địa chỉ thửa đất: ' + vText('m1_2') + '</div>';
-  html += '<div class="pl">1.2.1. Số nhà: ' + vSub('m1_2_1','sonha') + '; Toà nhà: ' + vSub('m1_2_1','toanha') + '; Ngõ/Hẻm: ' + vSub('m1_2_1','ngohem') + '<br>Đường/Phố: ' + vSub('m1_2_1','duongpho') + '; Thôn/xóm/ấp: ' + vSub('m1_2_1','thonxom') + '</div>';
-  html += '<div class="pl">1.2.2. Phường/xã: ' + vText('m1_2_2') + '</div>';
-  html += '<div class="pl">1.2.3. Quận/huyện: ' + vText('m1_2_3') + '</div>';
-  html += '<div class="pl">1.2.4. Tỉnh/thành phố: ' + vText('m1_2_4') + '</div>';
-  html += '<div class="pl">1.3. Vị trí thửa đất (mặt tiền đường phố hay ngõ, hẻm): ' + vText('m1_3') + '</div>';
-  html += '<div class="pl">1.4. Mục đích sử dụng đất: ' + vText('m1_4') + '</div>';
-  html += '<div class="pl">1.5. Diện tích (m²): ' + vText('m1_5') + '</div>';
-  html += '<div class="pl">1.6. Nguồn gốc nhà đất (đất được Nhà nước giao, cho thuê; nhận chuyển nhượng; nhận thừa kế, hoặc nhận tặng cho): ' + vText('m1_6') + '</div>';
-  html += '<div class="pl">a) Tên tổ chức, cá nhân chuyển giao QSDĐ: ' + vSub('m1_6_a','ten') + '<br>'
-    + '- Mã số thuế: ' + vSub('m1_6_a','mst') + '; Số CMND/CCCD/Hộ chiếu: ' + vSub('m1_6_a','cmnd') + '<br>'
-    + '- Địa chỉ người giao QSDĐ: ' + vSub('m1_6_a','diachi') + '</div>';
-  html += '<div class="pl">b) Thời điểm làm giấy tờ chuyển giao QSDĐ ngày ' + (isChecked('m1_6_b') ? ('<b>'+fmtDateVN(vGet('m1_6_b'))+'</b>') : '.......... tháng .......... năm ……') + '</div>';
-  html += '<div class="pl">1.7. Giá trị đất thực tế chuyển giao (nếu có): ' + vText('m1_7') + ' đồng</div>';
-  html += '</div>';
-  return html;
+// In bảng động (generic table) — dùng chung cho mục 5 (LPTB), [41.7] và [51] (TNCN). Nếu mục không
+// tick chọn hoặc chưa nhập dòng nào thì hiện đủ số dòng trống tối thiểu (minDongTrong) giống bản giấy.
+function vTablePrint(fieldId, minDongTrong){
+  var f = schemaById(fieldId);
+  var rows = (isChecked(fieldId) && tablesState[fieldId] && tablesState[fieldId].length) ? tablesState[fieldId] : [];
+  var soDongHien = Math.max(rows.length, minDongTrong||2);
+  var ths = '<th style="width:26px">STT</th>' + f.columns.map(function(c){ return '<th>' + esc(c.label) + '</th>'; }).join('');
+  var trs = '';
+  for (var i=0;i<soDongHien;i++){
+    var r = rows[i] || {};
+    trs += '<tr><td style="text-align:center">' + (i+1) + '</td>' + f.columns.map(function(c){
+      var v = r[c.k];
+      var hienThi = c.money ? fmtSoTien(v) : esc(v);
+      return '<td' + (c.type==='number'?' style="text-align:center"':'') + '>' + (v!=null && v!=='' ? ('<b>'+hienThi+'</b>') : '') + '</td>';
+    }).join('') + '</tr>';
+  }
+  return '<table><thead><tr>' + ths + '</tr></thead><tbody>' + trs + '</tbody></table>';
 }
-function xayHtmlToKhaiTrang2(){
-  var html = '<div class="tk-print-doc">';
-  html += '<div class="pl">2. Nhà:</div>';
-  html += '<div class="pl">2.1. Thông tin về nhà ở, nhà làm việc, nhà sử dụng cho mục đích khác:</div>';
-  html += '<div class="pl">Cấp nhà: ' + vSub('m2_1','cap') + ' &nbsp; Loại nhà: ' + vSub('m2_1','loai') + ' &nbsp; Hạng nhà: ' + vSub('m2_1','hang') + '</div>';
-  html += '<div class="pl">Trường hợp là nhà ở chung cư:</div>';
-  html += '<div class="pl">Chủ dự án: ' + vSub('m2_1cc1','chudt') + ' &nbsp; Địa chỉ dự án, công trình: ' + vSub('m2_1cc1','diachidt') + '</div>';
-  html += '<div class="pl">Kết cấu: ' + vSub('m2_1cc2','ketcau') + ' &nbsp; Số tầng nổi: ' + vSub('m2_1cc2','tangnoi') + ' &nbsp; Số tầng hầm: ' + vSub('m2_1cc2','tangham') + '</div>';
-  html += '<div class="pl">Diện tích sở hữu chung (m²): ' + vSub('m2_1cc3','schung') + ' &nbsp; Diện tích sở hữu riêng (m²): ' + vSub('m2_1cc3','srieng') + '</div>';
-  html += '<div class="pl">2.2. Diện tích nhà (m²):</div>';
-  html += '<div class="pl">Diện tích xây dựng (m²): ' + vSub('m2_2','dtxd') + '</div>';
-  html += '<div class="pl">Diện tích sàn xây dựng (m²): ' + vSub('m2_2','dtsan') + '</div>';
-  html += '<div class="pl">2.3. Nguồn gốc nhà: ' + vText('m2_3') + '</div>';
-  html += '<div class="pl">a) Tự xây dựng - Năm hoàn công (hoặc năm bắt đầu sử dụng nhà): ' + vText('m2_3a') + '</div>';
-  html += '<div class="pl">b) Mua, thừa kế, tặng cho - Thời điểm làm giấy tờ chuyển giao nhà: ' + (isChecked('m2_3b') ? ('Ngày <b>'+fmtDateVN(vGet('m2_3b'))+'</b>') : 'Ngày ......... tháng ........ năm ........') + '</div>';
-  html += '<div class="pl">2.4. Giá trị nhà (đồng): ' + vText('m2_4') + '</div>';
-
-  html += '<div class="pl">3. Giá trị nhà, đất thực tế nhận chuyển nhượng, nhận thừa kế, nhận tặng cho (đồng): ' + vText('m3') + '</div>';
-  html += '<div class="pl">4. Tài sản thuộc diện được miễn lệ phí trước bạ (lý do): ' + vText('m4') + '</div>';
-
-  html += '<div class="pl">5. Thông tin đồng chủ sở hữu nhà, đất (nếu có):</div>';
-  html += '<table><thead><tr><th>STT</th><th>Tên tổ chức/cá nhân đồng sở hữu</th><th>Mã số thuế</th><th>Số CMND/CCCD/Hộ chiếu (trường hợp chưa có mã số thuế)</th><th>Tỷ lệ sở hữu (%)</th></tr></thead><tbody>';
-  var t5 = (isChecked('m5') && table5Rows.length) ? table5Rows : [{},{}];
-  t5.forEach(function(r,i){
-    html += '<tr><td style="text-align:center">' + (i+1) + '</td><td>' + (r.ten?('<b>'+esc(r.ten)+'</b>'):'') + '</td><td>' + (r.mst?('<b>'+esc(r.mst)+'</b>'):'') + '</td><td>' + (r.cmnd?('<b>'+esc(r.cmnd)+'</b>'):'') + '</td><td style="text-align:center">' + (r.tyle?('<b>'+esc(r.tyle)+'</b>'):'') + '</td></tr>';
-  });
-  html += '</tbody></table>';
-
-  html += '<div class="pl" style="margin-top:6px">6. Giấy tờ có liên quan, gồm:</div>'
-    + '<div class="pl">- Mỗi hợp đồng chuyển nhượng, tặng cho, thừa kế; 1 bản vẽ, 1 GCN QSDĐ photocopy</div>'
-    + '<div class="pl">- quan hệ nhân thân nếu có, tờ khai trước bạ + thuế thu nhập cá nhân.</div>';
-
-  html += '<div class="pl" style="margin-top:10px">Tôi cam đoan số liệu khai trên là đúng và chịu trách nhiệm trước pháp luật về số liệu đã khai./.</div>';
-
-  var noiky = (isChecked('ky1') && (vGet('ky1')||{}).noi) ? esc(vGet('ky1').noi) : '…….........';
-  var ngaykyObj = vGet('ky1') || {};
-  var ngaykyStr = (isChecked('ky1') && ngaykyObj.ngay) ? fmtDateVN(ngaykyObj.ngay) : '......../......../202....';
-  var hoten = (isChecked('ky2') && (vGet('ky2')||{}).hoten) ? esc(vGet('ky2').hoten) : '.................................';
-  var chucvu = (isChecked('ky2') && (vGet('ky2')||{}).chucvu) ? esc(vGet('ky2').chucvu) : '';
-  html += '<div class="kytenwrap">'
-    + '<div class="kyten"><b>NHÂN VIÊN ĐẠI LÝ THUẾ</b>Họ và tên: .................................<br>Chứng chỉ hành nghề số: .........</div>'
-    + '<div class="kyten"><i>' + noiky + ', ngày ' + ngaykyStr.split('/')[0] + ' tháng ' + ngaykyStr.split('/')[1] + ' năm ' + ngaykyStr.split('/')[2] + '</i>'
-    + '<b>NGƯỜI NỘP THUẾ hoặc<br>ĐẠI DIỆN HỢP PHÁP CỦA NGƯỜI NỘP THUẾ<br>hoặc TỔ CHỨC, CÁ NHÂN ĐƯỢC UỶ QUYỀN KHAI THAY</b>'
+// Khối ký tên dùng chung cho mọi tờ khai (nhãn 2 bên có thể tuỳ biến cho từng loại tờ khai).
+function vKyTenBlock(ky1Id, ky2Id, nhanTrai, nhanPhai){
+  nhanTrai = nhanTrai || 'NHÂN VIÊN ĐẠI LÝ THUẾ';
+  nhanPhai = nhanPhai || 'NGƯỜI NỘP THUẾ hoặc<br>ĐẠI DIỆN HỢP PHÁP CỦA NGƯỜI NỘP THUẾ<br>hoặc TỔ CHỨC, CÁ NHÂN ĐƯỢC UỶ QUYỀN KHAI THAY';
+  var noiky = (isChecked(ky1Id) && (vGet(ky1Id)||{}).noi) ? esc(vGet(ky1Id).noi) : '…….........';
+  var ngaykyObj = vGet(ky1Id) || {};
+  var ngaykyStr = (isChecked(ky1Id) && ngaykyObj.ngay) ? fmtDateVN(ngaykyObj.ngay) : '......../......../202....';
+  var hoten = (isChecked(ky2Id) && (vGet(ky2Id)||{}).hoten) ? esc(vGet(ky2Id).hoten) : '.................................';
+  var chucvu = (isChecked(ky2Id) && (vGet(ky2Id)||{}).chucvu) ? esc(vGet(ky2Id).chucvu) : '';
+  var ngayParts = ngaykyStr.split('/');
+  return '<div class="kytenwrap">'
+    + '<div class="kyten"><b>' + nhanTrai + '</b>Họ và tên: .................................<br>Chứng chỉ hành nghề số: .........</div>'
+    + '<div class="kyten"><i>' + noiky + ', ngày ' + ngayParts[0] + ' tháng ' + ngayParts[1] + ' năm ' + ngayParts[2] + '</i>'
+    + '<b>' + nhanPhai + '</b>'
     + '<div style="font-size:10.5px;font-style:italic;margin:2px 0">(Chữ ký, ghi rõ họ tên; chức vụ và đóng dấu (nếu có)/Ký điện tử)</div>'
     + '<div style="margin-top:44px">' + hoten + (chucvu?('<br>' + chucvu):'') + '</div></div>'
     + '</div>';
-  html += '</div>';
-  return html;
 }
-// Lưu (hoặc cập nhật) tờ khai hiện tại vào Lịch sử — gọi mỗi khi mở bản xem trước/in/xuất, để "từ
-// nay trở đi tất cả tờ khai đều được lưu lại lịch sử" đúng như yêu cầu. Nếu tờ khai này đã từng lưu
-// trước đó (đang sửa lại 1 tờ khai cũ lấy từ Lịch sử) thì CẬP NHẬT đúng bản ghi đó, không tạo trùng.
+// Lưu (hoặc cập nhật) tờ khai hiện tại vào Lịch sử — gọi mỗi khi mở bản xem trước/in/xuất. Nếu tờ
+// khai này đã từng lưu trước đó (đang sửa lại 1 tờ khai cũ lấy từ Lịch sử) thì CẬP NHẬT đúng bản ghi
+// đó, không tạo trùng.
 function luuLichSu(){
-  var hist = lsGetA(LS_HISTORY);
-  var curId = localStorage.getItem(LS_CURRENT_ID);
-  var ten = (isChecked('f04') && vGet('f04')) ? vGet('f04') : '(Chưa có tên người nộp thuế)';
+  var hist = lsGetA(K(currentForm.id,'history'));
+  var curId = localStorage.getItem(K(currentForm.id,'current_id'));
+  var ten = (isChecked(currentForm.tenFieldId) && vGet(currentForm.tenFieldId)) ? vGet(currentForm.tenFieldId) : '(Chưa có tên người nộp thuế)';
   var snap = {
     id: curId || ('tk_' + Date.now()),
     savedAt: new Date().toISOString(),
     ten: ten,
     checkedMap: JSON.parse(JSON.stringify(checkedMap)),
     valuesMap: JSON.parse(JSON.stringify(valuesMap)),
-    table5Rows: JSON.parse(JSON.stringify(table5Rows))
+    tables: JSON.parse(JSON.stringify(tablesState))
   };
   var idx = hist.findIndex(function(h){ return h.id === snap.id; });
   if (idx >= 0) hist[idx] = snap; else hist.unshift(snap);
   if (hist.length > LICH_SU_TOI_DA) hist = hist.slice(0, LICH_SU_TOI_DA);
-  lsSet(LS_HISTORY, hist);
-  localStorage.setItem(LS_CURRENT_ID, snap.id);
+  lsSet(K(currentForm.id,'history'), hist);
+  localStorage.setItem(K(currentForm.id,'current_id'), snap.id);
 }
 function inToKhai(){
   luuLichSu();
-  document.getElementById('tk-print-area').innerHTML = ''; // không dùng chung 1 khối nữa, xem _tkGeneratePreviewImage
+  document.getElementById('tk-print-area').innerHTML = '';
   openTkPreview();
   _tkGeneratePreviewImage();
 }
+// Nút "💾 Lưu" — lưu vào Lịch sử giống hệt cơ chế khi bấm In/Xuất (dùng chung luuLichSu()), nhưng
+// KHÔNG mở bản xem trước/PDF, chỉ để người dùng chủ động chốt lại dữ liệu đang nhập dở.
+function luuTamToKhai(){
+  luuLichSu();
+  toast('💾 Đã lưu tờ khai!');
+}
 
 // ── Xem trước / xuất PDF: dùng CHUNG cơ chế với "Xuất bảng kê" của app Mua Bán Mủ (html2canvas dựng
-// ảnh, jsPDF đóng gói PDF) — khác biệt: (1) khổ A4 ĐỨNG (210×297mm) thay vì ngang nên không cần khối
-// xoay 90° như bên bảng kê; (2) tờ khai có 2 TRANG THEO ĐÚNG ĐIỂM NGẮT của mẫu gốc (trang 1 hết ở mục
-// 1.7, trang 2 bắt đầu từ "2. Nhà:") — mỗi trang được dựng + chụp ảnh RIÊNG BIỆT rồi mới ghép vào PDF,
-// thay vì chụp 1 ảnh dài rồi cắt theo chiều cao cố định (cách cũ khiến nội dung dồn/lệch trang so với
-// mẫu gốc vì chiều cao chữ trên máy mỗi người mỗi khác, không thể canh đúng điểm ngắt bằng cách đó).
+// ảnh, jsPDF đóng gói PDF) — khổ A4 ĐỨNG (210×297mm). Số trang LẤY THEO currentForm.buildPages(), mỗi
+// trang được dựng + chụp ảnh RIÊNG BIỆT rồi mới ghép vào PDF, khớp đúng điểm ngắt trang của mẫu gốc.
 var _tkPageCanvases = [];
 function openTkPreview(){ document.getElementById('tk-preview-overlay').style.display = 'flex'; _tkInitPinch(); }
 function closeTkPreview(){ document.getElementById('tk-preview-overlay').style.display = 'none'; }
@@ -971,7 +1492,7 @@ function ensureJsPDF(cb){
     'https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js'
   ], function(){ return !!(window.jspdf && window.jspdf.jsPDF); }, cb);
 }
-// Chụp ảnh 1 trang HTML (dùng cho cả 2 trang, tái sử dụng cùng logic thay vì lặp code).
+// Chụp ảnh 1 trang HTML (dùng cho mọi trang, tái sử dụng cùng logic thay vì lặp code).
 function _tkCaptureOnePage(htmlContent, cb){
   var tmp = document.createElement('div');
   // Tỷ lệ 794px ứng với A4 đứng ở 96dpi (210mm) — giữ đúng tỷ lệ khổ giấy thật khi chụp ảnh.
@@ -992,12 +1513,12 @@ function _tkGeneratePreviewImage(){
   _tkPageCanvases = [];
   scrollEl.innerHTML = '<div style="color:#fff;text-align:center;padding:60px 16px;font-size:13px">⏳ Đang dựng bản xem trước…</div>';
   ensureHtml2Canvas(function(){
-    var trangHtmls = [xayHtmlToKhaiTrang1(), xayHtmlToKhaiTrang2()];
+    var trangHtmls = currentForm.buildPages();
     var ketQua = [];
     // QUAN TRỌNG: chụp TUẦN TỰ từng trang một (KHÔNG chụp song song nhiều trang cùng lúc) — html2canvas
     // không đảm bảo an toàn khi gọi đồng thời nhiều lần vì nó clone toàn bộ tài liệu vào 1 khung ẩn dùng
-    // chung; gọi song song 2 lần từng khiến vùng cắt ảnh bị lệch, làm mất phần đầu trang trong bản xem
-    // trước. Chụp xong hẳn 1 trang (đã xoá khung tạm khỏi DOM) rồi mới bắt đầu chụp trang kế tiếp.
+    // chung; gọi song song từng khiến vùng cắt ảnh bị lệch, làm mất phần đầu trang trong bản xem trước.
+    // Chụp xong hẳn 1 trang (đã xoá khung tạm khỏi DOM) rồi mới bắt đầu chụp trang kế tiếp.
     function chupTrangTiep(idx){
       if (idx >= trangHtmls.length) {
         _tkPageCanvases = ketQua;
@@ -1021,8 +1542,7 @@ function _tkGeneratePreviewImage(){
     chupTrangTiep(0);
   });
 }
-// ── Chụm 2 ngón để phóng to/thu nhỏ (0.5x-3x), CÒN CUỘN DỌC/NGANG DÙNG CUỘN TỰ NHIÊN của trình duyệt
-// (không còn tự chế kéo bằng transform như trước — xem giải thích ở CSS #tk-preview-scroll phía trên).
+// ── Chụm 2 ngón để phóng to/thu nhỏ (0.5x-3x), CÒN CUỘN DỌC/NGANG DÙNG CUỘN TỰ NHIÊN của trình duyệt.
 // Dùng CSS `zoom` (không dùng transform:scale) để vùng cuộn tự giãn đúng theo kích thước đã phóng to.
 var _tkScale = 1;
 var _tkPinchStartDist = 0, _tkPinchStartScale = 1;
@@ -1057,9 +1577,7 @@ function _tkInitPinch(){
   }, {passive:true});
 }
 // Dựng PDF A4 ĐỨNG từ MẢNG ảnh đã chụp — MỖI PHẦN TỬ = ĐÚNG 1 TRANG PDF (không cắt theo chiều cao cố
-// định như cách cũ), khớp tuyệt đối với 2 trang đã hiện ở bản xem trước. Nếu 1 trang lỡ cao hơn khổ
-// A4 một chút (do font máy mỗi người render hơi khác nhau), tự thu nhỏ vừa khít trang thay vì để tràn
-// lem sang trang sau — ưu tiên giữ đúng ranh giới nội dung theo mẫu gốc hơn là giữ nguyên cỡ chữ.
+// định như cách cũ), khớp tuyệt đối với các trang đã hiện ở bản xem trước.
 function _tkBuildPdfFromCanvases(canvases, cb){
   ensureJsPDF(function(){
     var jsPDF = window.jspdf.jsPDF;
@@ -1081,7 +1599,7 @@ function taiPdfToKhai(){
   var btn = document.getElementById('tk-tai-pdf-btn');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Đang tạo PDF...'; }
   _tkBuildPdfFromCanvases(_tkPageCanvases, function(pdf){
-    pdf.save('ToKhaiTruocBa_' + new Date().toISOString().slice(0,10) + '.pdf');
+    pdf.save(currentForm.fileName + '_' + new Date().toISOString().slice(0,10) + '.pdf');
     toast('✅ Đã tải file PDF về máy!');
     if (btn) { btn.disabled = false; btn.textContent = '⬇️ Tải PDF'; }
   });
@@ -1100,11 +1618,11 @@ function chiaSeToKhai(){
   var resetBtn = function(){ if (btn){ btn.disabled=false; btn.textContent='📤 Chia sẻ'; } };
   if (btn){ btn.disabled = true; btn.textContent = '⏳ Đang chuẩn bị...'; }
   _tkBuildPdfFromCanvases(_tkPageCanvases, function(pdf){
-    var fileName = 'ToKhaiTruocBa_' + new Date().toISOString().slice(0,10) + '.pdf';
+    var fileName = currentForm.fileName + '_' + new Date().toISOString().slice(0,10) + '.pdf';
     var file;
     try { file = new File([pdf.output('blob')], fileName, { type:'application/pdf' }); } catch(e){ file = null; }
     if (file && navigator.canShare && navigator.canShare({ files:[file] })) {
-      navigator.share({ files:[file], title:'Tờ khai lệ phí trước bạ', text:'Tờ khai lệ phí trước bạ (Mẫu 01/LPTB)' })
+      navigator.share({ files:[file], title:currentForm.headerTitle, text:currentForm.shareText })
         .then(resetBtn)
         .catch(function(e){ resetBtn(); if (e && e.name !== 'AbortError') toast('❌ Không chia sẻ được, hãy thử "Tải PDF" rồi gửi thủ công'); });
     } else {
@@ -1116,8 +1634,9 @@ function chiaSeToKhai(){
 
 // ═══════════════════════ KHỞI TẠO ═══════════════════════
 document.addEventListener('DOMContentLoaded', function(){
-  renderMain();
+  renderLauncher();
   _capNhatSelectCheDoKhoiDong();
+  document.getElementById('launcher-screen').style.display = 'block';
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(function(){});
   }
