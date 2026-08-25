@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#8a6e2f">
-<title>Khai Thuế v1.2.5</title>
-<meta name="description" content="Công cụ khai thuế đa tờ khai (Lệ phí trước bạ, TNCN chuyển nhượng BĐS...) - v1.2.5">
+<title>Khai Thuế v1.2.8</title>
+<meta name="description" content="Công cụ khai thuế đa tờ khai (Lệ phí trước bạ, TNCN chuyển nhượng BĐS...) - v1.2.8">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -145,10 +145,11 @@
   .form-card .chev{color:var(--g400);font-size:20px;flex:0 0 auto}
   .launcher-header{
     position:sticky;top:0;z-index:50;background:linear-gradient(135deg,var(--gold-dark),var(--gold));
-    color:#fff;padding:14px 16px calc(14px + env(safe-area-inset-top,0px));
-    padding-top:calc(14px + env(safe-area-inset-top,0px));
-    display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 2px 10px rgba(0,0,0,.15);
+    color:#fff;padding-top:calc(14px + env(safe-area-inset-top,0px));
+    box-shadow:0 2px 10px rgba(0,0,0,.15);
+    display:flex;flex-direction:column;gap:0;
   }
+  .launcher-header-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 16px 8px}
   .launcher-header b{font-size:16px}
   .launcher-header span{font-size:11px;opacity:.85;display:block;margin-top:2px}
 
@@ -273,18 +274,22 @@
 <!-- ═══════════════════ MÀN HÌNH CHỌN LOẠI TỜ KHAI (launcher) ═══════════════════ -->
 <div id="launcher-screen">
   <div class="launcher-header">
-    <div>
-      <b>📚 Khai Thuế</b>
-      <span>Chọn loại tờ khai muốn thực hiện · v1.2.5</span>
+    <div class="launcher-header-top">
+      <div>
+        <b>📚 Khai Thuế</b>
+        <span>Chọn loại tờ khai muốn thực hiện · v1.2.8</span>
+      </div>
+      <button class="gear-btn" onclick="openGlobalSettings()" title="Cài đặt chung">⚙️</button>
     </div>
-    <button class="gear-btn" onclick="openGlobalSettings()" title="Cài đặt chung">⚙️</button>
+    <!-- THANH ĐỒNG BỘ — nằm trong header (nền vàng) để dễ nhìn -->
+    <div style="padding:0 10px 10px">
+      <div class="gd-bar" id="gd-bar-launcher" onclick="openCloudModal()">
+        <span id="gd-bar-ico-launcher">☁️</span>
+        <div class="gd-name-clip"><span class="gd-name gd-name-syncing" id="gd-bar-name-launcher">Đang kiểm tra kết nối…</span></div>
+      </div>
+    </div>
   </div>
-  <!-- THANH ĐỒNG BỘ ĐÁM MÂY — nhấn để mở menu cloud -->
-  <div class="gd-bar" id="gd-bar-launcher" onclick="openCloudModal()">
-    <span id="gd-bar-ico-launcher">☁️</span>
-    <div class="gd-name-clip"><span class="gd-name gd-name-syncing" id="gd-bar-name-launcher">Đang kiểm tra kết nối…</span></div>
-  </div>
-  <div class="launcher-wrap">
+<div class="launcher-wrap">
     <div class="launcher-intro">
       <b>Chọn 1 loại tờ khai bên dưới</b>
       <span>Mỗi loại tờ khai có dữ liệu, lịch sử và cấu hình mục cần khai riêng biệt. Chọn vào 1 tờ khai để tiếp tục nhập hoặc bắt đầu tờ khai mới (tuỳ theo cài đặt "Khi mở lại ứng dụng").</span>
@@ -295,14 +300,14 @@
 
 <!-- ═══════════════════ MÀN HÌNH NHẬP LIỆU TỜ KHAI ═══════════════════ -->
 <div id="app-screen" style="display:none">
-<div class="header" style="flex-direction:column;gap:0;padding-bottom:0">
-  <div style="display:flex;width:100%;align-items:center;padding:8px 10px 4px">
+<div class="header" style="flex-direction:column;gap:0;padding-bottom:0;padding-left:0;padding-right:0">
+  <div style="display:flex;width:100%;align-items:center;padding:8px 10px 4px;box-sizing:border-box">
     <div style="display:flex;gap:6px;flex:0 0 auto">
       <button class="gear-btn" onclick="goHome()" title="Về danh sách tờ khai">🏠</button>
     </div>
-    <div class="header-title" id="header-title-box" style="flex:1;text-align:center;align-items:center">
+    <div class="header-title" id="header-title-box" style="flex:1;text-align:center;align-items:center;padding:0 4px">
       <b id="header-title-b">📋 Tờ khai</b>
-      <span id="header-title-span">v1.2.5</span>
+      <span id="header-title-span">v1.2.8</span>
     </div>
     <div style="display:flex;gap:6px;flex:0 0 auto">
       <button class="gear-btn" onclick="taoToKhaiMoi()" title="Tờ khai mới">➕</button>
@@ -310,10 +315,12 @@
       <button class="gear-btn" id="btn-gear" onclick="openSettings()" title="Chọn mục cần khai">⚙️</button>
     </div>
   </div>
-  <!-- THANH ĐỒNG BỘ ĐÁM MÂY — nhấn để mở menu cloud -->
-  <div class="gd-bar" id="gd-bar-app" onclick="openCloudModal()" style="margin:0 10px 6px">
-    <span id="gd-bar-ico-app">☁️</span>
-    <div class="gd-name-clip"><span class="gd-name gd-name-syncing" id="gd-bar-name-app">Đang kiểm tra kết nối…</span></div>
+  <!-- THANH ĐỒNG BỘ — nằm trong header sticky, full width -->
+  <div style="padding:0 10px 8px;width:100%;box-sizing:border-box">
+    <div class="gd-bar" id="gd-bar-app" onclick="openCloudModal()" style="margin:0">
+      <span id="gd-bar-ico-app">☁️</span>
+      <div class="gd-name-clip"><span class="gd-name gd-name-syncing" id="gd-bar-name-app">Đang kiểm tra kết nối…</span></div>
+    </div>
   </div>
 </div>
 
@@ -1118,7 +1125,7 @@ function openForm(formId){
   valuesMap = lsGetO(K(currentForm.id,'values'));
   tablesState = lsGetO(K(currentForm.id,'tables'));
   document.getElementById('header-title-b').textContent = currentForm.headerTitle;
-  document.getElementById('header-title-span').textContent = 'Mẫu ' + currentForm.mauSo + ' · ' + currentForm.thongTu + ' · v1.2.5';
+  document.getElementById('header-title-span').textContent = 'Mẫu ' + currentForm.mauSo + ' · ' + currentForm.thongTu + ' · v1.2.8';
   document.getElementById('launcher-screen').style.display = 'none';
   document.getElementById('app-screen').style.display = 'block';
   sessionStorage.setItem('kt_last_form', formId); // nhớ vị trí để restore khi reload
@@ -2002,17 +2009,14 @@ var _lastSyncAt = null;
 var _gdBarConnStatus = { msg: 'Đang kiểm tra kết nối…', cls: 'syncing' };
 var _gdBarFirstShown = false; // updGDBarStatus chỉ hiện trực tiếp lên thanh ĐÚNG 1 LẦN (lần mở app)
 
-var LS_SUPA_URL = 'kt_supa_url';
-var LS_SUPA_KEY = 'kt_supa_key';
+// Supabase config — gắn chặt vào app, không cho phép thay đổi qua UI
+var _SUPA_URL = 'https://tfxtxtwfeepxgzbxtafv.supabase.co';
+var _SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmeHR4dHdmZWVweGd6Ynh0YWZ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3MDMxODMsImV4cCI6MjA5OTI3OTE4M30.PQbSxACwlPJfDBWLCMaTb44UHbHcPsborEscZMKRtCE';
 var LS_CLOUD_LAST_SYNC = 'kt_cloud_last_sync';
 
-// ── Khởi tạo Supabase client ──
 function _initSupabase(){
-  var url = localStorage.getItem(LS_SUPA_URL);
-  var key = localStorage.getItem(LS_SUPA_KEY);
-  if (!url || !key){ _supa = null; return false; }
   try {
-    _supa = window.supabase.createClient(url, key, {
+    _supa = window.supabase.createClient(_SUPA_URL, _SUPA_KEY, {
       auth:{ persistSession:true, autoRefreshToken:true, detectSessionInUrl:false }
     });
     return true;
@@ -2202,48 +2206,23 @@ document.addEventListener('visibilitychange', function(){
 function openCloudModal(){
   var title = document.getElementById('cloud-modal-title');
   var body  = document.getElementById('cloud-modal-body');
-  var hasConfig = !!localStorage.getItem(LS_SUPA_URL);
 
-  if (!hasConfig){
-    // ── MÀN HÌNH CÀI ĐẶT ──
-    title.textContent = '☁️ Cài đặt đám mây';
+  if (!_supaUser){
+    title.textContent = '☁️ Đồng bộ đám mây';
     body.innerHTML =
-      '<div style="text-align:center;padding:16px 0 10px"><div style="font-size:40px;margin-bottom:8px">☁️</div>'
-      + '<div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:4px">Kết nối Supabase</div>'
-      + '<div style="font-size:12px;color:var(--g500);margin-bottom:16px">Nhập thông tin dự án Supabase để bật đồng bộ dữ liệu lên đám mây</div></div>'
-      + '<div class="cloud-form-row"><label>Supabase URL</label>'
-      + '<input type="url" id="supa-url-input" placeholder="https://xxxx.supabase.co" autocomplete="off" autocorrect="off" spellcheck="false">'
-      + '<div class="hint">Project Settings → API → Project URL</div></div>'
-      + '<div class="cloud-form-row"><label>Anon / Public Key</label>'
-      + '<input type="text" id="supa-key-input" placeholder="eyJhb… hoặc sb_publishable_…" autocomplete="off" autocorrect="off" spellcheck="false">'
-      + '<div class="hint">Project Settings → API Keys → Publishable key (hoặc Legacy anon key)</div></div>'
-      + '<div class="cloud-err" id="setup-err"></div>'
-      + '<button class="btn-cloud-login" onclick="saveSupabaseConfig()">💾 Lưu cấu hình</button>'
-      + '<div style="font-size:11px;color:var(--g500);margin-top:10px;line-height:1.6">Dữ liệu <b>chỉ thuộc về tài khoản của bạn</b> — Row Level Security (RLS) đảm bảo không ai khác xem được.</div>';
-
-  } else if (!_supaUser){
-    // ── MÀN HÌNH ĐĂNG NHẬP ──
-    var urlShort = (localStorage.getItem(LS_SUPA_URL)||'').replace('https://','').split('.')[0] + '.supabase.co';
-    title.textContent = '☁️ Đăng nhập';
-    body.innerHTML =
-      '<div style="text-align:center;padding:10px 0 18px"><div style="font-size:40px;margin-bottom:8px">🔐</div>'
-      + '<div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:4px">Đăng nhập / Đăng ký</div>'
-      + '<div style="font-size:12px;color:var(--g500);margin-bottom:4px">Dùng chung 1 tài khoản trên nhiều thiết bị</div></div>'
-      + '<div style="display:flex;align-items:center;justify-content:space-between;background:var(--g100);border-radius:8px;padding:8px 11px;margin-bottom:14px">'
-      + '<span style="font-size:12px;color:var(--g600)">🔗 ' + urlShort + '</span>'
-      + '<button onclick="resetSupabaseConfig()" style="font-size:11px;color:var(--g500);background:none;border:none;cursor:pointer;text-decoration:underline;padding:0">Đổi</button></div>'
+      '<div style="text-align:center;padding:10px 0 16px"><div style="font-size:40px;margin-bottom:8px">🔐</div>'
+      + '<div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:4px">Đăng nhập tài khoản</div>'
+      + '<div style="font-size:12px;color:var(--g500);margin-bottom:4px">Dùng chung 1 tài khoản trên nhiều thiết bị<br>Dữ liệu chỉ thuộc về đúng tài khoản của bạn</div></div>'
       + '<div class="cloud-tab-row"><div class="cloud-tab active" id="tab-login" onclick="switchCloudTab(\'login\')">Đăng nhập</div>'
       + '<div class="cloud-tab" id="tab-signup" onclick="switchCloudTab(\'signup\')">Tạo tài khoản</div></div>'
       + '<div class="cloud-form-row"><label>Email</label>'
       + '<input type="email" id="auth-email" placeholder="email@example.com" autocomplete="email"></div>'
       + '<div class="cloud-form-row" style="position:relative"><label>Mật khẩu</label>'
-      + '<input type="password" id="auth-password" placeholder="Mật khẩu (tối thiểu 6 ký tự)" autocomplete="current-password" style="padding-right:40px">'
+      + '<input type="password" id="auth-password" placeholder="Mật khẩu (tối thiểu 6 ký tự)" autocomplete="current-password" style="padding-right:44px">'
       + '<span onclick="var i=document.getElementById(\'auth-password\');i.type=i.type===\'password\'?\'text\':\'password\'" style="position:absolute;right:12px;bottom:10px;cursor:pointer;font-size:17px;user-select:none">👁️</span></div>'
       + '<div class="cloud-err" id="auth-err"></div><div class="cloud-succ" id="auth-succ"></div>'
       + '<button class="btn-cloud-login" id="auth-submit-btn" onclick="doAuth()">🔐 Đăng nhập</button>';
-
   } else {
-    // ── MÀN HÌNH ĐÃ ĐĂNG NHẬP ──
     title.textContent = '☁️ Supabase';
     var email    = _supaUser.email || '';
     var avatarCh = email.charAt(0).toUpperCase() || '?';
@@ -2252,16 +2231,13 @@ function openCloudModal(){
       ? new Date(lastSync).toLocaleString('vi-VN',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit',day:'2-digit',month:'2-digit',year:'numeric'})
       : 'Chưa đồng bộ';
     body.innerHTML =
-      // Avatar + tài khoản
       '<div class="cloud-user-row">'
       + '<div class="cloud-user-avatar">' + avatarCh + '</div>'
       + '<div><div style="font-size:14px;font-weight:700;color:var(--ink)">Tài khoản Supabase</div>'
       + '<div style="font-size:12px;color:var(--g500);word-break:break-all">' + email + '</div></div></div>'
-      // Thông tin sync
       + '<div class="gd-sync-row"><span class="gd-sync-lbl">🕐 Lần đồng bộ cuối</span><span class="gd-sync-val">' + lastTxt + '</span></div>'
       + '<div class="gd-sync-row"><span class="gd-sync-lbl">⏱ Tự động</span><span class="gd-sync-val">Mỗi 15 giây khi idle</span></div>'
       + '<div class="gd-sync-row" style="border-bottom:none"><span class="gd-sync-lbl">🗄️ Trạng thái</span><span class="gd-sync-val">Đã kết nối ✅</span></div>'
-      // Các tùy chọn kiểu gd-opt
       + '<div style="border-top:1.5px solid var(--g200);margin-top:4px">'
       + '<div class="gd-opt" onclick="cloudPushAll(true);closeM(\'modal-cloud\')">'
       +   '<span class="gd-opt-ico">⬆️</span>'
@@ -2273,22 +2249,16 @@ function openCloudModal(){
       +   '<div class="gd-opt-sub">Cập nhật dữ liệu máy này từ bản mới nhất trên đám mây</div></div></div>'
       + '<div class="gd-opt" onclick="doLogout()">'
       +   '<span class="gd-opt-ico">🚪</span>'
-      +   '<div class="gd-opt-txt" style="color:#dc2626"><div style="font-weight:600">Đăng xuất</div>'
+      +   '<div class="gd-opt-txt" style="color:#dc2626"><div style="font-weight:600">Đăng xuất / Đổi tài khoản</div>'
       +   '<div class="gd-opt-sub" style="color:#fca5a5">Dữ liệu trên máy vẫn được giữ nguyên</div></div></div>'
-      + '<div class="gd-opt" onclick="resetSupabaseConfig()">'
-      +   '<span class="gd-opt-ico">🔧</span>'
-      +   '<div class="gd-opt-txt"><div>Đổi cấu hình Supabase</div>'
-      +   '<div class="gd-opt-sub">Xoá URL / Key hiện tại và nhập lại</div></div></div>'
       + '</div>';
   }
   _clearCloudMsg();
   openM('modal-cloud');
 }
-function _updateLastSyncDisplay(){
-  // Không còn dùng element tĩnh — modal render động mỗi lần mở
-}
+function _updateLastSyncDisplay(){ /* modal render động */ }
 function _clearCloudMsg(){
-  ['setup-err','auth-err','auth-succ'].forEach(function(id){
+  ['auth-err','auth-succ'].forEach(function(id){
     var el = document.getElementById(id);
     if (el){ el.style.display='none'; el.textContent=''; }
   });
@@ -2296,32 +2266,6 @@ function _clearCloudMsg(){
 function _showCloudErr(id, msg){ var el=document.getElementById(id); if(el){el.textContent=msg;el.style.display='';} }
 function _showCloudSucc(id, msg){ var el=document.getElementById(id); if(el){el.textContent=msg;el.style.display='';} }
 
-// ── Lưu cấu hình Supabase ──
-function saveSupabaseConfig(){
-  var url = (document.getElementById('supa-url-input').value||'').trim().replace(/\/+$/,'');
-  var key = (document.getElementById('supa-key-input').value||'').trim();
-  if (!url || !url.startsWith('http')){ _showCloudErr('setup-err','URL không hợp lệ (phải bắt đầu bằng https://)'); return; }
-  if (!key || key.length < 20){ _showCloudErr('setup-err','Key quá ngắn — kiểm tra lại anon public key'); return; }
-  localStorage.setItem(LS_SUPA_URL, url);
-  localStorage.setItem(LS_SUPA_KEY, key);
-  if (!_initSupabase()){ _showCloudErr('setup-err','Không khởi tạo được Supabase — kiểm tra URL/Key'); return; }
-  _clearCloudMsg();
-  document.getElementById('cloud-setup-section').style.display = 'none';
-  document.getElementById('cloud-auth-section').style.display  = '';
-  var el = document.getElementById('supa-url-display');
-  if (el) el.textContent = url.replace('https://','').split('.supabase.co')[0] + '.supabase.co';
-  updGDBarStatus('Chưa đăng nhập','offline');
-}
-function resetSupabaseConfig(){
-  showConfirm('🔧 Đổi cấu hình Supabase','Xoá cấu hình URL / Key hiện tại?',function(){
-    localStorage.removeItem(LS_SUPA_URL); localStorage.removeItem(LS_SUPA_KEY);
-    _supa = null; _supaUser = null; _stopAutoSync();
-    document.getElementById('cloud-setup-section').style.display    = '';
-    document.getElementById('cloud-auth-section').style.display     = 'none';
-    document.getElementById('cloud-loggedin-section').style.display = 'none';
-    updGDBarStatus('Chưa cấu hình đám mây','offline');
-  },'Xoá',true);
-}
 
 // ── Tab đăng nhập / tạo tài khoản ──
 function switchCloudTab(tab){
@@ -2424,7 +2368,7 @@ document.addEventListener('DOMContentLoaded', function(){
     valuesMap   = lsGetO(K(currentForm.id,'values'));
     tablesState = lsGetO(K(currentForm.id,'tables'));
     document.getElementById('header-title-b').textContent = currentForm.headerTitle;
-    document.getElementById('header-title-span').textContent = 'Mẫu ' + currentForm.mauSo + ' · ' + currentForm.thongTu + ' · v1.2.5';
+    document.getElementById('header-title-span').textContent = 'Mẫu ' + currentForm.mauSo + ' · ' + currentForm.thongTu + ' · v1.2.8';
     document.getElementById('launcher-screen').style.display = 'none';
     document.getElementById('app-screen').style.display = 'block';
     renderMain();
@@ -2436,20 +2380,15 @@ document.addEventListener('DOMContentLoaded', function(){
     navigator.serviceWorker.register('sw.js').catch(function(){});
   }
 
-  // ── Khởi tạo cloud sync ──
-  var hasConfig = _initSupabase();
-  if (!hasConfig){
-    // Chưa cấu hình → hiện ngay trạng thái offline
-    updGDBarStatus('Nhấn để bật đồng bộ đám mây', 'offline');
-  } else {
-    // Đã có config → thử lấy session đang lưu
+  // ── Khởi tạo cloud sync — URL/Key hardcode trong app ──
+  _initSupabase();
+  if (_supa){
     _supa.auth.getSession().then(function(result){
       var session = result && result.data && result.data.session;
       if (session && session.user){
         _supaUser = session.user;
         updGDBarStatus('Đã kết nối', 'synced');
         _startAutoSync();
-        // Kéo cloud về ngầm sau 1.5s (đợi renderMain xong)
         setTimeout(function(){ cloudPullAll(false); }, 1500);
       } else {
         updGDBarStatus('Chưa đăng nhập — nhấn để đăng nhập', 'offline');
@@ -2457,6 +2396,8 @@ document.addEventListener('DOMContentLoaded', function(){
     }).catch(function(){
       updGDBarStatus('Không kết nối được đám mây', 'offline');
     });
+  } else {
+    updGDBarStatus('Lỗi kết nối đám mây', 'offline');
   }
 
   // Bắt đầu vòng xoay slide sau 10 giây
