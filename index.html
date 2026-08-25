@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#8a6e2f">
-<title>Khai Thuế v1.2.4</title>
-<meta name="description" content="Công cụ khai thuế đa tờ khai (Lệ phí trước bạ, TNCN chuyển nhượng BĐS...) - v1.2.4">
+<title>Khai Thuế v1.2.5</title>
+<meta name="description" content="Công cụ khai thuế đa tờ khai (Lệ phí trước bạ, TNCN chuyển nhượng BĐS...) - v1.2.5">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -231,8 +231,8 @@
   }
   .gd-bar:active{background:rgba(0,0,0,.42)}
   #gd-bar-ico-launcher,#gd-bar-ico-app{font-size:16px;filter:drop-shadow(0 0 3px rgba(255,255,255,.5));display:inline-block;line-height:1;flex:0 0 auto}
-  .gd-name-clip{flex:1;overflow:hidden;position:relative;height:1.5em}
-  .gd-name{font-size:11.5px;font-weight:700;color:#fff;display:inline-block;white-space:nowrap;position:relative;left:0;text-shadow:0 1px 4px rgba(0,0,0,.5)}
+  .gd-name-clip{flex:1;overflow:hidden;position:relative;height:16px;line-height:16px}
+  .gd-name{font-size:11.5px;font-weight:700;color:#fff;display:inline-block;white-space:nowrap;position:absolute;top:0;left:0;line-height:16px;text-shadow:0 1px 4px rgba(0,0,0,.5)}
   .gd-name-synced{color:#86efac}
   .gd-name-syncing{color:#fde68a}
   .gd-name-offline{color:#fca5a5}
@@ -275,7 +275,7 @@
   <div class="launcher-header">
     <div>
       <b>📚 Khai Thuế</b>
-      <span>Chọn loại tờ khai muốn thực hiện · v1.2.4</span>
+      <span>Chọn loại tờ khai muốn thực hiện · v1.2.5</span>
     </div>
     <button class="gear-btn" onclick="openGlobalSettings()" title="Cài đặt chung">⚙️</button>
   </div>
@@ -302,7 +302,7 @@
     </div>
     <div class="header-title" id="header-title-box" style="flex:1;text-align:center;align-items:center">
       <b id="header-title-b">📋 Tờ khai</b>
-      <span id="header-title-span">v1.2.4</span>
+      <span id="header-title-span">v1.2.5</span>
     </div>
     <div style="display:flex;gap:6px;flex:0 0 auto">
       <button class="gear-btn" onclick="taoToKhaiMoi()" title="Tờ khai mới">➕</button>
@@ -1101,6 +1101,7 @@ function goHome(){
   document.getElementById('launcher-screen').style.display = 'block';
   closeTkPreview();
   currentForm = null;
+  sessionStorage.removeItem('kt_last_form');
 }
 function openGlobalSettings(){
   var sel = document.getElementById('startup-mode-select-global');
@@ -1117,9 +1118,10 @@ function openForm(formId){
   valuesMap = lsGetO(K(currentForm.id,'values'));
   tablesState = lsGetO(K(currentForm.id,'tables'));
   document.getElementById('header-title-b').textContent = currentForm.headerTitle;
-  document.getElementById('header-title-span').textContent = 'Mẫu ' + currentForm.mauSo + ' · ' + currentForm.thongTu + ' · v1.2.4';
+  document.getElementById('header-title-span').textContent = 'Mẫu ' + currentForm.mauSo + ' · ' + currentForm.thongTu + ' · v1.2.5';
   document.getElementById('launcher-screen').style.display = 'none';
   document.getElementById('app-screen').style.display = 'block';
+  sessionStorage.setItem('kt_last_form', formId); // nhớ vị trí để restore khi reload
   renderMain();
 }
 // Nếu người dùng chọn "clear": tờ khai đang nhập dở (nếu có nội dung) được LƯU VÀO LỊCH SỬ trước
@@ -1184,9 +1186,10 @@ function renderFieldCard(f){
   var maHtml = f.ma ? '<span class="ma">' + esc(f.ma) + '</span>' : '';
   var inner = '';
   if (f.type === 'text') {
+    var lbl = f.label ? f.label.replace(/'/g,"\\'") : '';
     inner = '<div class="ac-wrap"><input class="field-input" type="text" data-id="' + f.id + '" '
-      + 'oninput="onSimpleInput(\'' + f.id + '\',this.value);onAutoInput(\'' + f.id + '\',this.value)" '
-      + 'onfocus="scrollInputUp(this)" onblur="hideGoiYTruong(\'' + f.id + '\')">'
+      + 'oninput="onSimpleInput(\'' + f.id + '\',this.value);onAutoInput(\'' + f.id + '\',this.value,\'' + lbl + '\')" '
+      + 'onfocus="scrollInputUp(this)" onblur="hideGoiYTruong(\'' + f.id + '\',\'' + lbl + '\',this.value)">'
       + '<div class="ac-list" id="ac-' + f.id + '"></div></div>';
   } else if (f.type === 'number' && f.money) {
     inner = '<input class="field-input" type="text" inputmode="decimal" data-id="' + f.id + '" data-money="1" '
@@ -1207,10 +1210,11 @@ function renderFieldCard(f){
       var t = s.type || 'text';
       var key = f.id + '.' + s.k;
       if (t === 'text') {
+        var slbl = s.label ? s.label.replace(/'/g,"\\'") : '';
         return '<div class="sub-row"><label>' + esc(s.label) + '</label><div class="ac-wrap">'
           + '<input class="field-input" type="text" data-id="' + f.id + '" data-sub="' + s.k + '" '
-          + 'oninput="onMultiInput(\'' + f.id + '\',\'' + s.k + '\',this.value);onAutoInput(\'' + key + '\',this.value)" '
-          + 'onfocus="scrollInputUp(this)" onblur="hideGoiYTruong(\'' + key + '\')">'
+          + 'oninput="onMultiInput(\'' + f.id + '\',\'' + s.k + '\',this.value);onAutoInput(\'' + key + '\',this.value,\'' + slbl + '\')" '
+          + 'onfocus="scrollInputUp(this)" onblur="hideGoiYTruong(\'' + key + '\',\'' + slbl + '\',this.value)">'
           + '<div class="ac-list" id="ac-' + key + '"></div></div></div>';
       }
       return '<div class="sub-row"><label>' + esc(s.label) + '</label>'
@@ -1227,38 +1231,178 @@ function renderFieldCard(f){
   }
   return '<div class="field-card"><div class="field-label">' + maHtml + '<span>' + esc(f.label) + '</span></div>' + inner + '</div>';
 }
-// ═══════════════════════ TỰ ĐỘNG ĐỀ XUẤT (giống chọn nhanh tên khách hàng ở app Mua Bán Mủ) ═══════
-// Nguồn gợi ý lấy từ TOÀN BỘ giá trị đã từng nhập cho ĐÚNG trường đó ở các tờ khai trong Lịch sử
-// CỦA CÙNG LOẠI TỜ KHAI ĐANG MỞ — càng dùng nhiều, gợi ý càng đầy đủ, không cần danh sách dựng sẵn.
-function _fieldGoiYPool(key){
-  var parts = key.split('.');
-  var hist = lsGetA(K(currentForm.id,'history'));
+// ═══════════════════════ TỰ ĐỘNG ĐỀ XUẤT — Pool chung + CSDL hành chính ═══════════════════════
+var LS_AC_POOL = LS_PREFIX + 'ac_pool_v1';
+
+function _acNormLabel(label){
+  var s = (label||'').toLowerCase()
+    .replace(/[()[\]/\\.,;!?]/g,'').replace(/\s+/g,' ').trim();
+  if (/tỉnh.*thành phố|tỉnh\/thành|tinh.*tp/.test(s)) return 'tinh_tp';
+  if (/quận.*huyện|quận\/huyện|quan.*huyen/.test(s)) return 'quan_huyen';
+  if (/phường.*xã|xã.*phường|phường\/xã|xã\/phường|phuong.*xa/.test(s)) return 'phuong_xa';
+  if (/địa chỉ/.test(s)) return 'dia_chi';
+  if (/tên người nộp thuế|họ và tên|ho.*ten/.test(s)) return 'ho_ten';
+  if (/mã số thuế/.test(s)) return 'ma_so_thue';
+  if (/cmnd|cccd|hộ chiếu/.test(s)) return 'cmnd_cccd';
+  return s;
+}
+
+function _acSaveToPool(fieldLabel, val){
+  val = (val||'').trim();
+  if (!val || val.length < 2) return;
+  var pool = lsGetO(LS_AC_POOL);
+  var key  = _acNormLabel(fieldLabel);
+  if (!key) return;
+  var arr = pool[key] || [];
+  arr = [val].concat(arr.filter(function(x){ return x !== val; })).slice(0, 60);
+  pool[key] = arr;
+  lsSet(LS_AC_POOL, pool);
+}
+
+function _fieldGoiYPool(fieldId, fieldLabel){
   var set = {};
-  hist.forEach(function(h){
-    var val = parts.length > 1 ? (h.valuesMap && h.valuesMap[parts[0]] && h.valuesMap[parts[0]][parts[1]]) : (h.valuesMap && h.valuesMap[parts[0]]);
-    if (typeof val === 'string' && val.trim()) set[val.trim()] = true;
-  });
+  var pool = lsGetO(LS_AC_POOL);
+  var key  = _acNormLabel(fieldLabel||'');
+  if (key && pool[key]) pool[key].forEach(function(v){ if(v) set[v]=true; });
+  if (currentForm){
+    var parts = fieldId.split('.');
+    var hist  = lsGetA(K(currentForm.id,'history'));
+    hist.forEach(function(h){
+      var val = parts.length > 1
+        ? (h.valuesMap && h.valuesMap[parts[0]] && h.valuesMap[parts[0]][parts[1]])
+        : (h.valuesMap && h.valuesMap[parts[0]]);
+      if (typeof val==='string' && val.trim()) set[val.trim()]=true;
+    });
+    var allForms = Object.values(FORM_DEFS);
+    allForms.forEach(function(fd){
+      if (fd.id === currentForm.id) return;
+      var h2 = lsGetA(K(fd.id,'history'));
+      h2.forEach(function(h){
+        fd.schema.forEach(function(s){
+          if (_acNormLabel(s.label) !== key) return;
+          var v = h.valuesMap && h.valuesMap[s.id];
+          if (typeof v==='string' && v.trim()) set[v.trim()]=true;
+          if (s.subs) s.subs.forEach(function(sb){
+            if (_acNormLabel(sb.label) !== key) return;
+            var sv = h.valuesMap && h.valuesMap[s.id] && h.valuesMap[s.id][sb.k];
+            if (typeof sv==='string' && sv.trim()) set[sv.trim()]=true;
+          });
+        });
+      });
+    });
+  }
   return Object.keys(set).sort(function(a,b){ return a.localeCompare(b,'vi'); });
 }
-function onAutoInput(key, val){
+
+// CSDL hành chính Việt Nam (rút gọn — xã|huyện|tỉnh)
+var _HC = (function(){
+  var raw = [
+    'Bến Nghé|Quận 1|TP. Hồ Chí Minh','Cầu Ông Lãnh|Quận 1|TP. Hồ Chí Minh','Cầu Kho|Quận 1|TP. Hồ Chí Minh','Cô Giang|Quận 1|TP. Hồ Chí Minh','Đa Kao|Quận 1|TP. Hồ Chí Minh','Nguyễn Cư Trinh|Quận 1|TP. Hồ Chí Minh','Nguyễn Thái Bình|Quận 1|TP. Hồ Chí Minh','Phạm Ngũ Lão|Quận 1|TP. Hồ Chí Minh','Tân Định|Quận 1|TP. Hồ Chí Minh',
+    'Bình Thọ|TP. Thủ Đức|TP. Hồ Chí Minh','Hiệp Bình Chánh|TP. Thủ Đức|TP. Hồ Chí Minh','Hiệp Bình Phước|TP. Thủ Đức|TP. Hồ Chí Minh','Hiệp Phú|TP. Thủ Đức|TP. Hồ Chí Minh','Linh Chiểu|TP. Thủ Đức|TP. Hồ Chí Minh','Linh Đông|TP. Thủ Đức|TP. Hồ Chí Minh','Linh Tây|TP. Thủ Đức|TP. Hồ Chí Minh','Linh Trung|TP. Thủ Đức|TP. Hồ Chí Minh','Linh Xuân|TP. Thủ Đức|TP. Hồ Chí Minh','Long Bình|TP. Thủ Đức|TP. Hồ Chí Minh','Long Phước|TP. Thủ Đức|TP. Hồ Chí Minh','Long Thạnh Mỹ|TP. Thủ Đức|TP. Hồ Chí Minh','Long Trường|TP. Thủ Đức|TP. Hồ Chí Minh','Phú Hữu|TP. Thủ Đức|TP. Hồ Chí Minh','Phước Bình|TP. Thủ Đức|TP. Hồ Chí Minh','Phước Long A|TP. Thủ Đức|TP. Hồ Chí Minh','Phước Long B|TP. Thủ Đức|TP. Hồ Chí Minh','Tam Bình|TP. Thủ Đức|TP. Hồ Chí Minh','Tam Phú|TP. Thủ Đức|TP. Hồ Chí Minh','Tân Phú|TP. Thủ Đức|TP. Hồ Chí Minh','Tăng Nhơn Phú A|TP. Thủ Đức|TP. Hồ Chí Minh','Tăng Nhơn Phú B|TP. Thủ Đức|TP. Hồ Chí Minh','Trường Thạnh|TP. Thủ Đức|TP. Hồ Chí Minh',
+    'Bình Hưng Hòa|Quận Bình Tân|TP. Hồ Chí Minh','Bình Hưng Hòa A|Quận Bình Tân|TP. Hồ Chí Minh','Bình Hưng Hòa B|Quận Bình Tân|TP. Hồ Chí Minh','Bình Trị Đông|Quận Bình Tân|TP. Hồ Chí Minh','Bình Trị Đông A|Quận Bình Tân|TP. Hồ Chí Minh','Bình Trị Đông B|Quận Bình Tân|TP. Hồ Chí Minh','An Lạc|Quận Bình Tân|TP. Hồ Chí Minh','An Lạc A|Quận Bình Tân|TP. Hồ Chí Minh','Tân Tạo|Quận Bình Tân|TP. Hồ Chí Minh','Tân Tạo A|Quận Bình Tân|TP. Hồ Chí Minh',
+    'Bình Chánh|Huyện Bình Chánh|TP. Hồ Chí Minh','An Phú Tây|Huyện Bình Chánh|TP. Hồ Chí Minh','Bình Lợi|Huyện Bình Chánh|TP. Hồ Chí Minh','Đa Phước|Huyện Bình Chánh|TP. Hồ Chí Minh','Hưng Long|Huyện Bình Chánh|TP. Hồ Chí Minh','Lê Minh Xuân|Huyện Bình Chánh|TP. Hồ Chí Minh','Phạm Văn Hai|Huyện Bình Chánh|TP. Hồ Chí Minh','Phong Phú|Huyện Bình Chánh|TP. Hồ Chí Minh','Quy Đức|Huyện Bình Chánh|TP. Hồ Chí Minh','Tân Kiên|Huyện Bình Chánh|TP. Hồ Chí Minh','Tân Nhựt|Huyện Bình Chánh|TP. Hồ Chí Minh','Tân Quý Tây|Huyện Bình Chánh|TP. Hồ Chí Minh','Vĩnh Lộc A|Huyện Bình Chánh|TP. Hồ Chí Minh','Vĩnh Lộc B|Huyện Bình Chánh|TP. Hồ Chí Minh',
+    'Hiệp An|TP. Thủ Dầu Một|Bình Dương','Hiệp Thành|TP. Thủ Dầu Một|Bình Dương','Hòa Phú|TP. Thủ Dầu Một|Bình Dương','Phú Cường|TP. Thủ Dầu Một|Bình Dương','Phú Hòa|TP. Thủ Dầu Một|Bình Dương','Phú Lợi|TP. Thủ Dầu Một|Bình Dương','Phú Mỹ|TP. Thủ Dầu Một|Bình Dương','Phú Thọ|TP. Thủ Dầu Một|Bình Dương','Tân An|TP. Thủ Dầu Một|Bình Dương','Tương Bình Hiệp|TP. Thủ Dầu Một|Bình Dương','Chánh Nghĩa|TP. Thủ Dầu Một|Bình Dương',
+    'An Phú|TP. Thuận An|Bình Dương','Bình Chuẩn|TP. Thuận An|Bình Dương','Bình Hòa|TP. Thuận An|Bình Dương','Bình Nhâm|TP. Thuận An|Bình Dương','Hưng Định|TP. Thuận An|Bình Dương','Lái Thiêu|TP. Thuận An|Bình Dương','Thuận Giao|TP. Thuận An|Bình Dương','Vĩnh Phú|TP. Thuận An|Bình Dương',
+    'Dĩ An|TP. Dĩ An|Bình Dương','An Bình|TP. Dĩ An|Bình Dương','Bình An|TP. Dĩ An|Bình Dương','Bình Thắng|TP. Dĩ An|Bình Dương','Đông Hòa|TP. Dĩ An|Bình Dương','Tân Bình|TP. Dĩ An|Bình Dương','Tân Đông Hiệp|TP. Dĩ An|Bình Dương',
+    'Trảng Dài|TP. Biên Hòa|Đồng Nai','Tân Phong|TP. Biên Hòa|Đồng Nai','Tân Hiệp|TP. Biên Hòa|Đồng Nai','Hố Nai|TP. Biên Hòa|Đồng Nai','Tam Hòa|TP. Biên Hòa|Đồng Nai','Tân Biên|TP. Biên Hòa|Đồng Nai','Bình Đa|TP. Biên Hòa|Đồng Nai','Thống Nhất|TP. Biên Hòa|Đồng Nai','Quyết Thắng|TP. Biên Hòa|Đồng Nai','Thanh Bình|TP. Biên Hòa|Đồng Nai','Trung Dũng|TP. Biên Hòa|Đồng Nai','An Bình|TP. Biên Hòa|Đồng Nai','Bửu Long|TP. Biên Hòa|Đồng Nai','Long Bình Tân|TP. Biên Hòa|Đồng Nai','Tân Vạn|TP. Biên Hòa|Đồng Nai','Tân Hòa|TP. Biên Hòa|Đồng Nai',
+    'Hàng Bạc|Quận Hoàn Kiếm|Hà Nội','Hàng Bồ|Quận Hoàn Kiếm|Hà Nội','Hàng Buồm|Quận Hoàn Kiếm|Hà Nội','Hàng Đào|Quận Hoàn Kiếm|Hà Nội','Hàng Gai|Quận Hoàn Kiếm|Hà Nội','Hàng Mã|Quận Hoàn Kiếm|Hà Nội','Hàng Trống|Quận Hoàn Kiếm|Hà Nội','Cửa Đông|Quận Hoàn Kiếm|Hà Nội','Lý Thái Tổ|Quận Hoàn Kiếm|Hà Nội','Phan Chu Trinh|Quận Hoàn Kiếm|Hà Nội','Tràng Tiền|Quận Hoàn Kiếm|Hà Nội',
+    'Cầu Diễn|Quận Nam Từ Liêm|Hà Nội','Đại Mỗ|Quận Nam Từ Liêm|Hà Nội','Mễ Trì|Quận Nam Từ Liêm|Hà Nội','Mỹ Đình 1|Quận Nam Từ Liêm|Hà Nội','Mỹ Đình 2|Quận Nam Từ Liêm|Hà Nội','Phú Đô|Quận Nam Từ Liêm|Hà Nội','Phương Canh|Quận Nam Từ Liêm|Hà Nội','Tây Mỗ|Quận Nam Từ Liêm|Hà Nội','Trung Văn|Quận Nam Từ Liêm|Hà Nội','Xuân Phương|Quận Nam Từ Liêm|Hà Nội',
+    'Cổ Nhuế 1|Quận Bắc Từ Liêm|Hà Nội','Cổ Nhuế 2|Quận Bắc Từ Liêm|Hà Nội','Đông Ngạc|Quận Bắc Từ Liêm|Hà Nội','Đức Thắng|Quận Bắc Từ Liêm|Hà Nội','Liên Mạc|Quận Bắc Từ Liêm|Hà Nội','Minh Khai|Quận Bắc Từ Liêm|Hà Nội','Phú Diễn|Quận Bắc Từ Liêm|Hà Nội','Phúc Diễn|Quận Bắc Từ Liêm|Hà Nội','Tây Tựu|Quận Bắc Từ Liêm|Hà Nội','Thượng Cát|Quận Bắc Từ Liêm|Hà Nội','Thụy Phương|Quận Bắc Từ Liêm|Hà Nội',
+    'Bạch Mai|Quận Hai Bà Trưng|Hà Nội','Bách Khoa|Quận Hai Bà Trưng|Hà Nội','Cầu Dền|Quận Hai Bà Trưng|Hà Nội','Đống Mác|Quận Hai Bà Trưng|Hà Nội','Lê Đại Hành|Quận Hai Bà Trưng|Hà Nội','Minh Khai|Quận Hai Bà Trưng|Hà Nội','Nguyễn Du|Quận Hai Bà Trưng|Hà Nội','Phố Huế|Quận Hai Bà Trưng|Hà Nội','Thanh Nhàn|Quận Hai Bà Trưng|Hà Nội','Trương Định|Quận Hai Bà Trưng|Hà Nội','Vĩnh Tuy|Quận Hai Bà Trưng|Hà Nội',
+    'Tân Phú|TX. Đồng Xoài|Bình Phước','Tân Xuân|TX. Đồng Xoài|Bình Phước','Tiến Thành|TX. Đồng Xoài|Bình Phước','Tiến Hưng|TX. Đồng Xoài|Bình Phước','Tân Thiện|TX. Đồng Xoài|Bình Phước','Tân Đồng|TX. Đồng Xoài|Bình Phước','Thuận Phú|TX. Đồng Xoài|Bình Phước',
+    'An Khương|Huyện Hớn Quản|Bình Phước','An Phú|Huyện Hớn Quản|Bình Phước','Đồng Nơ|Huyện Hớn Quản|Bình Phước','Đồng Tiến|Huyện Hớn Quản|Bình Phước','Minh Đức|Huyện Hớn Quản|Bình Phước','Minh Tâm|Huyện Hớn Quản|Bình Phước','Phú Hiệp|Huyện Hớn Quản|Bình Phước','Phước An|Huyện Hớn Quản|Bình Phước','Tân Hiệp|Huyện Hớn Quản|Bình Phước','Tân Khai|Huyện Hớn Quản|Bình Phước','Tân Quan|Huyện Hớn Quản|Bình Phước',
+    'Tân Lập|Huyện Đồng Phú|Bình Phước','Tân Hòa|Huyện Đồng Phú|Bình Phước','Thuận Lợi|Huyện Đồng Phú|Bình Phước','Đồng Tâm|Huyện Đồng Phú|Bình Phước','Tân Phước|Huyện Đồng Phú|Bình Phước','Tân Tiến|Huyện Đồng Phú|Bình Phước','Tân Lợi|Huyện Đồng Phú|Bình Phước',
+    'Phước Bình|TX. Phước Long|Bình Phước','Long Giang|TX. Phước Long|Bình Phước','Long Phước|TX. Phước Long|Bình Phước','Phước Tín|TX. Phước Long|Bình Phước','Sơn Giang|TX. Phước Long|Bình Phước','Thác Mơ|TX. Phước Long|Bình Phước',
+    'Bình Hưng|TP. Phan Thiết|Bình Thuận','Đức Long|TP. Phan Thiết|Bình Thuận','Đức Nghĩa|TP. Phan Thiết|Bình Thuận','Đức Thắng|TP. Phan Thiết|Bình Thuận','Hàm Tiến|TP. Phan Thiết|Bình Thuận','Hưng Long|TP. Phan Thiết|Bình Thuận','Lạc Đạo|TP. Phan Thiết|Bình Thuận','Mũi Né|TP. Phan Thiết|Bình Thuận','Phú Hài|TP. Phan Thiết|Bình Thuận','Phú Tài|TP. Phan Thiết|Bình Thuận','Phú Trinh|TP. Phan Thiết|Bình Thuận','Tân An|TP. Phan Thiết|Bình Thuận','Thanh Hải|TP. Phan Thiết|Bình Thuận','Tiến Lợi|TP. Phan Thiết|Bình Thuận','Tiến Thành|TP. Phan Thiết|Bình Thuận','Xuân An|TP. Phan Thiết|Bình Thuận',
+    'An Bình|Quận Ninh Kiều|Cần Thơ','An Cư|Quận Ninh Kiều|Cần Thơ','An Hòa|Quận Ninh Kiều|Cần Thơ','An Khánh|Quận Ninh Kiều|Cần Thơ','An Lạc|Quận Ninh Kiều|Cần Thơ','An Nghiệp|Quận Ninh Kiều|Cần Thơ','An Phú|Quận Ninh Kiều|Cần Thơ','Cái Khế|Quận Ninh Kiều|Cần Thơ','Hưng Lợi|Quận Ninh Kiều|Cần Thơ','Tân An|Quận Ninh Kiều|Cần Thơ','Thới Bình|Quận Ninh Kiều|Cần Thơ','Xuân Khánh|Quận Ninh Kiều|Cần Thơ',
+    'An Hải Bắc|Quận Sơn Trà|Đà Nẵng','An Hải Đông|Quận Sơn Trà|Đà Nẵng','An Hải Tây|Quận Sơn Trà|Đà Nẵng','Mân Thái|Quận Sơn Trà|Đà Nẵng','Nại Hiên Đông|Quận Sơn Trà|Đà Nẵng','Phước Mỹ|Quận Sơn Trà|Đà Nẵng','Thọ Quang|Quận Sơn Trà|Đà Nẵng',
+    'Bình Hiên|Quận Hải Châu|Đà Nẵng','Bình Thuận|Quận Hải Châu|Đà Nẵng','Hải Châu 1|Quận Hải Châu|Đà Nẵng','Hải Châu 2|Quận Hải Châu|Đà Nẵng','Hòa Cường Bắc|Quận Hải Châu|Đà Nẵng','Hòa Cường Nam|Quận Hải Châu|Đà Nẵng','Hòa Thuận Đông|Quận Hải Châu|Đà Nẵng','Hòa Thuận Tây|Quận Hải Châu|Đà Nẵng','Nam Dương|Quận Hải Châu|Đà Nẵng','Phước Ninh|Quận Hải Châu|Đà Nẵng','Thạch Thang|Quận Hải Châu|Đà Nẵng','Thanh Bình|Quận Hải Châu|Đà Nẵng','Thuận Phước|Quận Hải Châu|Đà Nẵng',
+    'Phường 1|Quận Gò Vấp|TP. Hồ Chí Minh','Phường 3|Quận Gò Vấp|TP. Hồ Chí Minh','Phường 4|Quận Gò Vấp|TP. Hồ Chí Minh','Phường 5|Quận Gò Vấp|TP. Hồ Chí Minh','Phường 6|Quận Gò Vấp|TP. Hồ Chí Minh','Phường 7|Quận Gò Vấp|TP. Hồ Chí Minh','Phường 8|Quận Gò Vấp|TP. Hồ Chí Minh','Phường 9|Quận Gò Vấp|TP. Hồ Chí Minh','Phường 10|Quận Gò Vấp|TP. Hồ Chí Minh','Phường 11|Quận Gò Vấp|TP. Hồ Chí Minh','Phường 12|Quận Gò Vấp|TP. Hồ Chí Minh','Phường 13|Quận Gò Vấp|TP. Hồ Chí Minh','Phường 14|Quận Gò Vấp|TP. Hồ Chí Minh','Phường 15|Quận Gò Vấp|TP. Hồ Chí Minh','Phường 16|Quận Gò Vấp|TP. Hồ Chí Minh',
+    'Phường 2|Quận Tân Bình|TP. Hồ Chí Minh','Phường 3|Quận Tân Bình|TP. Hồ Chí Minh','Phường 4|Quận Tân Bình|TP. Hồ Chí Minh','Phường 5|Quận Tân Bình|TP. Hồ Chí Minh','Phường 6|Quận Tân Bình|TP. Hồ Chí Minh','Phường 7|Quận Tân Bình|TP. Hồ Chí Minh','Phường 8|Quận Tân Bình|TP. Hồ Chí Minh','Phường 9|Quận Tân Bình|TP. Hồ Chí Minh','Phường 10|Quận Tân Bình|TP. Hồ Chí Minh','Phường 11|Quận Tân Bình|TP. Hồ Chí Minh','Phường 12|Quận Tân Bình|TP. Hồ Chí Minh','Phường 13|Quận Tân Bình|TP. Hồ Chí Minh','Phường 14|Quận Tân Bình|TP. Hồ Chí Minh','Phường 15|Quận Tân Bình|TP. Hồ Chí Minh'
+  ];
+  var map = {};
+  raw.forEach(function(r){
+    var p = r.split('|');
+    if (p.length < 3) return;
+    var k = p[0].toLowerCase();
+    if (!map[k]) map[k] = { xa: p[0], huyen: p[1], tinh: p[2] };
+  });
+  return map;
+})();
+
+function _hcLookup(phuongXa){
+  var q = (phuongXa||'').trim().toLowerCase();
+  if (q.length < 2) return null;
+  var keys = Object.keys(_HC);
+  for (var i = 0; i < keys.length; i++){
+    if (keys[i] === q || keys[i].indexOf(q) === 0){ return _HC[keys[i]]; }
+  }
+  return null;
+}
+
+function _autoFillHuyenTinh(phuongXaVal){
+  if (!currentForm) return;
+  var hc = _hcLookup(phuongXaVal);
+  if (!hc) return;
+  currentForm.schema.forEach(function(f){
+    if (f.type === 'text'){
+      var ln = _acNormLabel(f.label), cur = valuesMap[f.id];
+      if (ln === 'quan_huyen' && (!cur||!cur.trim())){
+        valuesMap[f.id] = hc.huyen; lsSet(K(currentForm.id,'values'),valuesMap);
+        var el = document.querySelector('[data-id="'+f.id+'"]:not([data-sub])'); if(el) el.value = hc.huyen;
+        _acSaveToPool(f.label, hc.huyen);
+      }
+      if (ln === 'tinh_tp' && (!cur||!cur.trim())){
+        valuesMap[f.id] = hc.tinh; lsSet(K(currentForm.id,'values'),valuesMap);
+        var el2 = document.querySelector('[data-id="'+f.id+'"]:not([data-sub])'); if(el2) el2.value = hc.tinh;
+        _acSaveToPool(f.label, hc.tinh);
+      }
+    }
+    if (f.type === 'multi' && f.subs) f.subs.forEach(function(sb){
+      var ln = _acNormLabel(sb.label), cur = valuesMap[f.id] && valuesMap[f.id][sb.k];
+      if (ln === 'quan_huyen' && (!cur||!cur.trim())){
+        if(!valuesMap[f.id]) valuesMap[f.id]={};
+        valuesMap[f.id][sb.k] = hc.huyen; lsSet(K(currentForm.id,'values'),valuesMap);
+        var el3 = document.querySelector('[data-id="'+f.id+'"][data-sub="'+sb.k+'"]'); if(el3) el3.value = hc.huyen;
+      }
+      if (ln === 'tinh_tp' && (!cur||!cur.trim())){
+        if(!valuesMap[f.id]) valuesMap[f.id]={};
+        valuesMap[f.id][sb.k] = hc.tinh; lsSet(K(currentForm.id,'values'),valuesMap);
+        var el4 = document.querySelector('[data-id="'+f.id+'"][data-sub="'+sb.k+'"]'); if(el4) el4.value = hc.tinh;
+      }
+    });
+  });
+}
+
+function onAutoInput(key, val, fieldLabel){
   var box = document.getElementById('ac-' + key);
   if (!box) return;
   val = (val||'').trim();
-  if (!val) { box.style.display='none'; return; }
-  var pool = _fieldGoiYPool(key);
+  if (!val){ box.style.display='none'; return; }
+  var pool = _fieldGoiYPool(key, fieldLabel||'');
   var vLow = val.toLowerCase();
-  var matches = pool.filter(function(x){ return x.toLowerCase().indexOf(vLow) === 0 && x.toLowerCase() !== vLow; });
-  if (!matches.length) { box.style.display='none'; return; }
-  box.innerHTML = matches.slice(0,6).map(function(x){
-    return '<div class="ac-item" onmousedown="chonGoiYTruong(\'' + key + '\',\'' + x.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')">👤 ' + esc(x) + '</div>';
+  var lnorm = _acNormLabel(fieldLabel||'');
+  var matches = [];
+  if (lnorm === 'phuong_xa' || lnorm === 'quan_huyen' || lnorm === 'tinh_tp'){
+    var field = lnorm === 'phuong_xa' ? 'xa' : lnorm === 'quan_huyen' ? 'huyen' : 'tinh';
+    var hcSet = {};
+    Object.keys(_HC).forEach(function(k){ var v=_HC[k][field]; if(v && v.toLowerCase().indexOf(vLow)===0) hcSet[v]=true; });
+    matches = Object.keys(hcSet).sort(function(a,b){ return a.localeCompare(b,'vi'); });
+  }
+  var poolM = pool.filter(function(x){ return x.toLowerCase().indexOf(vLow)===0 && x.toLowerCase()!==vLow && matches.indexOf(x)<0; });
+  matches = poolM.concat(matches);
+  if (!matches.length){ box.style.display='none'; return; }
+  box.innerHTML = matches.slice(0,8).map(function(x){
+    var icon = poolM.indexOf(x)>=0 ? '👤' : '📍';
+    return '<div class="ac-item" onmousedown="chonGoiYTruong(\''+key+'\',\''+x.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\',\''+(fieldLabel||'').replace(/'/g,"\\'")+'\')">'+ icon +' '+esc(x)+'</div>';
   }).join('');
   box.style.display = 'block';
 }
-function chonGoiYTruong(key, val){
+function chonGoiYTruong(key, val, fieldLabel){
   var box = document.getElementById('ac-' + key);
   if (box) box.style.display = 'none';
   var parts = key.split('.');
-  if (parts.length > 1) {
+  if (parts.length > 1){
     var el = document.querySelector('[data-id="'+parts[0]+'"][data-sub="'+parts[1]+'"]');
     if (el) el.value = val;
     onMultiInput(parts[0], parts[1], val);
@@ -1267,11 +1411,14 @@ function chonGoiYTruong(key, val){
     if (el2) el2.value = val;
     onSimpleInput(parts[0], val);
   }
+  if (fieldLabel) _acSaveToPool(fieldLabel, val);
+  if (_acNormLabel(fieldLabel||'') === 'phuong_xa') _autoFillHuyenTinh(val);
 }
-function hideGoiYTruong(key){
-  // Trễ 150ms để onmousedown ở trên kịp chạy trước khi input mất focus ẩn dropdown mất
-  setTimeout(function(){ var box = document.getElementById('ac-' + key); if (box) box.style.display='none'; }, 150);
+function hideGoiYTruong(key, fieldLabel, val){
+  if (fieldLabel && val && val.trim().length >= 2) _acSaveToPool(fieldLabel, val.trim());
+  setTimeout(function(){ var box = document.getElementById('ac-'+key); if(box) box.style.display='none'; }, 150);
 }
+
 
 // ═══════════════════════ BẢNG ĐỘNG (generic table) — thay cho table5 cũ, dùng chung cho mọi loại
 // tờ khai (mục 5 của LPTB, mục [41.7] và [51] của TNCN...), cột được khai báo trong f.columns ═══════
@@ -2267,7 +2414,24 @@ document.addEventListener('keydown',    _markUserAction);
 document.addEventListener('DOMContentLoaded', function(){
   renderLauncher();
   _capNhatSelectCheDoKhoiDong();
-  document.getElementById('launcher-screen').style.display = 'block';
+
+  // ── Restore màn hình sau reload: nếu đang ở tờ khai nào thì mở lại đúng đó ──
+  var lastForm = sessionStorage.getItem('kt_last_form');
+  if (lastForm && formById(lastForm)){
+    // Mở lại tờ khai, KHÔNG áp dụng chế độ khởi động (tránh clear dữ liệu đang nhập)
+    currentForm = formById(lastForm);
+    checkedMap  = lsGetO(K(currentForm.id,'checked'));
+    valuesMap   = lsGetO(K(currentForm.id,'values'));
+    tablesState = lsGetO(K(currentForm.id,'tables'));
+    document.getElementById('header-title-b').textContent = currentForm.headerTitle;
+    document.getElementById('header-title-span').textContent = 'Mẫu ' + currentForm.mauSo + ' · ' + currentForm.thongTu + ' · v1.2.5';
+    document.getElementById('launcher-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display = 'block';
+    renderMain();
+  } else {
+    document.getElementById('launcher-screen').style.display = 'block';
+  }
+
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(function(){});
   }
