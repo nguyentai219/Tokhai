@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#8a6e2f">
-<title>Khai Thuế v1.2.9</title>
-<meta name="description" content="Công cụ khai thuế đa tờ khai (Lệ phí trước bạ, TNCN chuyển nhượng BĐS...) - v1.2.9">
+<title>Khai Thuế v1.3.0</title>
+<meta name="description" content="Công cụ khai thuế đa tờ khai (Lệ phí trước bạ, TNCN chuyển nhượng BĐS...) - v1.3.0">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -277,7 +277,7 @@
     <div class="launcher-header-top">
       <div>
         <b>📚 Khai Thuế</b>
-        <span>Chọn loại tờ khai muốn thực hiện · v1.2.9</span>
+        <span>TaiDauTieng@gmail.com · v1.3.0</span>
       </div>
       <button class="gear-btn" onclick="openGlobalSettings()" title="Cài đặt chung">⚙️</button>
     </div>
@@ -307,10 +307,9 @@
     </div>
     <div class="header-title" id="header-title-box" style="flex:1;text-align:center;align-items:center;padding:0 4px">
       <b id="header-title-b">📋 Tờ khai</b>
-      <span id="header-title-span">v1.2.9</span>
+      <span id="header-title-span">v1.3.0</span>
     </div>
     <div style="display:flex;gap:6px;flex:0 0 auto">
-      <button class="gear-btn" onclick="taoToKhaiMoi()" title="Tờ khai mới">➕</button>
       <button class="gear-btn" onclick="moLichSuToKhai()" title="Lịch sử tờ khai">🕘</button>
       <button class="gear-btn" id="btn-gear" onclick="openSettings()" title="Chọn mục cần khai">⚙️</button>
     </div>
@@ -337,6 +336,14 @@
   <div class="modal-box">
     <div class="modal-handle"></div>
     <div class="modal-title">⚙️ Chọn mục cần khai</div>
+    <!-- Nút Tờ khai mới nằm đầu modal cài đặt -->
+    <div onclick="closeSettings();taoToKhaiMoi()" style="display:flex;align-items:center;gap:10px;background:var(--gold-light);border-radius:10px;padding:10px 13px;margin-bottom:10px;cursor:pointer;border:1.5px solid var(--gold)">
+      <span style="font-size:20px">➕</span>
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--gold-dark)">Bắt đầu tờ khai mới</div>
+        <div style="font-size:11px;color:var(--g600)">Xoá dữ liệu hiện tại, tự lưu vào Lịch sử trước</div>
+      </div>
+    </div>
     <div class="modal-sub">Tick chọn mục nào thì mục đó mới hiện ô nhập liệu ở màn hình chính. Bỏ tick sẽ ẩn đi <b>và xoá luôn dữ liệu đã nhập</b> của mục đó. Mục đã tick sẽ tự nhớ dữ liệu cho lần sau. Cài đặt này áp dụng RIÊNG cho tờ khai đang mở.</div>
     <div id="settings-list"><!-- render động bằng JS --></div>
     <div class="modal-footer">
@@ -346,18 +353,86 @@
 </div>
 
 <!-- MODAL CÀI ĐẶT CHUNG (từ màn hình chọn tờ khai) -->
+<!-- MODAL CHỌN: Tiếp tục hay Tờ khai mới -->
+<div class="modal" id="modal-chon-tokhai">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div id="chon-tokhai-body"></div>
+    <div class="modal-footer" style="margin-top:10px">
+      <button class="btn-huy" onclick="closeM('modal-chon-tokhai')" style="flex:none;width:100%">Huỷ</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal" id="modal-global-settings">
   <div class="modal-box">
     <div class="modal-handle"></div>
-    <div class="modal-title">⚙️ Cài đặt chung</div>
-    <div class="modal-sub">Áp dụng cho MỌI loại tờ khai: khi chọn 1 tờ khai ở danh sách, app sẽ mở lại đúng như đang dở hay bắt đầu tờ khai mới.</div>
-    <div style="background:var(--g100);border-radius:10px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px">
-      <label style="font-size:12px;color:var(--g600);font-weight:700">🔄 Khi chọn 1 tờ khai:</label>
-      <select id="startup-mode-select-global" onchange="suaCheDoKhoiDong(this.value)" style="border:1px solid var(--g300);border-radius:7px;padding:6px 8px;font-size:12px;font-weight:700;color:var(--gold-dark);background:#fff">
-        <option value="keep">Mở lại tờ khai cũ</option>
-        <option value="clear">Mở tờ khai mới</option>
-      </select>
+    <div class="modal-title">⚙️ Cài đặt & Hướng dẫn</div>
+
+    <!-- Tab row -->
+    <div class="cloud-tab-row" style="margin-bottom:12px">
+      <div class="cloud-tab active" id="gs-tab-settings" onclick="switchGSTab('settings')">⚙️ Cài đặt</div>
+      <div class="cloud-tab" id="gs-tab-guide" onclick="switchGSTab('guide')">📖 Hướng dẫn</div>
     </div>
+
+    <!-- TAB CÀI ĐẶT -->
+    <div id="gs-panel-settings">
+      <div class="modal-sub" style="margin-bottom:10px">Áp dụng cho MỌI loại tờ khai.</div>
+      <div style="background:var(--g100);border-radius:10px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px">
+        <label style="font-size:12px;color:var(--g600);font-weight:700">🔄 Khi chọn 1 tờ khai:</label>
+        <select id="startup-mode-select-global" onchange="suaCheDoKhoiDong(this.value)" style="border:1px solid var(--g300);border-radius:7px;padding:6px 8px;font-size:12px;font-weight:700;color:var(--gold-dark);background:#fff">
+          <option value="keep">Hỏi lại (mới/cũ)</option>
+          <option value="always-keep">Luôn mở tờ khai cũ</option>
+          <option value="clear">Luôn mở tờ khai mới</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- TAB HƯỚNG DẪN -->
+    <div id="gs-panel-guide" style="display:none;max-height:65vh;overflow-y:auto">
+      <div style="font-size:13px;color:var(--ink);line-height:1.7">
+
+        <div style="font-size:14px;font-weight:800;color:var(--gold-dark);margin-bottom:6px">📱 Giới thiệu</div>
+        <p style="margin:0 0 10px">App <b>Khai Thuế</b> là công cụ hỗ trợ lập tờ khai thuế trên điện thoại — hoạt động offline, lưu dữ liệu ngay trên máy, có thể đồng bộ lên đám mây Supabase để dùng trên nhiều thiết bị.</p>
+
+        <div style="height:1px;background:var(--g200);margin:10px 0"></div>
+        <div style="font-size:13px;font-weight:800;color:var(--gold-dark);margin-bottom:6px">📋 Các loại tờ khai</div>
+        <div style="background:var(--g50);border-radius:8px;padding:9px 11px;margin-bottom:8px;font-size:12px">
+          <div style="margin-bottom:4px">📄 <b>Lệ phí trước bạ</b> — Mẫu 01/LPTB · TT80/2021/TT-BTC<br><span style="color:var(--g500)">Dùng khi mua bán, chuyển nhượng nhà đất cần nộp lệ phí trước bạ.</span></div>
+          <div style="margin-bottom:4px">🏠 <b>TNCN chuyển nhượng BĐS</b> — Mẫu 03/BĐS-TNCN<br><span style="color:var(--g500)">Dùng khi bán/tặng/thừa kế bất động sản, khai thuế thu nhập cá nhân.</span></div>
+          <div>🌿 <b>Tiền sử dụng đất</b> — Mẫu 01/TSDĐ · TT156/2013/TT-BTC<br><span style="color:var(--g500)">Dùng khi được cấp quyền sử dụng đất, khai tiền sử dụng đất phải nộp.</span></div>
+        </div>
+
+        <div style="height:1px;background:var(--g200);margin:10px 0"></div>
+        <div style="font-size:13px;font-weight:800;color:var(--gold-dark);margin-bottom:6px">🚀 Cách sử dụng</div>
+        <div style="display:flex;flex-direction:column;gap:7px;font-size:12px">
+          <div style="background:var(--g50);border-radius:8px;padding:8px 11px"><b>1. Chọn loại tờ khai</b> ở màn hình chính → chọn tiếp tục tờ cũ hoặc bắt đầu tờ mới.</div>
+          <div style="background:var(--g50);border-radius:8px;padding:8px 11px"><b>2. Chọn mục cần khai</b> (nút ⚙️) — tick chọn các mục muốn hiện, bỏ tick để ẩn. Các mục bắt buộc luôn hiện.</div>
+          <div style="background:var(--g50);border-radius:8px;padding:8px 11px"><b>3. Nhập liệu</b> — gõ vào từng ô, app tự gợi ý từ dữ liệu đã nhập trước (👤) và từ CSDL hành chính (📍). Chọn phường/xã → quận/huyện và tỉnh/thành phố tự điền.</div>
+          <div style="background:var(--g50);border-radius:8px;padding:8px 11px"><b>4. In / Xuất PDF</b> (nút In ở cuối trang) — xem trước tờ khai, chụm 2 ngón để phóng to. Nhấn "In / Xuất PDF" để lưu file.</div>
+          <div style="background:var(--g50);border-radius:8px;padding:8px 11px"><b>5. Lịch sử</b> (nút 🕘) — mỗi lần in tự lưu 1 bản. Có thể xem lại, nạp lại hoặc xoá từng tờ.</div>
+          <div style="background:var(--g50);border-radius:8px;padding:8px 11px"><b>6. Tờ khai mới</b> (nút ➕ trong cài đặt tờ khai) — xoá dữ liệu đang nhập, tự lưu vào lịch sử trước, giữ nguyên các mục đang tick.</div>
+        </div>
+
+        <div style="height:1px;background:var(--g200);margin:10px 0"></div>
+        <div style="font-size:13px;font-weight:800;color:var(--gold-dark);margin-bottom:6px">☁️ Đồng bộ đám mây</div>
+        <div style="font-size:12px;background:var(--g50);border-radius:8px;padding:9px 11px">
+          Nhấn thanh <b>☁️</b> dưới header → đăng nhập tài khoản → dữ liệu tự đồng bộ lên Supabase.<br>
+          Dùng được trên nhiều thiết bị với cùng 1 tài khoản.<br>
+          Tự đồng bộ ngầm mỗi <b>15 giây</b> khi không có thao tác, và ngay sau mỗi lần in/lưu.
+        </div>
+
+        <div style="height:1px;background:var(--g200);margin:10px 0"></div>
+        <div style="font-size:13px;font-weight:800;color:var(--gold-dark);margin-bottom:6px">💡 Mẹo nhanh</div>
+        <div style="font-size:12px;color:var(--g600);line-height:1.8">
+          • Reload trang giữa chừng → app tự mở lại đúng tờ khai đang nhập<br>
+          • Dữ liệu tự lưu ngay khi gõ, không cần nhấn Lưu<br>
+          • Mã số thuế hiển thị dạng ô vuông đúng theo mẫu in<br>
+          • Ngắt trang khi in khớp đúng mẫu gốc của Bộ Tài chính
+        </div>
+      </div>
+    </div>
+
     <div class="modal-footer">
       <button class="btn-huy" onclick="closeM('modal-global-settings')" style="flex:none;width:100%">Đóng</button>
     </div>
@@ -1095,13 +1170,56 @@ function scrollInputUp(el){
 function renderLauncher(){
   var box = document.getElementById('form-list');
   box.innerHTML = FORM_DEFS.map(function(f){
-    return '<div class="form-card" onclick="openForm(\'' + f.id + '\')">'
+    return '<div class="form-card" onclick="chonToKhai(\'' + f.id + '\')">'
       + '<div class="ico">' + f.icon + '</div>'
       + '<div class="info"><b>' + esc(f.tenNgan) + '</b>'
       + '<div class="mauso">Mẫu ' + esc(f.mauSo) + ' · ' + esc(f.thongTu) + '</div>'
       + '<div class="sub">' + esc(f.moTa) + '</div></div>'
       + '<div class="chev">›</div></div>';
   }).join('');
+}
+
+function chonToKhai(formId){
+  var f = formById(formId);
+  if (!f) return;
+  var mode = localStorage.getItem(LS_STARTUP_MODE) || 'keep';
+  // Chế độ "luôn mở cũ" hoặc "luôn mở mới" → không hỏi
+  if (mode === 'always-keep'){ openForm(formId); return; }
+  if (mode === 'clear'){ _openFormMoi(formId); return; }
+  // Chế độ "hỏi lại" (keep = default) → kiểm tra có dữ liệu cũ không
+  var oldValues = lsGetO(K(f.id,'values'));
+  var coData = Object.keys(oldValues).length > 0;
+  if (!coData){ openForm(formId); return; }
+  // Có dữ liệu cũ → hỏi
+  var html = '<div style="text-align:center;padding:6px 0 14px">'
+    + '<div style="font-size:36px;margin-bottom:8px">' + f.icon + '</div>'
+    + '<div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:4px">' + esc(f.tenNgan) + '</div>'
+    + '<div style="font-size:12px;color:var(--g500)">Có tờ khai đang dở — bạn muốn làm gì?</div></div>'
+    + '<div style="display:flex;flex-direction:column;gap:8px">'
+    + '<button onclick="closeM(\'modal-chon-tokhai\');openForm(\'' + formId + '\')" style="padding:13px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:#fff;font-size:14px;font-weight:700;cursor:pointer">📂 Tiếp tục tờ khai cũ</button>'
+    + '<button onclick="closeM(\'modal-chon-tokhai\');_openFormMoi(\'' + formId + '\')" style="padding:13px;border-radius:10px;border:1.5px solid var(--gold-dark);background:#fff;color:var(--gold-dark);font-size:14px;font-weight:700;cursor:pointer">➕ Bắt đầu tờ khai mới</button>'
+    + '</div>';
+  document.getElementById('chon-tokhai-body').innerHTML = html;
+  openM('modal-chon-tokhai');
+}
+function _openFormMoi(formId){
+  var f = formById(formId);
+  if (!f) return;
+  // Lưu tờ khai đang dở vào lịch sử trước khi xoá
+  var oldValues = lsGetO(K(f.id,'values'));
+  if (Object.keys(oldValues).length > 0){
+    var oldChecked = lsGetO(K(f.id,'checked'));
+    var oldTables  = lsGetO(K(f.id,'tables'));
+    currentForm = f;
+    valuesMap   = oldValues;
+    checkedMap  = oldChecked;
+    tablesState = oldTables;
+    luuLichSu();
+  }
+  // Xoá dữ liệu, giữ checked
+  lsSet(K(f.id,'values'), {});
+  lsSet(K(f.id,'tables'), {});
+  openForm(formId);
 }
 function goHome(){
   document.getElementById('app-screen').style.display = 'none';
@@ -1113,7 +1231,14 @@ function goHome(){
 function openGlobalSettings(){
   var sel = document.getElementById('startup-mode-select-global');
   sel.value = localStorage.getItem(LS_STARTUP_MODE) || 'keep';
+  switchGSTab('settings'); // luôn mở tab cài đặt
   openM('modal-global-settings');
+}
+function switchGSTab(tab){
+  document.getElementById('gs-tab-settings').classList.toggle('active', tab==='settings');
+  document.getElementById('gs-tab-guide').classList.toggle('active', tab==='guide');
+  document.getElementById('gs-panel-settings').style.display = tab==='settings' ? '' : 'none';
+  document.getElementById('gs-panel-guide').style.display = tab==='guide' ? '' : 'none';
 }
 
 // Mở 1 loại tờ khai — áp dụng chế độ khởi động (keep/clear, cài đặt CHUNG) rồi nạp state riêng của
@@ -1125,7 +1250,7 @@ function openForm(formId){
   valuesMap = lsGetO(K(currentForm.id,'values'));
   tablesState = lsGetO(K(currentForm.id,'tables'));
   document.getElementById('header-title-b').textContent = currentForm.headerTitle;
-  document.getElementById('header-title-span').textContent = 'Mẫu ' + currentForm.mauSo + ' · ' + currentForm.thongTu + ' · v1.2.9';
+  document.getElementById('header-title-span').textContent = 'Mẫu ' + currentForm.mauSo + ' · ' + currentForm.thongTu + ' · v1.3.0';
   document.getElementById('launcher-screen').style.display = 'none';
   document.getElementById('app-screen').style.display = 'block';
   sessionStorage.setItem('kt_last_form', formId); // nhớ vị trí để restore khi reload
@@ -2225,23 +2350,35 @@ function _notifyShowContent(icon, text, cls){
     nm.style.animation = 'none';
     void nm.offsetWidth;
     nm.style.animation = 'khTickerIn .35s ease';
-    var NORMAL_MS = 10000, ERROR_MS = 15000, MAX_MS = 30000, START_PAUSE = 500, END_PAUSE = 5000;
-    var baseMs = (cls === 'offline') ? ERROR_MS : NORMAL_MS;
+  });
+  // Tính thời gian chờ: 10s cố định, cộng thêm thời gian cuộn nếu chữ dài
+  var PAUSE_MS = 10000;
+  var nm0 = document.getElementById('gd-bar-name-launcher') || document.getElementById('gd-bar-name-app');
+  var clip0 = nm0 ? nm0.parentElement : null;
+  if (nm0 && clip0){
     requestAnimationFrame(function(){
-      var overflow = nm.scrollWidth - clip.clientWidth;
+      var overflow = nm0.scrollWidth - clip0.clientWidth;
       if (overflow > 10){
-        var dist = overflow + 6;
-        var scrollMs = Math.min(Math.max(dist * 28, 2500), MAX_MS - START_PAUSE - END_PAUSE);
-        setTimeout(function(){
-          nm.style.transition = 'transform ' + (scrollMs/1000).toFixed(2) + 's linear';
-          nm.style.transform  = 'translateX(-' + dist + 'px)';
-        }, START_PAUSE);
-        _notifyTimer = setTimeout(_notifyTick, Math.min(START_PAUSE + scrollMs + END_PAUSE, MAX_MS));
+        var dist     = overflow + 6;
+        var scrollMs = Math.min(Math.max(dist * 28, 2000), 20000);
+        // Cuộn trên cả 2 thanh
+        ['launcher','app'].forEach(function(sc){
+          var nm = document.getElementById('gd-bar-name-' + sc);
+          if (!nm) return;
+          setTimeout(function(){
+            nm.style.transition = 'transform ' + (scrollMs/1000).toFixed(2) + 's linear';
+            nm.style.transform  = 'translateX(-' + dist + 'px)';
+          }, 400);
+        });
+        // Chờ cuộn xong + 10s rồi mới chuyển slide
+        _notifyTimer = setTimeout(_notifyTick, 400 + scrollMs + PAUSE_MS);
       } else {
-        _notifyTimer = setTimeout(_notifyTick, baseMs);
+        _notifyTimer = setTimeout(_notifyTick, PAUSE_MS);
       }
     });
-  });
+  } else {
+    _notifyTimer = setTimeout(_notifyTick, PAUSE_MS);
+  }
 }
 function _notifyTick(){
   try {
@@ -2256,12 +2393,13 @@ function _notifyTick(){
 }
 // Canh gác: cứ 45s kiểm tra xem timer còn sống không
 setInterval(function(){ if (!_notifyTimer) _notifyTick(); }, 45000);
-// Khi app trở lại foreground: refresh ngay
+// Khi app trở lại foreground: KHÔNG reset slideIdx — tiếp tục từ slide hiện tại
 document.addEventListener('visibilitychange', function(){
   if (document.visibilityState === 'visible'){
-    if (_notifyTimer){ clearTimeout(_notifyTimer); _notifyTimer = null; }
-    _notifySlideIdx = -1;
-    _notifyTick();
+    // Chỉ khởi động lại timer nếu đang bị dừng, không reset vị trí slide
+    if (!_notifyTimer){
+      _notifyTick();
+    }
   }
 });
 
@@ -2433,7 +2571,7 @@ document.addEventListener('DOMContentLoaded', function(){
     valuesMap   = lsGetO(K(currentForm.id,'values'));
     tablesState = lsGetO(K(currentForm.id,'tables'));
     document.getElementById('header-title-b').textContent = currentForm.headerTitle;
-    document.getElementById('header-title-span').textContent = 'Mẫu ' + currentForm.mauSo + ' · ' + currentForm.thongTu + ' · v1.2.9';
+    document.getElementById('header-title-span').textContent = 'Mẫu ' + currentForm.mauSo + ' · ' + currentForm.thongTu + ' · v1.3.0';
     document.getElementById('launcher-screen').style.display = 'none';
     document.getElementById('app-screen').style.display = 'block';
     renderMain();
