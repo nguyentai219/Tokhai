@@ -162,7 +162,10 @@
     border-radius:18px 18px 0 0;padding:14px 16px calc(16px + env(safe-area-inset-bottom,0px));
   }
   .modal-handle{width:38px;height:4px;background:var(--g300);border-radius:3px;margin:0 auto 12px}
-  .modal-title{font-size:16px;font-weight:800;color:var(--g800);margin-bottom:4px}
+  .modal-title{font-size:16px;font-weight:800;color:var(--g800);margin-bottom:4px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .modal-title-text{flex:1}
+  .modal-close-x{flex:0 0 auto;width:28px;height:28px;border-radius:50%;border:none;background:var(--g100);color:var(--g600);font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;margin-top:-4px}
+  .modal-close-x:active{background:var(--g200)}
   .modal-sub{font-size:11.5px;color:var(--g500);margin-bottom:12px;line-height:1.5}
   .set-group-title{
     font-size:11.5px;font-weight:800;color:var(--gold-dark);margin:14px 0 6px;padding-top:8px;
@@ -335,7 +338,7 @@
 <div class="modal" id="modal-settings">
   <div class="modal-box">
     <div class="modal-handle"></div>
-    <div class="modal-title">⚙️ Chọn mục cần khai</div>
+    <div class="modal-title"><span class="modal-title-text">⚙️ Chọn mục cần khai</span><button class="modal-close-x" onclick="closeSettings()">✕</button></div>
     <!-- Nút Tờ khai mới nằm đầu modal cài đặt -->
     <div onclick="closeSettings();taoToKhaiMoi()" style="display:flex;align-items:center;gap:10px;background:var(--gold-light);border-radius:10px;padding:10px 13px;margin-bottom:10px;cursor:pointer;border:1.5px solid var(--gold)">
       <span style="font-size:20px">➕</span>
@@ -367,7 +370,7 @@
 <div class="modal" id="modal-global-settings">
   <div class="modal-box">
     <div class="modal-handle"></div>
-    <div class="modal-title">⚙️ Cài đặt & Hướng dẫn</div>
+    <div class="modal-title"><span class="modal-title-text">⚙️ Cài đặt & Hướng dẫn</span><button class="modal-close-x" onclick="closeM('modal-global-settings')">✕</button></div>
 
     <!-- Tab row -->
     <div class="cloud-tab-row" style="margin-bottom:12px">
@@ -459,7 +462,7 @@
 <div class="modal modal-cloud" id="modal-cloud">
   <div class="modal-box">
     <div class="modal-handle"></div>
-    <div class="modal-title" id="cloud-modal-title">☁️ Đồng bộ đám mây</div>
+    <div class="modal-title"><span class="modal-title-text" id="cloud-modal-title">☁️ Đồng bộ đám mây</span><button class="modal-close-x" onclick="closeM('modal-cloud')">✕</button></div>
     <div id="cloud-modal-body"><!-- render bởi openCloudModal() --></div>
     <div class="modal-footer">
       <button class="btn-huy" onclick="closeM('modal-cloud')" style="flex:none;width:100%">Đóng</button>
@@ -473,7 +476,7 @@
 <div class="modal" id="modal-history">
   <div class="modal-box">
     <div class="modal-handle"></div>
-    <div class="modal-title">🕘 Lịch sử tờ khai</div>
+    <div class="modal-title"><span class="modal-title-text">🕘 Lịch sử tờ khai</span><button class="modal-close-x" onclick="closeM('modal-history')">✕</button></div>
     <div class="modal-sub">Mỗi lần bấm "In / Xuất Tờ Khai" sẽ tự lưu 1 bản vào đây (riêng cho loại tờ khai đang mở). Nhấn vào 1 tờ khai để nạp lại toàn bộ dữ liệu đã nhập, chỉnh sửa tiếp nếu cần.</div>
     <div id="history-list"></div>
     <div class="modal-footer">
@@ -486,7 +489,7 @@
 <div class="modal" id="modal-confirm" style="z-index:600">
   <div class="modal-box">
     <div class="modal-handle"></div>
-    <div class="modal-title" id="confirm-title">⚠️ Xác nhận</div>
+    <div class="modal-title"><span class="modal-title-text" id="confirm-title">⚠️ Xác nhận</span><button class="modal-close-x" onclick="closeM('modal-confirm')">✕</button></div>
     <div class="modal-sub" id="confirm-msg" style="white-space:pre-line"></div>
     <div class="modal-footer">
       <button class="btn-huy" onclick="_confirmNo()">Huỷ</button>
@@ -1250,7 +1253,7 @@ function openForm(formId){
   valuesMap = lsGetO(K(currentForm.id,'values'));
   tablesState = lsGetO(K(currentForm.id,'tables'));
   document.getElementById('header-title-b').textContent = currentForm.headerTitle;
-  document.getElementById('header-title-span').textContent = 'Mẫu ' + currentForm.mauSo + ' · ' + currentForm.thongTu + ' · v1.3.0';
+  document.getElementById('header-title-span').textContent = 'Mẫu ' + currentForm.mauSo + ' · ' + currentForm.thongTu;
   document.getElementById('launcher-screen').style.display = 'none';
   document.getElementById('app-screen').style.display = 'block';
   sessionStorage.setItem('kt_last_form', formId); // nhớ vị trí để restore khi reload
@@ -2571,7 +2574,7 @@ document.addEventListener('DOMContentLoaded', function(){
     valuesMap   = lsGetO(K(currentForm.id,'values'));
     tablesState = lsGetO(K(currentForm.id,'tables'));
     document.getElementById('header-title-b').textContent = currentForm.headerTitle;
-    document.getElementById('header-title-span').textContent = 'Mẫu ' + currentForm.mauSo + ' · ' + currentForm.thongTu + ' · v1.3.0';
+    document.getElementById('header-title-span').textContent = 'Mẫu ' + currentForm.mauSo + ' · ' + currentForm.thongTu;
     document.getElementById('launcher-screen').style.display = 'none';
     document.getElementById('app-screen').style.display = 'block';
     renderMain();
