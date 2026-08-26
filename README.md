@@ -194,6 +194,7 @@ số riêng lẻ như trước. Từ v1.1.0, mỗi số phiên bản phản ánh
 
 | Phiên bản | Ngày | Thay đổi |
 |-----------|------|----------|
+| **v1.2.9** | 2026-08-26 | 📡🌙 **Thanh đa nhiệm nâng cấp**: (1) **Kiểm tra kết nối thật** — ping DB Supabase (đọc 1 row thật), chỉ báo "Đã kết nối" khi server xác nhận thành công, báo lỗi rõ ràng nếu thất bại — không báo ảo; ping tự động mỗi 60 giây, sau mỗi lần đăng nhập và sau mỗi lần push thành công; (2) **Slide âm lịch** — hiện ngày/tháng âm lịch hiện tại với icon pha mặt trăng đúng theo chu kỳ (🌑🌒🌓🌔🌕🌖🌗🌘); (3) **Slide trạng thái đọc/ghi đám mây** — chỉ xuất hiện sau khi ping thật thành công hoặc thất bại, ghi rõ thời gian xác nhận |
 | **v1.2.8** | 2026-08-25 | 🔑 Đổi sang Legacy anon key (`eyJhbG…`) — tương thích hoàn toàn với Supabase JS SDK v2, đảm bảo kết nối đám mây hoạt động ổn định |
 | **v1.2.7** | 2026-08-25 | 🔑 Gắn Supabase Publishable Key thật vào app (`sb_publishable_bfcAZrSZ…`) — không cần nhập key thủ công, mở app là kết nối ngay |
 | **v1.2.6** | 2026-08-25 | 🎨☁️ **3 sửa đổi giao diện cloud**: (1) Thanh `gd-bar` ở **app-screen** được khôi phục hiển thị đầy đủ (trước bị thu nhỏ chỉ còn icon ☁️); (2) Thanh `gd-bar` ở **trang chủ** được kéo vào bên trong header gradient vàng — nổi bật, tương phản cao thay vì nằm trên nền trắng; (3) **Supabase URL/Key hardcode** vào app — bỏ màn hình cài đặt URL/Key và option "Đổi cấu hình", người dùng chỉ cần đăng nhập/đổi tài khoản, không thể thay đổi server |
