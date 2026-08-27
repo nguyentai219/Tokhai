@@ -194,6 +194,7 @@ số riêng lẻ như trước. Từ v1.1.0, mỗi số phiên bản phản ánh
 
 | Phiên bản | Ngày | Thay đổi |
 |-----------|------|----------|
+| **v1.3.7** | 2026-08-27 | ✨ Thêm tờ khai mới: Đơn đăng ký biến động đất đai, tài sản gắn liền với đất (Mẫu số 18 — Luật Đất đai 2024) |
 | **v1.3.6** | 2026-08-27 | 🐛 Sửa lỗi popup Hướng dẫn bị nằm dưới Cài đặt chung — thêm z-index:800 cho modal-huong-dan |
 | **v1.3.5** | 2026-08-27 | 🎨 Tách hướng dẫn ra popup riêng — Cài đặt chung gọn gàng (chỉ còn 2 dòng cài đặt + nút "📖 Hướng dẫn sử dụng"); nhấn vào nút đó mở popup hướng dẫn đầy đủ riêng biệt |
 | **v1.3.4** | 2026-08-27 | 🎨 **Cài đặt chung gọn hơn**: bỏ 2 tab (⚙️ Cài đặt / 📖 Hướng dẫn), đổi tiêu đề thành "Cài đặt chung", hiển thị thẳng 2 mục cài đặt (chế độ mở tờ khai + CSDL hành chính) rồi phần Hướng dẫn sử dụng nằm cuối — cuộn được, gọn hơn |

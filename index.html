@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#8a6e2f">
-<title>Khai Thuế v1.3.6</title>
-<meta name="description" content="Công cụ khai thuế đa tờ khai (Lệ phí trước bạ, TNCN chuyển nhượng BĐS...) - v1.3.6">
+<title>Khai Thuế v1.3.7</title>
+<meta name="description" content="Công cụ khai thuế đa tờ khai (Lệ phí trước bạ, TNCN chuyển nhượng BĐS...) - v1.3.7">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -280,7 +280,7 @@
     <div class="launcher-header-top">
       <div>
         <b>📚 Khai Thuế</b>
-        <span>TaiDauTieng@gmail.com · v1.3.6</span>
+        <span>TaiDauTieng@gmail.com · v1.3.7</span>
       </div>
       <button class="gear-btn" onclick="openGlobalSettings()" title="Cài đặt chung">⚙️</button>
     </div>
@@ -310,7 +310,7 @@
     </div>
     <div class="header-title" id="header-title-box" style="flex:1;text-align:center;align-items:center;padding:0 4px">
       <b id="header-title-b">📋 Tờ khai</b>
-      <span id="header-title-span">v1.3.6</span>
+      <span id="header-title-span">v1.3.7</span>
     </div>
     <div style="display:flex;gap:6px;flex:0 0 auto">
       <button class="gear-btn" onclick="moLichSuToKhai()" title="Lịch sử tờ khai">🕘</button>
@@ -382,7 +382,8 @@
       <div style="background:var(--g50);border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:12px">
         <div style="margin-bottom:6px">📄 <b>Lệ phí trước bạ</b> — Mẫu 01/LPTB · TT80/2021/TT-BTC<br><span style="color:var(--g500)">Dùng khi mua bán, chuyển nhượng nhà đất cần nộp lệ phí trước bạ.</span></div>
         <div style="margin-bottom:6px">🏠 <b>TNCN chuyển nhượng BĐS</b> — Mẫu 03/BĐS-TNCN · TT80/2021/TT-BTC<br><span style="color:var(--g500)">Dùng khi bán/tặng/thừa kế bất động sản, khai thuế thu nhập cá nhân.</span></div>
-        <div>🌿 <b>Tiền sử dụng đất</b> — Mẫu 01/TSDĐ · TT156/2013/TT-BTC<br><span style="color:var(--g500)">Dùng khi được cấp quyền sử dụng đất, khai tiền sử dụng đất phải nộp.</span></div>
+        <div style="margin-bottom:6px">🌿 <b>Tiền sử dụng đất</b> — Mẫu 01/TSDĐ · TT156/2013/TT-BTC<br><span style="color:var(--g500)">Dùng khi được cấp quyền sử dụng đất, khai tiền sử dụng đất phải nộp.</span></div>
+        <div>📝 <b>Đơn biến động đất đai</b> — Mẫu số 18 · Luật Đất đai 2024<br><span style="color:var(--g500)">Dùng khi có biến động về quyền sử dụng đất, tài sản gắn liền với đất.</span></div>
       </div>
 
       <div style="height:1px;background:var(--g200);margin:8px 0"></div>
@@ -1132,6 +1133,105 @@ function xayHtmlTsddTrang1(){
   return html;
 }
 
+// ═══════════════════════ SCHEMA: ĐƠN ĐĂNG KÝ BIẾN ĐỘNG ĐẤT ĐAI (Mẫu số 18) ═══════════════════
+const SCHEMA_BDBK = [
+  // ===== 1. THÔNG TIN NGƯỜI SỬ DỤNG ĐẤT =====
+  { id:'b1', section:'A', ma:'1', label:'Họ và tên người sử dụng đất / chủ sở hữu tài sản / người quản lý đất', type:'text' },
+  { id:'b1gt', section:'A', ma:'1.GT', label:'Giấy tờ nhân thân / pháp nhân (CMND/CCCD/Hộ chiếu/Quyết định thành lập...)', type:'multi',
+    subs:[{k:'loai',label:'Loại giấy tờ (VD: CCCD)'},{k:'so',label:'Số giấy tờ'},{k:'noicap',label:'Nơi cấp'},{k:'ngaycap',label:'Ngày cấp',type:'date'}] },
+  { id:'b1dc', section:'A', ma:'1.ĐC', label:'Địa chỉ', type:'text' },
+  { id:'b1lh', section:'A', ma:'1.LH', label:'Điện thoại liên hệ / Hộp thư điện tử', type:'multi',
+    subs:[{k:'dienthoai',label:'Điện thoại liên hệ (nếu có)'},{k:'email',label:'Hộp thư điện tử (nếu có)'}] },
+
+  // ===== 2. NỘI DUNG BIẾN ĐỘNG =====
+  { id:'b2', section:'B', ma:'2', label:'Nội dung biến động', type:'textarea' },
+
+  // ===== 3. GIẤY TỜ NỘP KÈM =====
+  { id:'b3gcn', section:'C', ma:'3.1', label:'Giấy chứng nhận đã cấp', type:'text' },
+  { id:'b3hs', section:'C', ma:'3.2', label:'Hồ sơ kỹ thuật', type:'text' },
+  { id:'b3khac', section:'C', ma:'3.3', label:'Giấy tờ khác (nếu có)', type:'textarea' },
+
+  // ===== KÝ TÊN =====
+  { id:'bky1', section:'D', ma:'', label:'Ngày viết đơn', type:'multi',
+    subs:[{k:'noi',label:'Địa danh (VD: Bình Dương)'},{k:'ngay',label:'Ngày ký',type:'date'}] },
+  { id:'bky2', section:'D', ma:'', label:'Người viết đơn', type:'multi',
+    subs:[{k:'hoten',label:'Họ và tên'}] },
+
+  // ===== GỬI ĐẾN =====
+  { id:'b0', section:'A', ma:'0', label:'Kính gửi (tên cơ quan tiếp nhận hồ sơ)', type:'text' },
+];
+const SECTION_LABEL_BDBK = {
+  A:'1. THÔNG TIN NGƯỜI SỬ DỤNG ĐẤT',
+  B:'2. NỘI DUNG BIẾN ĐỘNG',
+  C:'3. GIẤY TỜ NỘP KÈM',
+  D:'KÝ TÊN'
+};
+
+// ── In / Xuất Đơn đăng ký biến động — 1 trang (khớp Mẫu số 18 Nghị định đất đai)
+function xayHtmlBdBkTrang1(){
+  var html = '<div class="tk-print-doc">';
+  html += '<div class="mausotop">Mẫu số 18<br>(Đơn đăng ký biến động đất đai, tài sản gắn liền với đất)</div>';
+  html += '<div class="quochieu">CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM<br>Độc lập - Tự do - Hạnh phúc</div>';
+  html += '<div class="tieude">ĐƠN ĐĂNG KÝ BIẾN ĐỘNG ĐẤT ĐAI,<br>TÀI SẢN GẮN LIỀN VỚI ĐẤT</div>';
+
+  // Kính gửi
+  var kinhGui = (isChecked('b0') && vGet('b0')) ? vGet('b0') : '…………………………………………';
+  html += '<div class="pl" style="display:flex;gap:6px;align-items:baseline"><span style="white-space:nowrap">Kính gửi:</span>'
+    + '<b>' + esc(kinhGui) + '</b></div>';
+
+  // 1. Người sử dụng đất
+  html += '<div class="pl"><b>1. Người sử dụng đất, chủ sở hữu tài sản gắn liền với đất, người quản lý đất:</b></div>';
+  html += '<div class="pl">a) Họ và tên: ' + vText('b1') + '</div>';
+
+  var gt = (isChecked('b1gt') && vGet('b1gt')) ? vGet('b1gt') : {};
+  html += '<div class="pl">b) Giấy tờ nhân thân/pháp nhân: '
+    + esc(gt.loai||'……………………')
+    + ', Số: ' + esc(gt.so||'……………………')
+    + ', do: ' + esc(gt.noicap||'……………………')
+    + ' cấp ngày: ' + (gt.ngay ? fmtDateVN(gt.ngay) : '……/……/20……')
+    + '</div>';
+
+  html += '<div class="pl">c) Địa chỉ: ' + vText('b1dc') + '</div>';
+
+  var lh = (isChecked('b1lh') && vGet('b1lh')) ? vGet('b1lh') : {};
+  html += '<div class="pl">d) Điện thoại liên hệ (nếu có): ' + esc(lh.dienthoai||'……………………')
+    + ' &nbsp;&nbsp; Hộp thư điện tử (nếu có): ' + esc(lh.email||'……………………') + '</div>';
+
+  // 2. Nội dung biến động
+  html += '<div class="pl"><b>2. Nội dung biến động:</b> ' + vText('b2') + '</div>';
+
+  // 3. Giấy tờ nộp kèm
+  html += '<div class="pl"><b>3. Giấy tờ liên quan đến nội dung biến động nộp kèm theo đơn này gồm có:</b></div>';
+  html += '<div class="pl">(1) Giấy chứng nhận đã cấp: ' + vText('b3gcn') + '</div>';
+  html += '<div class="pl">(2) Hồ sơ kỹ thuật: ' + vText('b3hs') + '</div>';
+  var khac = (isChecked('b3khac') && vGet('b3khac')) ? vGet('b3khac') : '';
+  if (khac) {
+    html += '<div class="pl">(3) ' + esc(khac) + '</div>';
+  } else {
+    html += '<div class="pl">(3) ……………………………………………………………………………</div>';
+  }
+
+  html += '<div class="pl" style="margin-top:10px">Cam đoan nội dung kê khai trên đơn là đúng sự thật và chịu trách nhiệm trước pháp luật./.</div>';
+
+  // Ký tên — bên phải
+  var ky1 = (isChecked('bky1') && vGet('bky1')) ? vGet('bky1') : {};
+  var ky2 = (isChecked('bky2') && vGet('bky2')) ? vGet('bky2') : {};
+  var noiKy = ky1.noi || '…………………';
+  var ngayKy = ky1.ngay ? fmtDateVN(ky1.ngay) : '…… tháng …… năm ……';
+  var tenKy  = ky2.hoten || '';
+  html += '<table style="width:100%;margin-top:14px"><tr><td style="width:50%"></td>'
+    + '<td style="text-align:center;font-size:13px">'
+    + '<i>' + esc(noiKy) + ', ngày ' + esc(ngayKy) + '</i><br>'
+    + '<b>Người viết đơn</b><br>'
+    + '<i style="font-size:11px">(Ký, ghi rõ họ tên và đóng dấu nếu có)</i><br>'
+    + '<div style="height:52px"></div>'
+    + (tenKy ? '<b>' + esc(tenKy) + '</b>' : '<span style="color:#ccc">……………………</span>')
+    + '</td></tr></table>';
+
+  html += '</div>';
+  return html;
+}
+
 // ═══════════════════════ DANH SÁCH CÁC LOẠI TỜ KHAI (FORM_DEFS) ═══════════════════════
 const FORM_DEFS = [
   { id:'ltb', icon:'📋', tenNgan:'Lệ phí trước bạ', mauSo:'01/LPTB', thongTu:'TT80/2021/TT-BTC',
@@ -1149,6 +1249,11 @@ const FORM_DEFS = [
     schema:SCHEMA_TSDD, sectionLabel:SECTION_LABEL_TSDD, sectionOrder:['A','B','C','D','E'],
     tenFieldId:'d1', fileName:'ToKhaiTienSuDungDat', shareText:'Tờ khai tiền sử dụng đất (Mẫu 01/TSDĐ)',
     buildPages:function(){ return [xayHtmlTsddTrang1()]; } },
+  { id:'bdbk', icon:'📝', tenNgan:'Đơn biến động đất đai', mauSo:'18', thongTu:'Luật Đất đai 2024',
+    moTa:'Đăng ký biến động đất đai, tài sản gắn liền với đất', headerTitle:'📝 Đơn Đăng Ký Biến Động Đất Đai',
+    schema:SCHEMA_BDBK, sectionLabel:SECTION_LABEL_BDBK, sectionOrder:['A','B','C','D'],
+    tenFieldId:'b1', fileName:'DonBienDongDatDai', shareText:'Đơn đăng ký biến động đất đai (Mẫu số 18)',
+    buildPages:function(){ return [xayHtmlBdBkTrang1()]; } },
 ];
 function formById(id){ return FORM_DEFS.find(function(f){ return f.id===id; }); }
 
