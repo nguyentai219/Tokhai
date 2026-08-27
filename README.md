@@ -194,6 +194,7 @@ số riêng lẻ như trước. Từ v1.1.0, mỗi số phiên bản phản ánh
 
 | Phiên bản | Ngày | Thay đổi |
 |-----------|------|----------|
+| **v1.3.6** | 2026-08-27 | 🐛 Sửa lỗi popup Hướng dẫn bị nằm dưới Cài đặt chung — thêm z-index:800 cho modal-huong-dan |
 | **v1.3.5** | 2026-08-27 | 🎨 Tách hướng dẫn ra popup riêng — Cài đặt chung gọn gàng (chỉ còn 2 dòng cài đặt + nút "📖 Hướng dẫn sử dụng"); nhấn vào nút đó mở popup hướng dẫn đầy đủ riêng biệt |
 | **v1.3.4** | 2026-08-27 | 🎨 **Cài đặt chung gọn hơn**: bỏ 2 tab (⚙️ Cài đặt / 📖 Hướng dẫn), đổi tiêu đề thành "Cài đặt chung", hiển thị thẳng 2 mục cài đặt (chế độ mở tờ khai + CSDL hành chính) rồi phần Hướng dẫn sử dụng nằm cuối — cuộn được, gọn hơn |
 | **v1.3.3** | 2026-08-27 | 📍 **Chuẩn hóa CSDL hành chính đúng 34 tỉnh/thành** theo Nghị quyết 202/2025/QH15 hiệu lực 1/7/2025 — xóa 17 tên tỉnh sai (Bình Dương, Bình Phước, Bình Thuận, Thừa Thiên Huế, Quảng Nam, Bình Định, Ninh Thuận, Kon Tum, Kiên Giang, Bạc Liêu, Sóc Trăng, Trà Vinh, Bến Tre, Tiền Giang, Long An, Vũng Tàu, Đắk Nông, Vĩnh Phúc), bổ sung 11 tỉnh thiếu (Huế, Cao Bằng, Hà Tĩnh, Hưng Yên, Lai Châu, Lào Cai, Ninh Bình, Quảng Trị, Sơn La, Tuyên Quang, Điện Biên); cập nhật dữ liệu xã/phường theo cơ cấu sáp nhập mới (898 xã/phường từ 34 tỉnh/thành) |
