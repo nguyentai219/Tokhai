@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#8a6e2f">
-<title>Khai Thuế v1.3.1</title>
-<meta name="description" content="Công cụ khai thuế đa tờ khai (Lệ phí trước bạ, TNCN chuyển nhượng BĐS...) - v1.3.1">
+<title>Khai Thuế v1.3.5</title>
+<meta name="description" content="Công cụ khai thuế đa tờ khai (Lệ phí trước bạ, TNCN chuyển nhượng BĐS...) - v1.3.5">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -280,7 +280,7 @@
     <div class="launcher-header-top">
       <div>
         <b>📚 Khai Thuế</b>
-        <span>TaiDauTieng@gmail.com · v1.3.1</span>
+        <span>TaiDauTieng@gmail.com · v1.3.5</span>
       </div>
       <button class="gear-btn" onclick="openGlobalSettings()" title="Cài đặt chung">⚙️</button>
     </div>
@@ -310,7 +310,7 @@
     </div>
     <div class="header-title" id="header-title-box" style="flex:1;text-align:center;align-items:center;padding:0 4px">
       <b id="header-title-b">📋 Tờ khai</b>
-      <span id="header-title-span">v1.3.1</span>
+      <span id="header-title-span">v1.3.5</span>
     </div>
     <div style="display:flex;gap:6px;flex:0 0 auto">
       <button class="gear-btn" onclick="moLichSuToKhai()" title="Lịch sử tờ khai">🕘</button>
@@ -367,82 +367,92 @@
   </div>
 </div>
 
+<!-- MODAL HƯỚNG DẪN SỬ DỤNG -->
+<div class="modal" id="modal-huong-dan">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title"><span class="modal-title-text">📖 Hướng dẫn sử dụng</span><button class="modal-close-x" onclick="closeM('modal-huong-dan')">✕</button></div>
+    <div style="max-height:70vh;overflow-y:auto;font-size:13px;color:var(--ink);line-height:1.7">
+
+      <div style="font-size:13px;font-weight:700;color:var(--gold-dark);margin-bottom:4px">📱 Giới thiệu</div>
+      <p style="margin:0 0 10px;font-size:12px">App <b>Khai Thuế</b> hỗ trợ lập tờ khai thuế trên điện thoại — hoạt động offline, lưu dữ liệu trên máy, đồng bộ đám mây Supabase để dùng trên nhiều thiết bị.</p>
+
+      <div style="height:1px;background:var(--g200);margin:8px 0"></div>
+      <div style="font-size:13px;font-weight:700;color:var(--gold-dark);margin-bottom:4px">📋 Các loại tờ khai</div>
+      <div style="background:var(--g50);border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:12px">
+        <div style="margin-bottom:6px">📄 <b>Lệ phí trước bạ</b> — Mẫu 01/LPTB · TT80/2021/TT-BTC<br><span style="color:var(--g500)">Dùng khi mua bán, chuyển nhượng nhà đất cần nộp lệ phí trước bạ.</span></div>
+        <div style="margin-bottom:6px">🏠 <b>TNCN chuyển nhượng BĐS</b> — Mẫu 03/BĐS-TNCN · TT80/2021/TT-BTC<br><span style="color:var(--g500)">Dùng khi bán/tặng/thừa kế bất động sản, khai thuế thu nhập cá nhân.</span></div>
+        <div>🌿 <b>Tiền sử dụng đất</b> — Mẫu 01/TSDĐ · TT156/2013/TT-BTC<br><span style="color:var(--g500)">Dùng khi được cấp quyền sử dụng đất, khai tiền sử dụng đất phải nộp.</span></div>
+      </div>
+
+      <div style="height:1px;background:var(--g200);margin:8px 0"></div>
+      <div style="font-size:13px;font-weight:700;color:var(--gold-dark);margin-bottom:4px">🚀 Cách sử dụng</div>
+      <div style="display:flex;flex-direction:column;gap:5px;font-size:12px;margin-bottom:10px">
+        <div style="background:var(--g50);border-radius:8px;padding:8px 10px"><b>1.</b> Chọn loại tờ khai ở màn hình chính → chọn tiếp tục tờ cũ hoặc bắt đầu tờ mới.</div>
+        <div style="background:var(--g50);border-radius:8px;padding:8px 10px"><b>2.</b> Nhấn ⚙️ → tick chọn các mục muốn hiện, bỏ tick để ẩn (và xoá dữ liệu mục đó).</div>
+        <div style="background:var(--g50);border-radius:8px;padding:8px 10px"><b>3.</b> Nhập liệu — gõ để gợi ý: 👤 từ lịch sử nhập trước, 📍 từ CSDL hành chính. Chọn phường/xã → tự điền quận/huyện + tỉnh/thành phố.</div>
+        <div style="background:var(--g50);border-radius:8px;padding:8px 10px"><b>4.</b> Cuộn xuống cuối → nhấn <b>In / Xuất PDF</b> để xem trước tờ khai và lưu file. Chụm 2 ngón để phóng to khi xem trước.</div>
+        <div style="background:var(--g50);border-radius:8px;padding:8px 10px"><b>5.</b> Nhấn 🕘 để xem lại lịch sử — mỗi lần in tự lưu 1 bản, có thể nạp lại hoặc xoá từng tờ.</div>
+        <div style="background:var(--g50);border-radius:8px;padding:8px 10px"><b>6.</b> Nhấn ⚙️ → <b>Bắt đầu tờ khai mới</b> để xoá và bắt đầu lại (tự lưu vào lịch sử trước, giữ nguyên các mục đang tick).</div>
+      </div>
+
+      <div style="height:1px;background:var(--g200);margin:8px 0"></div>
+      <div style="font-size:13px;font-weight:700;color:var(--gold-dark);margin-bottom:4px">☁️ Đồng bộ đám mây</div>
+      <div style="font-size:12px;background:var(--g50);border-radius:8px;padding:8px 10px;margin-bottom:10px">
+        Nhấn thanh <b>☁️</b> dưới header → đăng nhập tài khoản → dữ liệu tự đồng bộ lên Supabase.<br>
+        Dùng được trên nhiều thiết bị với cùng 1 tài khoản.<br>
+        Tự động đồng bộ ngầm mỗi <b>15 giây</b> khi không thao tác, và ngay sau mỗi lần in/lưu.
+      </div>
+
+      <div style="height:1px;background:var(--g200);margin:8px 0"></div>
+      <div style="font-size:13px;font-weight:700;color:var(--gold-dark);margin-bottom:4px">💡 Mẹo nhanh</div>
+      <div style="font-size:12px;color:var(--g600);line-height:1.9;background:var(--g50);border-radius:8px;padding:8px 10px">
+        • Reload trang giữa chừng → app tự mở lại đúng tờ khai đang nhập<br>
+        • Dữ liệu tự lưu ngay khi gõ, không cần nhấn Lưu<br>
+        • Mã số thuế hiển thị dạng ô vuông đúng theo mẫu in<br>
+        • Ngắt trang khi in khớp đúng mẫu gốc của Bộ Tài chính<br>
+        • Vào ⚙️ Cài đặt chung → chọn tỉnh/thành để gợi ý địa chỉ nhanh hơn
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-huy" onclick="closeM('modal-huong-dan')" style="flex:none;width:100%">Đóng</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal" id="modal-global-settings">
   <div class="modal-box">
     <div class="modal-handle"></div>
-    <div class="modal-title"><span class="modal-title-text">⚙️ Cài đặt & Hướng dẫn</span><button class="modal-close-x" onclick="closeM('modal-global-settings')">✕</button></div>
+    <div class="modal-title"><span class="modal-title-text">⚙️ Cài đặt chung</span><button class="modal-close-x" onclick="closeM('modal-global-settings')">✕</button></div>
 
-    <!-- Tab row -->
-    <div class="cloud-tab-row" style="margin-bottom:12px">
-      <div class="cloud-tab active" id="gs-tab-settings" onclick="switchGSTab('settings')">⚙️ Cài đặt</div>
-      <div class="cloud-tab" id="gs-tab-guide" onclick="switchGSTab('guide')">📖 Hướng dẫn</div>
+    <div class="modal-sub" style="margin-bottom:10px">Áp dụng cho MỌI loại tờ khai.</div>
+
+    <div style="background:var(--g100);border-radius:10px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px">
+      <label style="font-size:12px;color:var(--g600);font-weight:700">🔄 Khi chọn 1 tờ khai:</label>
+      <select id="startup-mode-select-global" onchange="suaCheDoKhoiDong(this.value)" style="border:1px solid var(--g300);border-radius:7px;padding:6px 8px;font-size:12px;font-weight:700;color:var(--gold-dark);background:#fff">
+        <option value="keep">Hỏi lại (mới/cũ)</option>
+        <option value="always-keep">Luôn mở tờ khai cũ</option>
+        <option value="clear">Luôn mở tờ khai mới</option>
+      </select>
     </div>
-
-    <!-- TAB CÀI ĐẶT -->
-    <div id="gs-panel-settings">
-      <div class="modal-sub" style="margin-bottom:10px">Áp dụng cho MỌI loại tờ khai.</div>
-      <div style="background:var(--g100);border-radius:10px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px">
-        <label style="font-size:12px;color:var(--g600);font-weight:700">🔄 Khi chọn 1 tờ khai:</label>
-        <select id="startup-mode-select-global" onchange="suaCheDoKhoiDong(this.value)" style="border:1px solid var(--g300);border-radius:7px;padding:6px 8px;font-size:12px;font-weight:700;color:var(--gold-dark);background:#fff">
-          <option value="keep">Hỏi lại (mới/cũ)</option>
-          <option value="always-keep">Luôn mở tờ khai cũ</option>
-          <option value="clear">Luôn mở tờ khai mới</option>
+    <div style="background:var(--g100);border-radius:10px;padding:10px 12px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px">
+        <label style="font-size:12px;color:var(--g600);font-weight:700">📍 CSDL hành chính:</label>
+        <select id="hc-tinh-select" onchange="saveHCTinh(this.value)" style="border:1px solid var(--g300);border-radius:7px;padding:6px 8px;font-size:12px;font-weight:700;color:var(--gold-dark);background:#fff">
+          <option value="ALL">— Tất cả tỉnh/thành —</option>
         </select>
       </div>
-      <div style="background:var(--g100);border-radius:10px;padding:10px 12px;margin-bottom:10px">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px">
-          <label style="font-size:12px;color:var(--g600);font-weight:700">📍 CSDL hành chính:</label>
-          <select id="hc-tinh-select" onchange="saveHCTinh(this.value)" style="border:1px solid var(--g300);border-radius:7px;padding:6px 8px;font-size:12px;font-weight:700;color:var(--gold-dark);background:#fff">
-            <option value="ALL">— Tất cả tỉnh/thành —</option>
-          </select>
-        </div>
-        <div style="font-size:11px;color:var(--g500);line-height:1.5">Chỉ gợi ý địa chỉ thuộc tỉnh/thành đã chọn — giúp đề xuất ngắn gọn và chính xác hơn khi nhập liệu.</div>
-      </div>
+      <div style="font-size:11px;color:var(--g500);line-height:1.5">Chỉ gợi ý địa chỉ thuộc tỉnh/thành đã chọn — giúp đề xuất ngắn gọn và chính xác hơn khi nhập liệu.</div>
     </div>
 
-    <!-- TAB HƯỚNG DẪN -->
-    <div id="gs-panel-guide" style="display:none;max-height:65vh;overflow-y:auto">
-      <div style="font-size:13px;color:var(--ink);line-height:1.7">
-
-        <div style="font-size:14px;font-weight:800;color:var(--gold-dark);margin-bottom:6px">📱 Giới thiệu</div>
-        <p style="margin:0 0 10px">App <b>Khai Thuế</b> là công cụ hỗ trợ lập tờ khai thuế trên điện thoại — hoạt động offline, lưu dữ liệu ngay trên máy, có thể đồng bộ lên đám mây Supabase để dùng trên nhiều thiết bị.</p>
-
-        <div style="height:1px;background:var(--g200);margin:10px 0"></div>
-        <div style="font-size:13px;font-weight:800;color:var(--gold-dark);margin-bottom:6px">📋 Các loại tờ khai</div>
-        <div style="background:var(--g50);border-radius:8px;padding:9px 11px;margin-bottom:8px;font-size:12px">
-          <div style="margin-bottom:4px">📄 <b>Lệ phí trước bạ</b> — Mẫu 01/LPTB · TT80/2021/TT-BTC<br><span style="color:var(--g500)">Dùng khi mua bán, chuyển nhượng nhà đất cần nộp lệ phí trước bạ.</span></div>
-          <div style="margin-bottom:4px">🏠 <b>TNCN chuyển nhượng BĐS</b> — Mẫu 03/BĐS-TNCN<br><span style="color:var(--g500)">Dùng khi bán/tặng/thừa kế bất động sản, khai thuế thu nhập cá nhân.</span></div>
-          <div>🌿 <b>Tiền sử dụng đất</b> — Mẫu 01/TSDĐ · TT156/2013/TT-BTC<br><span style="color:var(--g500)">Dùng khi được cấp quyền sử dụng đất, khai tiền sử dụng đất phải nộp.</span></div>
-        </div>
-
-        <div style="height:1px;background:var(--g200);margin:10px 0"></div>
-        <div style="font-size:13px;font-weight:800;color:var(--gold-dark);margin-bottom:6px">🚀 Cách sử dụng</div>
-        <div style="display:flex;flex-direction:column;gap:7px;font-size:12px">
-          <div style="background:var(--g50);border-radius:8px;padding:8px 11px"><b>1. Chọn loại tờ khai</b> ở màn hình chính → chọn tiếp tục tờ cũ hoặc bắt đầu tờ mới.</div>
-          <div style="background:var(--g50);border-radius:8px;padding:8px 11px"><b>2. Chọn mục cần khai</b> (nút ⚙️) — tick chọn các mục muốn hiện, bỏ tick để ẩn. Các mục bắt buộc luôn hiện.</div>
-          <div style="background:var(--g50);border-radius:8px;padding:8px 11px"><b>3. Nhập liệu</b> — gõ vào từng ô, app tự gợi ý từ dữ liệu đã nhập trước (👤) và từ CSDL hành chính (📍). Chọn phường/xã → quận/huyện và tỉnh/thành phố tự điền.</div>
-          <div style="background:var(--g50);border-radius:8px;padding:8px 11px"><b>4. In / Xuất PDF</b> (nút In ở cuối trang) — xem trước tờ khai, chụm 2 ngón để phóng to. Nhấn "In / Xuất PDF" để lưu file.</div>
-          <div style="background:var(--g50);border-radius:8px;padding:8px 11px"><b>5. Lịch sử</b> (nút 🕘) — mỗi lần in tự lưu 1 bản. Có thể xem lại, nạp lại hoặc xoá từng tờ.</div>
-          <div style="background:var(--g50);border-radius:8px;padding:8px 11px"><b>6. Tờ khai mới</b> (nút ➕ trong cài đặt tờ khai) — xoá dữ liệu đang nhập, tự lưu vào lịch sử trước, giữ nguyên các mục đang tick.</div>
-        </div>
-
-        <div style="height:1px;background:var(--g200);margin:10px 0"></div>
-        <div style="font-size:13px;font-weight:800;color:var(--gold-dark);margin-bottom:6px">☁️ Đồng bộ đám mây</div>
-        <div style="font-size:12px;background:var(--g50);border-radius:8px;padding:9px 11px">
-          Nhấn thanh <b>☁️</b> dưới header → đăng nhập tài khoản → dữ liệu tự đồng bộ lên Supabase.<br>
-          Dùng được trên nhiều thiết bị với cùng 1 tài khoản.<br>
-          Tự đồng bộ ngầm mỗi <b>15 giây</b> khi không có thao tác, và ngay sau mỗi lần in/lưu.
-        </div>
-
-        <div style="height:1px;background:var(--g200);margin:10px 0"></div>
-        <div style="font-size:13px;font-weight:800;color:var(--gold-dark);margin-bottom:6px">💡 Mẹo nhanh</div>
-        <div style="font-size:12px;color:var(--g600);line-height:1.8">
-          • Reload trang giữa chừng → app tự mở lại đúng tờ khai đang nhập<br>
-          • Dữ liệu tự lưu ngay khi gõ, không cần nhấn Lưu<br>
-          • Mã số thuế hiển thị dạng ô vuông đúng theo mẫu in<br>
-          • Ngắt trang khi in khớp đúng mẫu gốc của Bộ Tài chính
-        </div>
+    <!-- Nút mở hướng dẫn -->
+    <div onclick="openM('modal-huong-dan')" style="display:flex;align-items:center;gap:10px;background:var(--g50);border:1.5px solid var(--g200);border-radius:10px;padding:11px 13px;cursor:pointer;margin-bottom:4px">
+      <span style="font-size:20px">📖</span>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700;color:var(--gold-dark)">Hướng dẫn sử dụng</div>
+        <div style="font-size:11px;color:var(--g500)">Giới thiệu app, các loại tờ khai, cách dùng, đồng bộ đám mây</div>
       </div>
+      <span style="color:var(--g400);font-size:18px">›</span>
     </div>
 
     <div class="modal-footer">
@@ -1244,7 +1254,6 @@ function openGlobalSettings(){
   var sel = document.getElementById('startup-mode-select-global');
   sel.value = localStorage.getItem(LS_STARTUP_MODE) || 'keep';
   _renderHCTinhSelect();
-  switchGSTab('settings');
   openM('modal-global-settings');
 }
 function _renderHCTinhSelect(){
@@ -1264,12 +1273,7 @@ function saveHCTinh(val){
   _HC_FILTERED_FOR = null;
   toast('📍 CSDL hành chính: ' + (val==='ALL' ? 'Tất cả tỉnh/thành' : val));
 }
-function switchGSTab(tab){
-  document.getElementById('gs-tab-settings').classList.toggle('active', tab==='settings');
-  document.getElementById('gs-tab-guide').classList.toggle('active', tab==='guide');
-  document.getElementById('gs-panel-settings').style.display = tab==='settings' ? '' : 'none';
-  document.getElementById('gs-panel-guide').style.display = tab==='guide' ? '' : 'none';
-}
+
 
 // Mở 1 loại tờ khai — áp dụng chế độ khởi động (keep/clear, cài đặt CHUNG) rồi nạp state riêng của
 // đúng loại tờ khai đó (namespace theo form.id, không đụng tới dữ liệu của các loại tờ khai khác).
@@ -1462,46 +1466,41 @@ var LS_HC_TINH = 'kt_hc_tinh_v1'; // key lưu tỉnh đang chọn ('ALL' hoặc 
 
 var _HC_ALL = (function(){
   var raw = {
-    'TP. Hồ Chí Minh': [
-      'Bến Nghé|Quận 1','Cầu Ông Lãnh|Quận 1','Cầu Kho|Quận 1','Cô Giang|Quận 1','Đa Kao|Quận 1','Nguyễn Cư Trinh|Quận 1','Nguyễn Thái Bình|Quận 1','Phạm Ngũ Lão|Quận 1','Tân Định|Quận 1',
-      'Bình Thọ|TP. Thủ Đức','Hiệp Bình Chánh|TP. Thủ Đức','Hiệp Bình Phước|TP. Thủ Đức','Hiệp Phú|TP. Thủ Đức','Linh Chiểu|TP. Thủ Đức','Linh Đông|TP. Thủ Đức','Linh Tây|TP. Thủ Đức','Linh Trung|TP. Thủ Đức','Linh Xuân|TP. Thủ Đức','Long Bình|TP. Thủ Đức','Long Phước|TP. Thủ Đức','Long Thạnh Mỹ|TP. Thủ Đức','Long Trường|TP. Thủ Đức','Phú Hữu|TP. Thủ Đức','Phước Bình|TP. Thủ Đức','Phước Long A|TP. Thủ Đức','Phước Long B|TP. Thủ Đức','Tam Bình|TP. Thủ Đức','Tam Phú|TP. Thủ Đức','Tân Phú|TP. Thủ Đức','Tăng Nhơn Phú A|TP. Thủ Đức','Tăng Nhơn Phú B|TP. Thủ Đức','Trường Thạnh|TP. Thủ Đức',
-      'Bình Hưng Hòa|Quận Bình Tân','Bình Hưng Hòa A|Quận Bình Tân','Bình Hưng Hòa B|Quận Bình Tân','Bình Trị Đông|Quận Bình Tân','Bình Trị Đông A|Quận Bình Tân','Bình Trị Đông B|Quận Bình Tân','An Lạc|Quận Bình Tân','An Lạc A|Quận Bình Tân','Tân Tạo|Quận Bình Tân','Tân Tạo A|Quận Bình Tân',
-      'Bình Chánh|Huyện Bình Chánh','An Phú Tây|Huyện Bình Chánh','Bình Lợi|Huyện Bình Chánh','Đa Phước|Huyện Bình Chánh','Hưng Long|Huyện Bình Chánh','Lê Minh Xuân|Huyện Bình Chánh','Phạm Văn Hai|Huyện Bình Chánh','Phong Phú|Huyện Bình Chánh','Quy Đức|Huyện Bình Chánh','Tân Kiên|Huyện Bình Chánh','Tân Nhựt|Huyện Bình Chánh','Tân Quý Tây|Huyện Bình Chánh','Vĩnh Lộc A|Huyện Bình Chánh','Vĩnh Lộc B|Huyện Bình Chánh',
-      'Phường 1|Quận Gò Vấp','Phường 3|Quận Gò Vấp','Phường 4|Quận Gò Vấp','Phường 5|Quận Gò Vấp','Phường 6|Quận Gò Vấp','Phường 7|Quận Gò Vấp','Phường 8|Quận Gò Vấp','Phường 9|Quận Gò Vấp','Phường 10|Quận Gò Vấp','Phường 11|Quận Gò Vấp','Phường 12|Quận Gò Vấp','Phường 13|Quận Gò Vấp','Phường 14|Quận Gò Vấp','Phường 15|Quận Gò Vấp','Phường 16|Quận Gò Vấp',
-      'Phường 2|Quận Tân Bình','Phường 3|Quận Tân Bình','Phường 4|Quận Tân Bình','Phường 5|Quận Tân Bình','Phường 6|Quận Tân Bình','Phường 7|Quận Tân Bình','Phường 8|Quận Tân Bình','Phường 9|Quận Tân Bình','Phường 10|Quận Tân Bình','Phường 11|Quận Tân Bình','Phường 12|Quận Tân Bình','Phường 13|Quận Tân Bình','Phường 14|Quận Tân Bình','Phường 15|Quận Tân Bình'
-    ],
-    'Bình Dương': [
-      'Hiệp An|TP. Thủ Dầu Một','Hiệp Thành|TP. Thủ Dầu Một','Hòa Phú|TP. Thủ Dầu Một','Phú Cường|TP. Thủ Dầu Một','Phú Hòa|TP. Thủ Dầu Một','Phú Lợi|TP. Thủ Dầu Một','Phú Mỹ|TP. Thủ Dầu Một','Phú Thọ|TP. Thủ Dầu Một','Tân An|TP. Thủ Dầu Một','Tương Bình Hiệp|TP. Thủ Dầu Một','Chánh Nghĩa|TP. Thủ Dầu Một',
-      'An Phú|TP. Thuận An','Bình Chuẩn|TP. Thuận An','Bình Hòa|TP. Thuận An','Bình Nhâm|TP. Thuận An','Hưng Định|TP. Thuận An','Lái Thiêu|TP. Thuận An','Thuận Giao|TP. Thuận An','Vĩnh Phú|TP. Thuận An',
-      'Dĩ An|TP. Dĩ An','An Bình|TP. Dĩ An','Bình An|TP. Dĩ An','Bình Thắng|TP. Dĩ An','Đông Hòa|TP. Dĩ An','Tân Bình|TP. Dĩ An','Tân Đông Hiệp|TP. Dĩ An'
-    ],
-    'Bình Phước': [
-      'Tân Phú|TX. Đồng Xoài','Tân Xuân|TX. Đồng Xoài','Tiến Thành|TX. Đồng Xoài','Tiến Hưng|TX. Đồng Xoài','Tân Thiện|TX. Đồng Xoài','Tân Đồng|TX. Đồng Xoài','Thuận Phú|TX. Đồng Xoài',
-      'An Khương|Huyện Hớn Quản','An Phú|Huyện Hớn Quản','Đồng Nơ|Huyện Hớn Quản','Đồng Tiến|Huyện Hớn Quản','Minh Đức|Huyện Hớn Quản','Minh Tâm|Huyện Hớn Quản','Phú Hiệp|Huyện Hớn Quản','Phước An|Huyện Hớn Quản','Tân Hiệp|Huyện Hớn Quản','Tân Khai|Huyện Hớn Quản','Tân Quan|Huyện Hớn Quản',
-      'Tân Lập|Huyện Đồng Phú','Tân Hòa|Huyện Đồng Phú','Thuận Lợi|Huyện Đồng Phú','Đồng Tâm|Huyện Đồng Phú','Tân Phước|Huyện Đồng Phú','Tân Tiến|Huyện Đồng Phú','Tân Lợi|Huyện Đồng Phú',
-      'Phước Bình|TX. Phước Long','Long Giang|TX. Phước Long','Long Phước|TX. Phước Long','Phước Tín|TX. Phước Long','Sơn Giang|TX. Phước Long','Thác Mơ|TX. Phước Long'
-    ],
-    'Bình Thuận': [
-      'Bình Hưng|TP. Phan Thiết','Đức Long|TP. Phan Thiết','Đức Nghĩa|TP. Phan Thiết','Đức Thắng|TP. Phan Thiết','Hàm Tiến|TP. Phan Thiết','Hưng Long|TP. Phan Thiết','Lạc Đạo|TP. Phan Thiết','Mũi Né|TP. Phan Thiết','Phú Hài|TP. Phan Thiết','Phú Tài|TP. Phan Thiết','Phú Trinh|TP. Phan Thiết','Tân An|TP. Phan Thiết','Thanh Hải|TP. Phan Thiết','Tiến Lợi|TP. Phan Thiết','Tiến Thành|TP. Phan Thiết','Xuân An|TP. Phan Thiết'
-    ],
-    'Đồng Nai': [
-      'Trảng Dài|TP. Biên Hòa','Tân Phong|TP. Biên Hòa','Tân Hiệp|TP. Biên Hòa','Hố Nai|TP. Biên Hòa','Tam Hòa|TP. Biên Hòa','Tân Biên|TP. Biên Hòa','Bình Đa|TP. Biên Hòa','Thống Nhất|TP. Biên Hòa','Quyết Thắng|TP. Biên Hòa','Thanh Bình|TP. Biên Hòa','Trung Dũng|TP. Biên Hòa','An Bình|TP. Biên Hòa','Bửu Long|TP. Biên Hòa','Long Bình Tân|TP. Biên Hòa','Tân Vạn|TP. Biên Hòa','Tân Hòa|TP. Biên Hòa'
-    ],
-    'Hà Nội': [
-      'Hàng Bạc|Quận Hoàn Kiếm','Hàng Bồ|Quận Hoàn Kiếm','Hàng Buồm|Quận Hoàn Kiếm','Hàng Đào|Quận Hoàn Kiếm','Hàng Gai|Quận Hoàn Kiếm','Hàng Mã|Quận Hoàn Kiếm','Hàng Trống|Quận Hoàn Kiếm','Cửa Đông|Quận Hoàn Kiếm','Lý Thái Tổ|Quận Hoàn Kiếm','Phan Chu Trinh|Quận Hoàn Kiếm','Tràng Tiền|Quận Hoàn Kiếm',
-      'Cầu Diễn|Quận Nam Từ Liêm','Đại Mỗ|Quận Nam Từ Liêm','Mễ Trì|Quận Nam Từ Liêm','Mỹ Đình 1|Quận Nam Từ Liêm','Mỹ Đình 2|Quận Nam Từ Liêm','Phú Đô|Quận Nam Từ Liêm','Phương Canh|Quận Nam Từ Liêm','Tây Mỗ|Quận Nam Từ Liêm','Trung Văn|Quận Nam Từ Liêm','Xuân Phương|Quận Nam Từ Liêm',
-      'Cổ Nhuế 1|Quận Bắc Từ Liêm','Cổ Nhuế 2|Quận Bắc Từ Liêm','Đông Ngạc|Quận Bắc Từ Liêm','Đức Thắng|Quận Bắc Từ Liêm','Liên Mạc|Quận Bắc Từ Liêm','Minh Khai|Quận Bắc Từ Liêm','Phú Diễn|Quận Bắc Từ Liêm','Phúc Diễn|Quận Bắc Từ Liêm','Tây Tựu|Quận Bắc Từ Liêm','Thượng Cát|Quận Bắc Từ Liêm','Thụy Phương|Quận Bắc Từ Liêm',
-      'Bạch Mai|Quận Hai Bà Trưng','Bách Khoa|Quận Hai Bà Trưng','Cầu Dền|Quận Hai Bà Trưng','Đống Mác|Quận Hai Bà Trưng','Lê Đại Hành|Quận Hai Bà Trưng','Minh Khai|Quận Hai Bà Trưng','Nguyễn Du|Quận Hai Bà Trưng','Phố Huế|Quận Hai Bà Trưng','Thanh Nhàn|Quận Hai Bà Trưng','Trương Định|Quận Hai Bà Trưng','Vĩnh Tuy|Quận Hai Bà Trưng'
-    ],
-    'Cần Thơ': [
-      'An Bình|Quận Ninh Kiều','An Cư|Quận Ninh Kiều','An Hòa|Quận Ninh Kiều','An Khánh|Quận Ninh Kiều','An Lạc|Quận Ninh Kiều','An Nghiệp|Quận Ninh Kiều','An Phú|Quận Ninh Kiều','Cái Khế|Quận Ninh Kiều','Hưng Lợi|Quận Ninh Kiều','Tân An|Quận Ninh Kiều','Thới Bình|Quận Ninh Kiều','Xuân Khánh|Quận Ninh Kiều'
-    ],
-    'Đà Nẵng': [
-      'An Hải Bắc|Quận Sơn Trà','An Hải Đông|Quận Sơn Trà','An Hải Tây|Quận Sơn Trà','Mân Thái|Quận Sơn Trà','Nại Hiên Đông|Quận Sơn Trà','Phước Mỹ|Quận Sơn Trà','Thọ Quang|Quận Sơn Trà',
-      'Bình Hiên|Quận Hải Châu','Bình Thuận|Quận Hải Châu','Hải Châu 1|Quận Hải Châu','Hải Châu 2|Quận Hải Châu','Hòa Cường Bắc|Quận Hải Châu','Hòa Cường Nam|Quận Hải Châu','Hòa Thuận Đông|Quận Hải Châu','Hòa Thuận Tây|Quận Hải Châu','Nam Dương|Quận Hải Châu','Phước Ninh|Quận Hải Châu','Thạch Thang|Quận Hải Châu','Thanh Bình|Quận Hải Châu','Thuận Phước|Quận Hải Châu'
-    ]
+    'Hà Nội': ['Cát Linh|Quận Đống Đa','Hàng Bột|Quận Đống Đa','Khâm Thiên|Quận Đống Đa','Kim Liên|Quận Đống Đa','Nam Đồng|Quận Đống Đa','Ngã Tư Sở|Quận Đống Đa','Ô Chợ Dừa|Quận Đống Đa','Phương Liên|Quận Đống Đa','Phương Mai|Quận Đống Đa','Quốc Tử Giám|Quận Đống Đa','Thịnh Quang|Quận Đống Đa','Trung Liệt|Quận Đống Đa','Trung Phụng|Quận Đống Đa','Văn Chương|Quận Đống Đa','Hàng Bạc|Quận Hoàn Kiếm','Hàng Bồ|Quận Hoàn Kiếm','Hàng Buồm|Quận Hoàn Kiếm','Hàng Đào|Quận Hoàn Kiếm','Hàng Gai|Quận Hoàn Kiếm','Hàng Mã|Quận Hoàn Kiếm','Hàng Trống|Quận Hoàn Kiếm','Cửa Đông|Quận Hoàn Kiếm','Lý Thái Tổ|Quận Hoàn Kiếm','Phan Chu Trinh|Quận Hoàn Kiếm','Tràng Tiền|Quận Hoàn Kiếm','Bạch Mai|Quận Hai Bà Trưng','Bách Khoa|Quận Hai Bà Trưng','Cầu Dền|Quận Hai Bà Trưng','Đống Mác|Quận Hai Bà Trưng','Lê Đại Hành|Quận Hai Bà Trưng','Minh Khai|Quận Hai Bà Trưng','Nguyễn Du|Quận Hai Bà Trưng','Phố Huế|Quận Hai Bà Trưng','Thanh Nhàn|Quận Hai Bà Trưng','Trương Định|Quận Hai Bà Trưng','Vĩnh Tuy|Quận Hai Bà Trưng','Cầu Diễn|Quận Nam Từ Liêm','Đại Mỗ|Quận Nam Từ Liêm','Mễ Trì|Quận Nam Từ Liêm','Mỹ Đình 1|Quận Nam Từ Liêm','Mỹ Đình 2|Quận Nam Từ Liêm','Phú Đô|Quận Nam Từ Liêm','Phương Canh|Quận Nam Từ Liêm','Tây Mỗ|Quận Nam Từ Liêm','Trung Văn|Quận Nam Từ Liêm','Xuân Phương|Quận Nam Từ Liêm','Cổ Nhuế 1|Quận Bắc Từ Liêm','Cổ Nhuế 2|Quận Bắc Từ Liêm','Đông Ngạc|Quận Bắc Từ Liêm','Đức Thắng|Quận Bắc Từ Liêm','Liên Mạc|Quận Bắc Từ Liêm','Minh Khai|Quận Bắc Từ Liêm','Phú Diễn|Quận Bắc Từ Liêm','Phúc Diễn|Quận Bắc Từ Liêm','Tây Tựu|Quận Bắc Từ Liêm','Thượng Cát|Quận Bắc Từ Liêm','Thụy Phương|Quận Bắc Từ Liêm','Cầu Giấy|Quận Cầu Giấy','Dịch Vọng|Quận Cầu Giấy','Dịch Vọng Hậu|Quận Cầu Giấy','Mai Dịch|Quận Cầu Giấy','Nghĩa Đô|Quận Cầu Giấy','Nghĩa Tân|Quận Cầu Giấy','Quan Hoa|Quận Cầu Giấy','Trung Hòa|Quận Cầu Giấy','Yên Hòa|Quận Cầu Giấy','Cống Vị|Quận Ba Đình','Đội Cấn|Quận Ba Đình','Giảng Võ|Quận Ba Đình','Kim Mã|Quận Ba Đình','Liễu Giai|Quận Ba Đình','Ngọc Hà|Quận Ba Đình','Ngọc Khánh|Quận Ba Đình','Quan Thánh|Quận Ba Đình','Thành Công|Quận Ba Đình','Trúc Bạch|Quận Ba Đình','Vĩnh Phúc|Quận Ba Đình','Cầu Bươu|Huyện Thanh Trì','Đại Áng|Huyện Thanh Trì','Đông Mỹ|Huyện Thanh Trì','Hữu Hòa|Huyện Thanh Trì','Liên Ninh|Huyện Thanh Trì','Ngũ Hiệp|Huyện Thanh Trì','Ngọc Hồi|Huyện Thanh Trì','Tả Thanh Oai|Huyện Thanh Trì','Tam Hiệp|Huyện Thanh Trì','Thanh Liệt|Huyện Thanh Trì','Tứ Hiệp|Huyện Thanh Trì','Vĩnh Quỳnh|Huyện Thanh Trì','Yên Mỹ|Huyện Thanh Trì'],
+    'TP. Hồ Chí Minh': ['Bến Nghé|Quận 1','Cầu Ông Lãnh|Quận 1','Cầu Kho|Quận 1','Cô Giang|Quận 1','Đa Kao|Quận 1','Nguyễn Cư Trinh|Quận 1','Nguyễn Thái Bình|Quận 1','Phạm Ngũ Lão|Quận 1','Tân Định|Quận 1','Bình Thọ|TP. Thủ Đức','Hiệp Bình Chánh|TP. Thủ Đức','Hiệp Bình Phước|TP. Thủ Đức','Hiệp Phú|TP. Thủ Đức','Linh Chiểu|TP. Thủ Đức','Linh Đông|TP. Thủ Đức','Linh Tây|TP. Thủ Đức','Linh Trung|TP. Thủ Đức','Linh Xuân|TP. Thủ Đức','Long Bình|TP. Thủ Đức','Long Phước|TP. Thủ Đức','Long Thạnh Mỹ|TP. Thủ Đức','Long Trường|TP. Thủ Đức','Phú Hữu|TP. Thủ Đức','Phước Bình|TP. Thủ Đức','Phước Long A|TP. Thủ Đức','Phước Long B|TP. Thủ Đức','Tam Bình|TP. Thủ Đức','Tam Phú|TP. Thủ Đức','Tân Phú|TP. Thủ Đức','Tăng Nhơn Phú A|TP. Thủ Đức','Tăng Nhơn Phú B|TP. Thủ Đức','Trường Thạnh|TP. Thủ Đức','An Lạc|Quận Bình Tân','An Lạc A|Quận Bình Tân','Bình Hưng Hòa|Quận Bình Tân','Bình Hưng Hòa A|Quận Bình Tân','Bình Hưng Hòa B|Quận Bình Tân','Bình Trị Đông|Quận Bình Tân','Bình Trị Đông A|Quận Bình Tân','Bình Trị Đông B|Quận Bình Tân','Tân Tạo|Quận Bình Tân','Tân Tạo A|Quận Bình Tân','An Phú Tây|Huyện Bình Chánh','Bình Chánh|Huyện Bình Chánh','Đa Phước|Huyện Bình Chánh','Hưng Long|Huyện Bình Chánh','Lê Minh Xuân|Huyện Bình Chánh','Phạm Văn Hai|Huyện Bình Chánh','Phong Phú|Huyện Bình Chánh','Quy Đức|Huyện Bình Chánh','Tân Kiên|Huyện Bình Chánh','Tân Nhựt|Huyện Bình Chánh','Tân Quý Tây|Huyện Bình Chánh','Vĩnh Lộc A|Huyện Bình Chánh','Vĩnh Lộc B|Huyện Bình Chánh','Phường 1|Quận Gò Vấp','Phường 3|Quận Gò Vấp','Phường 4|Quận Gò Vấp','Phường 5|Quận Gò Vấp','Phường 6|Quận Gò Vấp','Phường 7|Quận Gò Vấp','Phường 8|Quận Gò Vấp','Phường 9|Quận Gò Vấp','Phường 10|Quận Gò Vấp','Phường 11|Quận Gò Vấp','Phường 12|Quận Gò Vấp','Phường 13|Quận Gò Vấp','Phường 14|Quận Gò Vấp','Phường 15|Quận Gò Vấp','Phường 16|Quận Gò Vấp','Phường 2|Quận Tân Bình','Phường 3|Quận Tân Bình','Phường 4|Quận Tân Bình','Phường 5|Quận Tân Bình','Phường 6|Quận Tân Bình','Phường 7|Quận Tân Bình','Phường 8|Quận Tân Bình','Phường 9|Quận Tân Bình','Phường 10|Quận Tân Bình','Phường 11|Quận Tân Bình','Phường 12|Quận Tân Bình','Phường 13|Quận Tân Bình','Phường 14|Quận Tân Bình','Phường 15|Quận Tân Bình','Bình Chiểu|Quận 12','Đông Hưng Thuận|Quận 12','Hiệp Thành|Quận 12','Thạnh Lộc|Quận 12','Thạnh Xuân|Quận 12','Tân Chánh Hiệp|Quận 12','Tân Hưng Thuận|Quận 12','Tân Thới Hiệp|Quận 12','Tân Thới Nhất|Quận 12','Trung Mỹ Tây|Quận 12','An Phú Đông|Quận 12'],
+    'Hải Phòng': ['An Biên|Quận Lê Chân','An Dương|Quận Lê Chân','Cát Dài|Quận Lê Chân','Dư Hàng|Quận Lê Chân','Dư Hàng Kênh|Quận Lê Chân','Đông Hải 1|Quận Lê Chân','Đông Hải 2|Quận Lê Chân','Hàng Kênh|Quận Lê Chân','Kênh Dương|Quận Lê Chân','Nghĩa Xá|Quận Lê Chân','Niệm Nghĩa|Quận Lê Chân','Trần Nguyên Hãn|Quận Lê Chân','Vĩnh Niệm|Quận Lê Chân','Cầu Đất|Quận Ngô Quyền','Cầu Tre|Quận Ngô Quyền','Đằng Giang|Quận Ngô Quyền','Đằng Lâm|Quận Ngô Quyền','Đông Khê|Quận Ngô Quyền','Gia Viên|Quận Ngô Quyền','Lạc Viên|Quận Ngô Quyền','Lê Lợi|Quận Ngô Quyền','Máy Chai|Quận Ngô Quyền','Máy Tơ|Quận Ngô Quyền','Vạn Mỹ|Quận Ngô Quyền','Bắc Sơn|Quận Kiến An','Đồng Hoà|Quận Kiến An','Lãm Hà|Quận Kiến An','Nam Sơn|Quận Kiến An','Ngọc Sơn|Quận Kiến An','Phù Liễn|Quận Kiến An','Tràng Minh|Quận Kiến An','Trần Thành Ngọ|Quận Kiến An'],
+    'Đà Nẵng': ['An Hải Bắc|Quận Sơn Trà','An Hải Đông|Quận Sơn Trà','An Hải Tây|Quận Sơn Trà','Mân Thái|Quận Sơn Trà','Nại Hiên Đông|Quận Sơn Trà','Phước Mỹ|Quận Sơn Trà','Thọ Quang|Quận Sơn Trà','Bình Hiên|Quận Hải Châu','Bình Thuận|Quận Hải Châu','Hải Châu 1|Quận Hải Châu','Hải Châu 2|Quận Hải Châu','Hòa Cường Bắc|Quận Hải Châu','Hòa Cường Nam|Quận Hải Châu','Hòa Thuận Đông|Quận Hải Châu','Hòa Thuận Tây|Quận Hải Châu','Nam Dương|Quận Hải Châu','Phước Ninh|Quận Hải Châu','Thạch Thang|Quận Hải Châu','Thanh Bình|Quận Hải Châu','Thuận Phước|Quận Hải Châu','An Khê|Quận Thanh Khê','Chính Gián|Quận Thanh Khê','Hòa Khê|Quận Thanh Khê','Tam Thuận|Quận Thanh Khê','Tân Chính|Quận Thanh Khê','Thanh Khê Đông|Quận Thanh Khê','Thanh Khê Tây|Quận Thanh Khê','Thạc Gián|Quận Thanh Khê','Vĩnh Trung|Quận Thanh Khê','Xuân Hà|Quận Thanh Khê','Hòa Khánh Bắc|Quận Liên Chiểu','Hòa Khánh Nam|Quận Liên Chiểu','Hòa Minh|Quận Liên Chiểu','Cẩm An|TP. Hội An','Cẩm Châu|TP. Hội An','Cẩm Kim|TP. Hội An','Cẩm Nam|TP. Hội An','Cẩm Phô|TP. Hội An','Cẩm Thanh|TP. Hội An','Minh An|TP. Hội An','Sơn Phong|TP. Hội An','Tân An|TP. Hội An','Thanh Hà|TP. Hội An','An Mỹ|TP. Tam Kỳ','An Sơn|TP. Tam Kỳ','An Xuân|TP. Tam Kỳ','Hòa Hương|TP. Tam Kỳ','Hòa Thuận|TP. Tam Kỳ','Phước Hòa|TP. Tam Kỳ','Tam Thanh|TP. Tam Kỳ','Tân Thạnh|TP. Tam Kỳ','Trường Xuân|TP. Tam Kỳ'],
+    'Cần Thơ': ['An Bình|Quận Ninh Kiều','An Cư|Quận Ninh Kiều','An Hòa|Quận Ninh Kiều','An Khánh|Quận Ninh Kiều','An Lạc|Quận Ninh Kiều','An Nghiệp|Quận Ninh Kiều','An Phú|Quận Ninh Kiều','Cái Khế|Quận Ninh Kiều','Hưng Lợi|Quận Ninh Kiều','Tân An|Quận Ninh Kiều','Thới Bình|Quận Ninh Kiều','Xuân Khánh|Quận Ninh Kiều','Ba Láng|Quận Cái Răng','Hưng Phú|Quận Cái Răng','Hưng Thạnh|Quận Cái Răng','Lê Bình|Quận Cái Răng','Phú Thứ|Quận Cái Răng','Tân Phú|Quận Cái Răng','Thường Thạnh|Quận Cái Răng','Long Hòa|Quận Bình Thủy','Long Tuyền|Quận Bình Thủy','An Thới|Quận Bình Thủy','Bình Thủy|Quận Bình Thủy','Bùi Hữu Nghĩa|Quận Bình Thủy','Trà An|Quận Bình Thủy','Trà Nóc|Quận Bình Thủy','Châu Văn Liêm|Quận Ô Môn','Phước Thới|Quận Ô Môn','Thới An|Quận Ô Môn','Thới Long|Quận Ô Môn','Trường Lạc|Quận Ô Môn'],
+    'Huế': ['An Cựu|TP. Huế','An Đông|TP. Huế','An Hòa|TP. Huế','An Tây|TP. Huế','Đông Ba|TP. Huế','Gia Hội|TP. Huế','Hương Long|TP. Huế','Kim Long|TP. Huế','Phú Bình|TP. Huế','Phú Cát|TP. Huế','Phú Hiệp|TP. Huế','Phú Hòa|TP. Huế','Phú Hội|TP. Huế','Phú Nhuận|TP. Huế','Phú Thuận|TP. Huế','Phước Vĩnh|TP. Huế','Tây Lộc|TP. Huế','Thuận Hòa|TP. Huế','Thuận Lộc|TP. Huế','Thuận Thành|TP. Huế','Trường An|TP. Huế','Vĩnh Ninh|TP. Huế','Xuân Phú|TP. Huế','Hương Hồ|TX. Hương Trà','Hương Vinh|TX. Hương Trà','Tứ Hạ|TX. Hương Trà','Phú Bài|TX. Hương Thủy','Thủy Dương|TX. Hương Thủy','Thủy Phương|TX. Hương Thủy'],
+    'An Giang': ['Bình Đức|TP. Long Xuyên','Bình Khánh|TP. Long Xuyên','Đông Xuyên|TP. Long Xuyên','Mỹ Bình|TP. Long Xuyên','Mỹ Hòa|TP. Long Xuyên','Mỹ Long|TP. Long Xuyên','Mỹ Phước|TP. Long Xuyên','Mỹ Quý|TP. Long Xuyên','Mỹ Thạnh|TP. Long Xuyên','Mỹ Xuyên|TP. Long Xuyên','Châu Phú A|TP. Châu Đốc','Châu Phú B|TP. Châu Đốc','Núi Sam|TP. Châu Đốc','Vĩnh Mỹ|TP. Châu Đốc','Vĩnh Nguơn|TP. Châu Đốc'],
+    'Bắc Ninh': ['Đáp Cầu|TP. Bắc Ninh','Kinh Bắc|TP. Bắc Ninh','Ninh Xá|TP. Bắc Ninh','Suối Hoa|TP. Bắc Ninh','Thị Cầu|TP. Bắc Ninh','Tiền An|TP. Bắc Ninh','Vạn An|TP. Bắc Ninh','Vệ An|TP. Bắc Ninh','Võ Cường|TP. Bắc Ninh','Dĩnh Kế|TP. Bắc Giang','Đa Mai|TP. Bắc Giang','Lê Lợi|TP. Bắc Giang','Mỹ Độ|TP. Bắc Giang','Ngô Quyền|TP. Bắc Giang','Song Mai|TP. Bắc Giang','Thọ Xương|TP. Bắc Giang','Trần Nguyên Hãn|TP. Bắc Giang','Xương Giang|TP. Bắc Giang'],
+    'Cao Bằng': ['Đề Thám|TP. Cao Bằng','Duyệt Trung|TP. Cao Bằng','Hòa Chung|TP. Cao Bằng','Hợp Giang|TP. Cao Bằng','Ngọc Xuân|TP. Cao Bằng','Sông Bằng|TP. Cao Bằng','Sông Hiến|TP. Cao Bằng','Tân Giang|TP. Cao Bằng'],
+    'Cà Mau': ['Phường 1|TP. Cà Mau','Phường 2|TP. Cà Mau','Phường 4|TP. Cà Mau','Phường 5|TP. Cà Mau','Phường 6|TP. Cà Mau','Phường 7|TP. Cà Mau','Phường 8|TP. Cà Mau','Phường 9|TP. Cà Mau','Tân Thành|TP. Cà Mau','Tân Xuyên|TP. Cà Mau'],
+    'Gia Lai': ['Diên Hồng|TP. Pleiku','Đống Đa|TP. Pleiku','Hội Thương|TP. Pleiku','Hội Phú|TP. Pleiku','Ia Kring|TP. Pleiku','Phù Đổng|TP. Pleiku','Thắng Lợi|TP. Pleiku','Tây Sơn|TP. Pleiku','Trà Bá|TP. Pleiku','Yên Đỗ|TP. Pleiku','Duy Tân|TP. Kon Tum','Lê Lợi|TP. Kon Tum','Ngô Mây|TP. Kon Tum','Quyết Thắng|TP. Kon Tum','Thắng Lợi|TP. Kon Tum','Thống Nhất|TP. Kon Tum','Trường Chinh|TP. Kon Tum'],
+    'Hà Tĩnh': ['Bắc Hà|TP. Hà Tĩnh','Đại Nài|TP. Hà Tĩnh','Hà Huy Tập|TP. Hà Tĩnh','Nam Hà|TP. Hà Tĩnh','Nguyễn Du|TP. Hà Tĩnh','Tân Giang|TP. Hà Tĩnh','Thạch Linh|TP. Hà Tĩnh','Thạch Quý|TP. Hà Tĩnh','Trần Phú|TP. Hà Tĩnh','Văn Yên|TP. Hà Tĩnh'],
+    'Hưng Yên': ['An Tảo|TP. Hưng Yên','Hồng Châu|TP. Hưng Yên','Lam Sơn|TP. Hưng Yên','Lê Lợi|TP. Hưng Yên','Minh Khai|TP. Hưng Yên','Quảng Châu|TP. Hưng Yên','Trung Nghĩa|TP. Hưng Yên','Bồ Xuyên|TP. Thái Bình','Đề Thám|TP. Thái Bình','Hoàng Diệu|TP. Thái Bình','Kỳ Bá|TP. Thái Bình','Lê Hồng Phong|TP. Thái Bình','Phú Khánh|TP. Thái Bình','Tiền Phong|TP. Thái Bình','Trần Hưng Đạo|TP. Thái Bình','Trần Lãm|TP. Thái Bình'],
+    'Khánh Hòa': ['Lộc Thọ|TP. Nha Trang','Ngọc Hiệp|TP. Nha Trang','Phước Hòa|TP. Nha Trang','Phước Long|TP. Nha Trang','Phước Tân|TP. Nha Trang','Phước Tiến|TP. Nha Trang','Tân Lập|TP. Nha Trang','Vạn Thắng|TP. Nha Trang','Vạn Thạnh|TP. Nha Trang','Vĩnh Hải|TP. Nha Trang','Vĩnh Hòa|TP. Nha Trang','Vĩnh Nguyên|TP. Nha Trang','Vĩnh Phước|TP. Nha Trang','Vĩnh Thọ|TP. Nha Trang','Xương Huân|TP. Nha Trang','Bình Hưng|TP. Phan Thiết','Đức Long|TP. Phan Thiết','Đức Nghĩa|TP. Phan Thiết','Đức Thắng|TP. Phan Thiết','Hàm Tiến|TP. Phan Thiết','Hưng Long|TP. Phan Thiết','Mũi Né|TP. Phan Thiết','Phú Hài|TP. Phan Thiết','Phú Tài|TP. Phan Thiết','Phú Trinh|TP. Phan Thiết','Tân An|TP. Phan Thiết','Thanh Hải|TP. Phan Thiết','Tiến Lợi|TP. Phan Thiết','Tiến Thành|TP. Phan Thiết','Đài Sơn|TP. Phan Rang-Tháp Chàm','Đạo Long|TP. Phan Rang-Tháp Chàm','Đô Vinh|TP. Phan Rang-Tháp Chàm','Kinh Dinh|TP. Phan Rang-Tháp Chàm','Mỹ Bình|TP. Phan Rang-Tháp Chàm','Mỹ Đông|TP. Phan Rang-Tháp Chàm','Mỹ Hải|TP. Phan Rang-Tháp Chàm','Phủ Hà|TP. Phan Rang-Tháp Chàm','Tấn Tài|TP. Phan Rang-Tháp Chàm','Thanh Sơn|TP. Phan Rang-Tháp Chàm','Văn Hải|TP. Phan Rang-Tháp Chàm'],
+    'Lai Châu': ['Đoàn Kết|TP. Lai Châu','Đông Phong|TP. Lai Châu','Quyết Thắng|TP. Lai Châu','San Thàng|TP. Lai Châu','Tân Phong|TP. Lai Châu','Quyết Tiến|TP. Lai Châu'],
+    'Lào Cai': ['Bắc Lệnh|TP. Lào Cai','Bình Minh|TP. Lào Cai','Cốc Lếu|TP. Lào Cai','Duyên Hải|TP. Lào Cai','Kim Tân|TP. Lào Cai','Lào Cai|TP. Lào Cai','Nam Cường|TP. Lào Cai','Pom Hán|TP. Lào Cai','Thống Nhất|TP. Lào Cai','Xuân Tăng|TP. Lào Cai','Đồng Tâm|TP. Yên Bái','Hồng Hà|TP. Yên Bái','Minh Tân|TP. Yên Bái','Nguyễn Phúc|TP. Yên Bái','Nguyễn Thái Học|TP. Yên Bái','Yên Ninh|TP. Yên Bái','Yên Thịnh|TP. Yên Bái'],
+    'Lâm Đồng': ['Phường 1|TP. Đà Lạt','Phường 2|TP. Đà Lạt','Phường 3|TP. Đà Lạt','Phường 4|TP. Đà Lạt','Phường 5|TP. Đà Lạt','Phường 6|TP. Đà Lạt','Phường 7|TP. Đà Lạt','Phường 8|TP. Đà Lạt','Phường 9|TP. Đà Lạt','Phường 10|TP. Đà Lạt','Phường 11|TP. Đà Lạt','Phường 12|TP. Đà Lạt','Phường B|TP. Bảo Lộc','Phường 1|TP. Bảo Lộc','Phường 2|TP. Bảo Lộc','Lộc Phát|TP. Bảo Lộc','Lộc Sơn|TP. Bảo Lộc','Lộc Tiến|TP. Bảo Lộc'],
+    'Lạng Sơn': ['Chi Lăng|TP. Lạng Sơn','Đông Kinh|TP. Lạng Sơn','Hoàng Văn Thụ|TP. Lạng Sơn','Tam Thanh|TP. Lạng Sơn','Vĩnh Trại|TP. Lạng Sơn'],
+    'Nghệ An': ['Bến Thủy|TP. Vinh','Cửa Nam|TP. Vinh','Đông Vĩnh|TP. Vinh','Hà Huy Tập|TP. Vinh','Hưng Bình|TP. Vinh','Hưng Dũng|TP. Vinh','Hưng Phúc|TP. Vinh','Lê Lợi|TP. Vinh','Lê Mao|TP. Vinh','Quán Bàu|TP. Vinh','Trường Thi|TP. Vinh','Vinh Tân|TP. Vinh'],
+    'Ninh Bình': ['Bích Đào|TP. Ninh Bình','Đông Thành|TP. Ninh Bình','Nam Bình|TP. Ninh Bình','Nam Thành|TP. Ninh Bình','Ninh Khánh|TP. Ninh Bình','Ninh Phong|TP. Ninh Bình','Ninh Sơn|TP. Ninh Bình','Phúc Thành|TP. Ninh Bình','Thanh Bình|TP. Ninh Bình','Vân Giang|TP. Ninh Bình','Hạ Long|TP. Nam Định','Lộc Hạ|TP. Nam Định','Lộc Hòa|TP. Nam Định','Lộc Vượng|TP. Nam Định','Mỹ Xá|TP. Nam Định','Năng Tĩnh|TP. Nam Định','Trần Đăng Ninh|TP. Nam Định','Vị Hoàng|TP. Nam Định','Vị Xuyên|TP. Nam Định','Lê Hồng Phong|TP. Phủ Lý','Liêm Chính|TP. Phủ Lý','Lương Khánh Thiện|TP. Phủ Lý','Minh Khai|TP. Phủ Lý','Quang Trung|TP. Phủ Lý','Thanh Châu|TP. Phủ Lý','Thanh Tuyền|TP. Phủ Lý','Trần Hưng Đạo|TP. Phủ Lý'],
+    'Phú Thọ': ['Bến Gót|TP. Việt Trì','Dữu Lâu|TP. Việt Trì','Gia Cẩm|TP. Việt Trì','Minh Nông|TP. Việt Trì','Nông Trang|TP. Việt Trì','Tân Dân|TP. Việt Trì','Thanh Miếu|TP. Việt Trì','Thọ Sơn|TP. Việt Trì','Tiên Cát|TP. Việt Trì','Vân Cơ|TP. Việt Trì','Đống Đa|TP. Vĩnh Yên','Hội Hợp|TP. Vĩnh Yên','Khai Quang|TP. Vĩnh Yên','Liên Bảo|TP. Vĩnh Yên','Ngô Quyền|TP. Vĩnh Yên','Tích Sơn|TP. Vĩnh Yên','Chăm Mát|TP. Hòa Bình','Dân Chủ|TP. Hòa Bình','Đồng Tiến|TP. Hòa Bình','Hữu Nghị|TP. Hòa Bình','Phương Lâm|TP. Hòa Bình','Tân Hòa|TP. Hòa Bình','Thái Bình|TP. Hòa Bình','Thịnh Lang|TP. Hòa Bình'],
+    'Quảng Ngãi': ['Chánh Lộ|TP. Quảng Ngãi','Lê Hồng Phong|TP. Quảng Ngãi','Nghĩa Chánh|TP. Quảng Ngãi','Nghĩa Lộ|TP. Quảng Ngãi','Nguyễn Nghiêm|TP. Quảng Ngãi','Quảng Phú|TP. Quảng Ngãi','Trần Hưng Đạo|TP. Quảng Ngãi','Trần Phú|TP. Quảng Ngãi','Bùi Thị Xuân|TP. Quy Nhơn','Đống Đa|TP. Quy Nhơn','Ghềnh Ráng|TP. Quy Nhơn','Hải Cảng|TP. Quy Nhơn','Lê Hồng Phong|TP. Quy Nhơn','Lê Lợi|TP. Quy Nhơn','Lý Thường Kiệt|TP. Quy Nhơn','Ngô Mây|TP. Quy Nhơn','Nhơn Bình|TP. Quy Nhơn','Nhơn Phú|TP. Quy Nhơn','Quang Trung|TP. Quy Nhơn','Thị Nại|TP. Quy Nhơn','Trần Hưng Đạo|TP. Quy Nhơn','Trần Phú|TP. Quy Nhơn'],
+    'Quảng Ninh': ['Bạch Đằng|TP. Hạ Long','Bãi Cháy|TP. Hạ Long','Cao Xanh|TP. Hạ Long','Đại Yên|TP. Hạ Long','Giếng Đáy|TP. Hạ Long','Hà Khẩu|TP. Hạ Long','Hà Khánh|TP. Hạ Long','Hà Lầm|TP. Hạ Long','Hà Phong|TP. Hạ Long','Hà Trung|TP. Hạ Long','Hà Tu|TP. Hạ Long','Hùng Thắng|TP. Hạ Long','Việt Hưng|TP. Hạ Long','Yết Kiêu|TP. Hạ Long','Cẩm Bình|TP. Cẩm Phả','Cẩm Đông|TP. Cẩm Phả','Cẩm Phú|TP. Cẩm Phả','Cẩm Sơn|TP. Cẩm Phả','Cẩm Tây|TP. Cẩm Phả','Cẩm Thạch|TP. Cẩm Phả','Cẩm Thành|TP. Cẩm Phả','Cẩm Thịnh|TP. Cẩm Phả','Cẩm Thủy|TP. Cẩm Phả','Cẩm Trung|TP. Cẩm Phả','Mông Dương|TP. Cẩm Phả'],
+    'Quảng Trị': ['Đông Giang|TP. Đông Hà','Đông Lễ|TP. Đông Hà','Đông Lương|TP. Đông Hà','Đông Thanh|TP. Đông Hà','Phường 1|TP. Đông Hà','Phường 2|TP. Đông Hà','Phường 3|TP. Đông Hà','Phường 4|TP. Đông Hà','Phường 5|TP. Đông Hà','Bắc Lý|TP. Đồng Hới','Đồng Mỹ|TP. Đồng Hới','Đồng Phú|TP. Đồng Hới','Đồng Sơn|TP. Đồng Hới','Hải Thành|TP. Đồng Hới','Nam Lý|TP. Đồng Hới','Phú Hải|TP. Đồng Hới'],
+    'Sơn La': ['Chiềng Cơi|TP. Sơn La','Chiềng An|TP. Sơn La','Chiềng Lề|TP. Sơn La','Chiềng Ngần|TP. Sơn La','Chiềng Sinh|TP. Sơn La','Quyết Tâm|TP. Sơn La','Quyết Thắng|TP. Sơn La','Tô Hiệu|TP. Sơn La'],
+    'Thanh Hóa': ['An Hoạch|TP. Thanh Hóa','Ba Đình|TP. Thanh Hóa','Điện Biên|TP. Thanh Hóa','Đông Cương|TP. Thanh Hóa','Đông Hải|TP. Thanh Hóa','Đông Hương|TP. Thanh Hóa','Đông Sơn|TP. Thanh Hóa','Đông Thọ|TP. Thanh Hóa','Đông Vệ|TP. Thanh Hóa','Hàm Rồng|TP. Thanh Hóa','Lam Sơn|TP. Thanh Hóa','Nam Ngạn|TP. Thanh Hóa','Ngọc Trạo|TP. Thanh Hóa','Phú Sơn|TP. Thanh Hóa','Quảng Thắng|TP. Thanh Hóa','Quảng Thịnh|TP. Thanh Hóa','Tào Xuyên|TP. Thanh Hóa','Thiệu Dương|TP. Thanh Hóa','Thiệu Khánh|TP. Thanh Hóa','Trường Thi|TP. Thanh Hóa'],
+    'Thái Nguyên': ['Đồng Quang|TP. Thái Nguyên','Gia Sàng|TP. Thái Nguyên','Hoàng Văn Thụ|TP. Thái Nguyên','Phan Đình Phùng|TP. Thái Nguyên','Phú Xá|TP. Thái Nguyên','Quán Triều|TP. Thái Nguyên','Quang Trung|TP. Thái Nguyên','Tân Long|TP. Thái Nguyên','Tân Thịnh|TP. Thái Nguyên','Thịnh Đán|TP. Thái Nguyên','Trung Thành|TP. Thái Nguyên','Đức Xuân|TP. Bắc Kạn','Huyền Tụng|TP. Bắc Kạn','Nguyễn Thị Minh Khai|TP. Bắc Kạn','Phùng Chí Kiên|TP. Bắc Kạn','Sông Cầu|TP. Bắc Kạn'],
+    'Tuyên Quang': ['An Tường|TP. Tuyên Quang','Đội Cấn|TP. Tuyên Quang','Minh Xuân|TP. Tuyên Quang','Mỹ Lâm|TP. Tuyên Quang','Nông Tiến|TP. Tuyên Quang','Phan Thiết|TP. Tuyên Quang','Tân Hà|TP. Tuyên Quang','Ỷ La|TP. Tuyên Quang','Minh Khai|TP. Hà Giang','Ngọc Hà|TP. Hà Giang','Nguyễn Trãi|TP. Hà Giang','Phương Thiện|TP. Hà Giang','Quang Trung|TP. Hà Giang','Trần Phú|TP. Hà Giang'],
+    'Tây Ninh': ['Phường 1|TP. Tây Ninh','Phường 2|TP. Tây Ninh','Phường 3|TP. Tây Ninh','Phường 4|TP. Tây Ninh','Hiệp Ninh|TP. Tây Ninh','Ninh Sơn|TP. Tây Ninh','Ninh Thạnh|TP. Tây Ninh','Tân Đồng|TX. Đồng Xoài','Tân Phú|TX. Đồng Xoài','Tân Thiện|TX. Đồng Xoài','Tân Xuân|TX. Đồng Xoài','Thuận Phú|TX. Đồng Xoài','Tiến Hưng|TX. Đồng Xoài','Tiến Thành|TX. Đồng Xoài','Phường 1|TP. Tân An','Phường 2|TP. Tân An','Phường 3|TP. Tân An','Phường 4|TP. Tân An','Phường 5|TP. Tân An','Phường 6|TP. Tân An','Phường 7|TP. Tân An','Bình Tâm|TP. Tân An','Khánh Hậu|TP. Tân An','Tân Khánh|TP. Tân An'],
+    'Vĩnh Long': ['Phường 1|TP. Vĩnh Long','Phường 2|TP. Vĩnh Long','Phường 3|TP. Vĩnh Long','Phường 4|TP. Vĩnh Long','Phường 5|TP. Vĩnh Long','Phường 8|TP. Vĩnh Long','Phường 9|TP. Vĩnh Long','Tân Hội|TP. Vĩnh Long','Tân Ngãi|TP. Vĩnh Long','Trường An|TP. Vĩnh Long','Phường 1|TP. Mỹ Tho','Phường 2|TP. Mỹ Tho','Phường 3|TP. Mỹ Tho','Phường 4|TP. Mỹ Tho','Phường 5|TP. Mỹ Tho','Phường 6|TP. Mỹ Tho','Phường 7|TP. Mỹ Tho','Phường 8|TP. Mỹ Tho','Đạo Thạnh|TP. Mỹ Tho','Mỹ Phong|TP. Mỹ Tho','Tân Long|TP. Mỹ Tho','Phường 1|TP. Bến Tre','Phường 2|TP. Bến Tre','Phường 3|TP. Bến Tre','Phường 4|TP. Bến Tre','Phường 5|TP. Bến Tre','Phường 6|TP. Bến Tre','Phường 7|TP. Bến Tre','Phường 8|TP. Bến Tre','Nhơn Thạnh|TP. Bến Tre','Phú Hưng|TP. Bến Tre','Phường 1|TP. Trà Vinh','Phường 2|TP. Trà Vinh','Phường 3|TP. Trà Vinh','Phường 4|TP. Trà Vinh','Phường 5|TP. Trà Vinh','Phường 6|TP. Trà Vinh','Phường 7|TP. Trà Vinh','Phường 8|TP. Trà Vinh','Phường 9|TP. Trà Vinh'],
+    'Điện Biên': ['Mường Thanh|TP. Điện Biên Phủ','Nam Thanh|TP. Điện Biên Phủ','Noong Bua|TP. Điện Biên Phủ','Phường Him Lam|TP. Điện Biên Phủ','Tân Thanh|TP. Điện Biên Phủ','Thanh Bình|TP. Điện Biên Phủ','Thanh Trường|TP. Điện Biên Phủ'],
+    'Đắk Lắk': ['An Lạc|TP. Buôn Ma Thuột','Ea Tam|TP. Buôn Ma Thuột','Hoà Thắng|TP. Buôn Ma Thuột','Khánh Xuân|TP. Buôn Ma Thuột','Thắng Lợi|TP. Buôn Ma Thuột','Tân An|TP. Buôn Ma Thuột','Tân Hoà|TP. Buôn Ma Thuột','Tân Lập|TP. Buôn Ma Thuột','Tân Lợi|TP. Buôn Ma Thuột','Tân Thành|TP. Buôn Ma Thuột','Thành Nhất|TP. Buôn Ma Thuột','Tự An|TP. Buôn Ma Thuột','Nghĩa Đức|TP. Gia Nghĩa','Nghĩa Phú|TP. Gia Nghĩa','Nghĩa Tân|TP. Gia Nghĩa','Nghĩa Thành|TP. Gia Nghĩa','Nghĩa Trung|TP. Gia Nghĩa','Quảng Thành|TP. Gia Nghĩa','Quảng Thắng|TP. Gia Nghĩa'],
+    'Đồng Nai': ['An Bình|TP. Biên Hòa','Bình Đa|TP. Biên Hòa','Bửu Hòa|TP. Biên Hòa','Bửu Long|TP. Biên Hòa','Hiệp Hòa|TP. Biên Hòa','Hố Nai|TP. Biên Hòa','Long Bình|TP. Biên Hòa','Long Bình Tân|TP. Biên Hòa','Phước Tân|TP. Biên Hòa','Quyết Thắng|TP. Biên Hòa','Tam Hòa|TP. Biên Hòa','Tam Phước|TP. Biên Hòa','Tân Biên|TP. Biên Hòa','Tân Hiệp|TP. Biên Hòa','Tân Hòa|TP. Biên Hòa','Tân Phong|TP. Biên Hòa','Tân Vạn|TP. Biên Hòa','Thanh Bình|TP. Biên Hòa','Thống Nhất|TP. Biên Hòa','Trảng Dài|TP. Biên Hòa','Trung Dũng|TP. Biên Hòa','Chánh Nghĩa|TP. Thủ Dầu Một','Hiệp An|TP. Thủ Dầu Một','Hiệp Thành|TP. Thủ Dầu Một','Hòa Phú|TP. Thủ Dầu Một','Phú Cường|TP. Thủ Dầu Một','Phú Hòa|TP. Thủ Dầu Một','Phú Lợi|TP. Thủ Dầu Một','Phú Mỹ|TP. Thủ Dầu Một','Tân An|TP. Thủ Dầu Một','Tương Bình Hiệp|TP. Thủ Dầu Một','An Phú|TP. Thuận An','Bình Chuẩn|TP. Thuận An','Bình Hòa|TP. Thuận An','Bình Nhâm|TP. Thuận An','Hưng Định|TP. Thuận An','Lái Thiêu|TP. Thuận An','Thuận Giao|TP. Thuận An','Vĩnh Phú|TP. Thuận An','An Bình|TP. Dĩ An','Bình An|TP. Dĩ An','Bình Thắng|TP. Dĩ An','Đông Hòa|TP. Dĩ An','Dĩ An|TP. Dĩ An','Tân Bình|TP. Dĩ An','Tân Đông Hiệp|TP. Dĩ An','Phường 1|TP. Vũng Tàu','Phường 2|TP. Vũng Tàu','Phường 3|TP. Vũng Tàu','Phường 4|TP. Vũng Tàu','Phường 5|TP. Vũng Tàu','Phường 7|TP. Vũng Tàu','Phường 8|TP. Vũng Tàu','Phường 9|TP. Vũng Tàu','Phường 10|TP. Vũng Tàu','Phường 11|TP. Vũng Tàu','Phường 12|TP. Vũng Tàu','Rạch Dừa|TP. Vũng Tàu','Thắng Nhất|TP. Vũng Tàu','Thắng Nhì|TP. Vũng Tàu','Thắng Tam|TP. Vũng Tàu','Long Toàn|TP. Bà Rịa','Long Hương|TP. Bà Rịa','Phước Hưng|TP. Bà Rịa','Phước Nguyên|TP. Bà Rịa','Phước Hiệp|TP. Bà Rịa','Tân Hưng|TP. Bà Rịa'],
+    'Đồng Tháp': ['Mỹ Phú|TP. Cao Lãnh','Phường 1|TP. Cao Lãnh','Phường 2|TP. Cao Lãnh','Phường 3|TP. Cao Lãnh','Phường 4|TP. Cao Lãnh','Phường 6|TP. Cao Lãnh','Phường 11|TP. Cao Lãnh','Tân Thuận Đông|TP. Cao Lãnh','Tân Thuận Tây|TP. Cao Lãnh','An Hòa|TP. Sa Đéc','Phường 1|TP. Sa Đéc','Phường 2|TP. Sa Đéc','Phường 3|TP. Sa Đéc','Phường 4|TP. Sa Đéc','Tân Khánh Đông|TP. Sa Đéc','Tân Quy Đông|TP. Sa Đéc','An Bình|TP. Rạch Giá','Đông Thuận|TP. Rạch Giá','Phú Hiệp|TP. Rạch Giá','Phú Quang|TP. Rạch Giá','Rạch Sỏi|TP. Rạch Giá','Toàn Thắng|TP. Rạch Giá','Vĩnh Bảo|TP. Rạch Giá','Vĩnh Hiệp|TP. Rạch Giá','Vĩnh Lạc|TP. Rạch Giá','Vĩnh Lợi|TP. Rạch Giá','Vĩnh Quang|TP. Rạch Giá','Vĩnh Thanh|TP. Rạch Giá','Vĩnh Thanh Vân|TP. Rạch Giá','Phường 1|TP. Bạc Liêu','Phường 2|TP. Bạc Liêu','Phường 3|TP. Bạc Liêu','Phường 5|TP. Bạc Liêu','Phường 7|TP. Bạc Liêu','Phường 8|TP. Bạc Liêu','Nhà Mát|TP. Bạc Liêu','Vĩnh Trạch|TP. Bạc Liêu','Vĩnh Trạch Đông|TP. Bạc Liêu','Phường 1|TP. Sóc Trăng','Phường 2|TP. Sóc Trăng','Phường 3|TP. Sóc Trăng','Phường 4|TP. Sóc Trăng','Phường 5|TP. Sóc Trăng','Phường 6|TP. Sóc Trăng','Phường 7|TP. Sóc Trăng','Phường 8|TP. Sóc Trăng','Phường 9|TP. Sóc Trăng','Phường 10|TP. Sóc Trăng']
   };
-  // Parse thành map: xa.lower → {xa, huyen, tinh}
   var map = {};
   Object.keys(raw).forEach(function(tinh){
     raw[tinh].forEach(function(r){
@@ -1511,6 +1510,8 @@ var _HC_ALL = (function(){
       if (!map[k]) map[k] = { xa: p[0], huyen: p[1], tinh: tinh };
     });
   });
+  map._tinhList = Object.keys(raw);
+  map._tinhList = Object.keys(raw);
   map._tinhList = Object.keys(raw); // danh sách tỉnh có thứ tự
   return map;
 })();
