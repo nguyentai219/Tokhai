@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#8a6e2f">
-<title>Khai Thuế v1.3.6</title>
+<title>Khai Thuế v1.4.0</title>
 <meta name="description" content="Công cụ khai thuế đa tờ khai (Lệ phí trước bạ, TNCN chuyển nhượng BĐS...) - v1.3.6">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -193,17 +193,15 @@
      (vốn cũng đang ở chiều đứng) ngay từ đầu. ===== */
   #tk-print-area{display:none}
   #tk-preview-overlay{display:none;position:fixed;inset:0;z-index:5000;background:#525659;flex-direction:column}
-  /* QUAN TRỌNG: dùng CUỘN TỰ NHIÊN của trình duyệt (overflow-y:auto) để xem hết nội dung, KHÔNG dùng
-     kéo (pan) tự chế bằng transform như bản trước — bản trước đặt #tk-panzoom-wrap là position:absolute;
-     inset:0 (khít đúng khung nhìn) + touch-action:none (chặn hẳn cuộn mặc định), khiến phần cuối trang
-     bị vượt quá khung nhìn KHÔNG THỂ cuộn tới được bằng thao tác cuộn thông thường — đây chính là lỗi
-     "mất góc dưới trang" khi xem trước. Giờ để trình duyệt tự cuộn dọc bình thường (vuốt 1 ngón), CHỈ
-     can thiệp JS khi có đúng 2 ngón chạm (chụm để phóng to/thu nhỏ). Phóng to bằng CSS `zoom` (không
-     dùng transform:scale) vì `zoom` làm thay đổi kích thước bố cục thật sự, nên vùng cuộn tự mở rộng
-     theo đúng kích thước đã phóng to — cuộn vẫn luôn chạm tới đáy. */
-  #tk-preview-scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;position:relative}
-  #tk-panzoom-wrap{display:flex;flex-direction:column;align-items:center;padding:14px 0;transform-origin:top center}
+  /* Xem trước: dùng transform:scale+translate để pinch-zoom tự do 4 chiều.
+     overflow:hidden vì pan/zoom được JS quản lý hoàn toàn — không cần scroll bar. */
+  #tk-preview-scroll{flex:1;overflow:hidden;position:relative;touch-action:none}
+  #tk-panzoom-wrap{display:flex;flex-direction:column;align-items:center;padding:14px 0;transform-origin:0 0;will-change:transform;cursor:grab}
+  #tk-panzoom-wrap:active{cursor:grabbing}
   #tk-preview-img, .tk-preview-page-img{max-width:88vw;display:block;box-shadow:0 2px 16px rgba(0,0,0,.35)}
+  /* Wake Lock toggle — JS sẽ thêm/bỏ class .wl-on trên #wakelock-thumb */
+  #wakelock-thumb.wl-on{background:var(--gold) !important}
+  #wakelock-thumb.wl-on #wakelock-knob{left:21px !important}
   .tk-print-doc{
     font-family:'Times New Roman',Times,serif; color:#000; font-size:13px; line-height:1.5; padding:26px 30px;
   }
@@ -280,7 +278,7 @@
     <div class="launcher-header-top">
       <div>
         <b>📚 Khai Thuế</b>
-        <span>TaiDauTieng@gmail.com · v1.3.6</span>
+        <span>TaiDauTieng@gmail.com · v1.4.0</span>
       </div>
       <button class="gear-btn" onclick="openGlobalSettings()" title="Cài đặt chung">⚙️</button>
     </div>
@@ -310,7 +308,7 @@
     </div>
     <div class="header-title" id="header-title-box" style="flex:1;text-align:center;align-items:center;padding:0 4px">
       <b id="header-title-b">📋 Tờ khai</b>
-      <span id="header-title-span">v1.3.6</span>
+      <span id="header-title-span">v1.4.0</span>
     </div>
     <div style="display:flex;gap:6px;flex:0 0 auto">
       <button class="gear-btn" onclick="moLichSuToKhai()" title="Lịch sử tờ khai">🕘</button>
@@ -445,6 +443,19 @@
       <div style="font-size:11px;color:var(--g500);line-height:1.5">Chỉ gợi ý địa chỉ thuộc tỉnh/thành đã chọn — giúp đề xuất ngắn gọn và chính xác hơn khi nhập liệu.</div>
     </div>
 
+    <div style="background:var(--g100);border-radius:10px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px">
+      <div>
+        <label style="font-size:12px;color:var(--g600);font-weight:700;display:block">🔆 Màn hình luôn bật</label>
+        <div style="font-size:11px;color:var(--g500);margin-top:2px">Giữ màn hình sáng khi đang nhập liệu (dùng Wake Lock API)</div>
+      </div>
+      <label style="position:relative;display:inline-block;width:44px;height:26px;flex-shrink:0">
+        <input type="checkbox" id="wakelock-toggle" onchange="toggleWakeLock(this.checked)" style="opacity:0;width:0;height:0">
+        <span id="wakelock-thumb" style="position:absolute;cursor:pointer;inset:0;background:var(--g300);border-radius:13px;transition:.25s">
+          <span style="position:absolute;left:3px;top:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:.25s;display:block" id="wakelock-knob"></span>
+        </span>
+      </label>
+    </div>
+
     <!-- Nút mở hướng dẫn -->
     <div onclick="openM('modal-huong-dan')" style="display:flex;align-items:center;gap:10px;background:var(--g50);border:1.5px solid var(--g200);border-radius:10px;padding:11px 13px;cursor:pointer;margin-bottom:4px">
       <span style="font-size:20px">📖</span>
@@ -467,10 +478,10 @@
      bằng jsPDF (giống hệt cơ chế "Xuất bảng kê" của app Mua Bán Mủ, chỉ khác khổ A4 ĐỨNG). -->
 <div id="tk-preview-overlay">
   <div style="background:#323639;color:#fff;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
-    <div style="font-weight:700;font-size:14px">👁️ Xem trước Tờ khai <span style="font-weight:400;font-size:11px;opacity:.75">(chụm 2 ngón để phóng to)</span></div>
+    <div style="font-weight:700;font-size:14px">👁️ Xem trước Tờ khai <span style="font-weight:400;font-size:11px;opacity:.75">(chụm 2 ngón = phóng to · kéo 1 ngón = di chuyển · chạm 2 lần = về 100%)</span></div>
     <button onclick="closeTkPreview()" style="background:none;border:none;color:#fff;font-size:22px;line-height:1;cursor:pointer;padding:4px 8px">✕</button>
   </div>
-  <div id="tk-preview-scroll" style="flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;position:relative"></div>
+  <div id="tk-preview-scroll" style="flex:1;overflow:hidden;position:relative;touch-action:none"></div>
   <div style="background:#fff;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));display:flex;gap:6px;flex-shrink:0;border-top:1px solid #ddd">
     <button onclick="chiaSeToKhai()" id="tk-chiase-btn" style="flex:1.1;padding:12px 2px;background:#0068FF;color:#fff;border:none;border-radius:10px;font-size:12.5px;font-weight:700;cursor:pointer">📤 Chia sẻ</button>
     <button onclick="inToKhaiPdf()" style="flex:0.75;padding:12px 2px;background:var(--g100);color:var(--gold-dark);border:1.5px solid var(--gold);border-radius:10px;font-size:11.5px;font-weight:700;cursor:pointer">🖨️ In</button>
@@ -530,6 +541,7 @@
 
 const LS_PREFIX = 'tk2_';
 const LS_STARTUP_MODE = LS_PREFIX + 'startup_mode_v1'; // dùng CHUNG cho mọi loại tờ khai
+const LS_WAKELOCK    = LS_PREFIX + 'wakelock_v1';     // 'on'|'off'
 const LICH_SU_TOI_DA = 200;
 
 function lsGetO(k){ try{ var v=JSON.parse(localStorage.getItem(k)); return (v&&typeof v==='object'&&!Array.isArray(v))?v:{}; }catch(e){ return {}; } }
@@ -1254,6 +1266,8 @@ function openGlobalSettings(){
   var sel = document.getElementById('startup-mode-select-global');
   sel.value = localStorage.getItem(LS_STARTUP_MODE) || 'keep';
   _renderHCTinhSelect();
+  // Restore trạng thái toggle Wake Lock
+  _wlSetUi(localStorage.getItem(LS_WAKELOCK) === 'on');
   openM('modal-global-settings');
 }
 function _renderHCTinhSelect(){
@@ -1275,6 +1289,59 @@ function saveHCTinh(val){
 }
 
 
+// ─── WAKE LOCK — Màn hình luôn bật ───────────────────────────────────────────
+var _wlSentinel = null;
+var _wlEnabled  = false;
+
+function _wlAcquire(){
+  if (!('wakeLock' in navigator)) return;
+  if (_wlSentinel) return; // đã giữ rồi
+  navigator.wakeLock.request('screen').then(function(s){
+    _wlSentinel = s;
+    _wlSentinel.addEventListener('release', function(){
+      _wlSentinel = null;
+      // Nếu trang vẫn hiển thị và cài đặt vẫn bật → tự lấy lại (tránh mất lock khi chuyển tab rồi quay lại)
+      if (_wlEnabled && document.visibilityState === 'visible') _wlAcquire();
+    });
+  }).catch(function(){});
+}
+
+function _wlRelease(){
+  if (_wlSentinel){ _wlSentinel.release(); _wlSentinel = null; }
+}
+
+// Sync UI toggle (checkbox checked + màu thumb) theo trạng thái _wlEnabled
+function _wlSetUi(on){
+  var chk   = document.getElementById('wakelock-toggle');
+  var thumb = document.getElementById('wakelock-thumb');
+  if (chk)   chk.checked = on;
+  if (thumb){ if (on) thumb.classList.add('wl-on'); else thumb.classList.remove('wl-on'); }
+}
+
+function toggleWakeLock(on){
+  _wlEnabled = on;
+  localStorage.setItem(LS_WAKELOCK, on ? 'on' : 'off');
+  _wlSetUi(on);
+  if (on){
+    _wlAcquire();
+    toast('🔆 Màn hình luôn bật: BẬT');
+  } else {
+    _wlRelease();
+    toast('🔅 Màn hình luôn bật: TẮT');
+  }
+}
+
+// Khởi động Wake Lock theo cài đặt đã lưu (chạy 1 lần khi DOMContentLoaded)
+function _wlInit(){
+  _wlEnabled = (localStorage.getItem(LS_WAKELOCK) === 'on');
+  _wlSetUi(_wlEnabled);
+  if (_wlEnabled) _wlAcquire();
+  document.addEventListener('visibilitychange', function(){
+    if (_wlEnabled && document.visibilityState === 'visible') _wlAcquire();
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Mở 1 loại tờ khai — áp dụng chế độ khởi động (keep/clear, cài đặt CHUNG) rồi nạp state riêng của
 // đúng loại tờ khai đó (namespace theo form.id, không đụng tới dữ liệu của các loại tờ khai khác).
 function openForm(formId){
@@ -2019,7 +2086,12 @@ function luuTamToKhai(){
 // ảnh, jsPDF đóng gói PDF) — khổ A4 ĐỨNG (210×297mm). Số trang LẤY THEO currentForm.buildPages(), mỗi
 // trang được dựng + chụp ảnh RIÊNG BIỆT rồi mới ghép vào PDF, khớp đúng điểm ngắt trang của mẫu gốc.
 var _tkPageCanvases = [];
-function openTkPreview(){ document.getElementById('tk-preview-overlay').style.display = 'flex'; _tkInitPinch(); }
+function openTkPreview(){
+  document.getElementById('tk-preview-overlay').style.display = 'flex';
+  _tkInitPinch();
+  var scrollEl = document.getElementById('tk-preview-scroll');
+  _tkResetView(scrollEl);
+}
 function closeTkPreview(){ document.getElementById('tk-preview-overlay').style.display = 'none'; }
 // Tải 1 script ngoài, có DỰ PHÒNG nhiều nguồn CDN — nếu nguồn 1 lỗi (bị mạng công ty/nhà trường chặn,
 // CDN quá tải, v.v.) tự động thử nguồn kế tiếp thay vì báo lỗi ngay.
@@ -2081,8 +2153,7 @@ function _tkGeneratePreviewImage(){
           return '<img class="tk-preview-page-img" src="' + c.toDataURL('image/png') + '"' + (i>0?' style="margin-top:14px"':'') + '>';
         }).join('');
         scrollEl.innerHTML = '<div id="tk-panzoom-wrap"><div style="display:flex;flex-direction:column;align-items:center">' + imgsHtml + '</div></div>';
-        _tkScale = 1;
-        _tkApplyTransform();
+        _tkResetView(scrollEl);
         return;
       }
       _tkCaptureOnePage(trangHtmls[idx], function(canvas, err){
@@ -2099,36 +2170,131 @@ function _tkGeneratePreviewImage(){
 }
 // ── Chụm 2 ngón để phóng to/thu nhỏ (0.5x-3x), CÒN CUỘN DỌC/NGANG DÙNG CUỘN TỰ NHIÊN của trình duyệt.
 // Dùng CSS `zoom` (không dùng transform:scale) để vùng cuộn tự giãn đúng theo kích thước đã phóng to.
-var _tkScale = 1;
-var _tkPinchStartDist = 0, _tkPinchStartScale = 1;
+// ─── PINCH-ZOOM + PAN 4 CHIỀU (transform:scale+translate, origin:0 0) ─────────
+// Dùng transform thay css-zoom để có thể pan tự do 4 hướng sau khi phóng to.
+// Khi scale=1, nội dung được căn giữa bằng padding/flexbox. Khi scale>1, người dùng
+// kéo 1 ngón để pan, chụm 2 ngón để zoom — điểm zoom theo đúng midpoint 2 ngón.
+var _tkScale  = 1;
+var _tkTX     = 0; // offset X: vị trí góc trên-trái wrap so với góc trên-trái scrollEl (px)
+var _tkTY     = 0; // offset Y tương tự
 var _tkPinchBound = false;
+
+function _tkTouchPt(t, el){
+  var r = el.getBoundingClientRect();
+  return { x: t.clientX - r.left, y: t.clientY - r.top };
+}
+function _tkMid(t1, t2, el){
+  var r = el.getBoundingClientRect();
+  return { x:(t1.clientX+t2.clientX)/2-r.left, y:(t1.clientY+t2.clientY)/2-r.top };
+}
+function _tkDist(t1, t2){ return Math.hypot(t2.clientX-t1.clientX, t2.clientY-t1.clientY); }
+
+// transform: translate(TX,TY) scale(S) với transform-origin:0 0
+// → góc trên-trái wrap xuất hiện tại (TX,TY) trên màn hình, rồi scale toàn bộ từ đó.
 function _tkApplyTransform(){
   var wrap = document.getElementById('tk-panzoom-wrap');
-  if (wrap) wrap.style.zoom = _tkScale;
+  if (!wrap) return;
+  wrap.style.transform = 'translate('+_tkTX.toFixed(1)+'px,'+_tkTY.toFixed(1)+'px) scale('+_tkScale.toFixed(4)+')';
 }
-function _tkApplyScale(scale){ _tkScale = Math.max(0.5, Math.min(scale, 3)); _tkApplyTransform(); }
-function _tkDist(t1, t2){ return Math.hypot(t2.clientX-t1.clientX, t2.clientY-t1.clientY); }
+
+// Không clamp — để người dùng kéo tự do hoàn toàn sau khi phóng to.
+// Scale và TX/TY chỉ bị thay đổi bởi pinch/pan và double-tap reset, không bao giờ tự reset.
+function _tkSoftClamp(scrollEl){ /* no-op: pan tự do */ }
+
+// Reset về scale=1. Căn giữa ngang nếu wrap đã có kích thước (sau khi ảnh dựng xong).
+function _tkResetView(scrollEl){
+  _tkScale = 1; _tkTX = 0; _tkTY = 0;
+  _tkApplyTransform();
+  // Căn giữa ngang sau 1 frame (đợi browser layout wrap xong)
+  if (scrollEl){
+    requestAnimationFrame(function(){
+      var wrap = document.getElementById('tk-panzoom-wrap');
+      if (!wrap) return;
+      var sw = scrollEl.clientWidth, ww = wrap.offsetWidth;
+      if (ww > 0 && sw > ww){ _tkTX = (sw - ww) / 2; _tkApplyTransform(); }
+    });
+  }
+}
+
 function _tkInitPinch(){
   if (_tkPinchBound) return;
   _tkPinchBound = true;
   var scrollEl = document.getElementById('tk-preview-scroll');
   if (!scrollEl) return;
+
+  // Biến trạng thái — khai báo trong closure, không reset mỗi lần mở preview.
+  // TX/TY là biến NGOÀI closure (_tkTX/_tkTY) nên luôn lấy giá trị mới nhất.
+  var _pinchStartDist  = 0, _pinchStartScale = 1;
+  var _pinchOriginX    = 0, _pinchOriginY    = 0; // điểm origin trong không gian nội dung
+  var _pinchStartTX    = 0, _pinchStartTY    = 0;
+  var _panLastX = 0, _panLastY = 0;
+  var _isPinching = false, _isPanning = false;
+
   scrollEl.addEventListener('touchstart', function(e){
-    if (e.touches.length === 2) {
-      _tkPinchStartDist = _tkDist(e.touches[0], e.touches[1]);
-      _tkPinchStartScale = _tkScale;
-    }
-    // Chạm 1 ngón: KHÔNG can thiệp gì cả, để trình duyệt tự xử lý cuộn như bình thường.
-  }, {passive:true});
-  scrollEl.addEventListener('touchmove', function(e){
-    if (e.touches.length === 2 && _tkPinchStartDist > 0) {
-      e.preventDefault(); // chỉ chặn hành vi mặc định khi ĐANG chụm 2 ngón để phóng to, không đụng tới cuộn 1 ngón
-      var d = _tkDist(e.touches[0], e.touches[1]);
-      _tkApplyScale(_tkPinchStartScale * d / _tkPinchStartDist);
+    if (e.touches.length >= 2){
+      e.preventDefault();
+      _isPinching = true; _isPanning = false;
+      _pinchStartDist  = _tkDist(e.touches[0], e.touches[1]);
+      _pinchStartScale = _tkScale;
+      _pinchStartTX    = _tkTX;
+      _pinchStartTY    = _tkTY;
+      var mid = _tkMid(e.touches[0], e.touches[1], scrollEl);
+      // Điểm midpoint trong không gian nội dung (chia ngược scale)
+      _pinchOriginX = (mid.x - _tkTX) / _tkScale;
+      _pinchOriginY = (mid.y - _tkTY) / _tkScale;
+    } else if (e.touches.length === 1 && !_isPinching){
+      _isPanning = true;
+      var pt = _tkTouchPt(e.touches[0], scrollEl);
+      _panLastX = pt.x; _panLastY = pt.y;
     }
   }, {passive:false});
+
+  scrollEl.addEventListener('touchmove', function(e){
+    e.preventDefault();
+    if (_isPinching && e.touches.length >= 2 && _pinchStartDist > 0){
+      var d        = _tkDist(e.touches[0], e.touches[1]);
+      var newScale = Math.max(0.5, Math.min(_pinchStartScale * d / _pinchStartDist, 5));
+      // Giữ điểm origin cố định: TX = origin_screen_x - originContent_x * newScale
+      _tkScale = newScale;
+      _tkTX    = _pinchStartTX + _pinchOriginX * (_pinchStartScale - newScale);
+      _tkTY    = _pinchStartTY + _pinchOriginY * (_pinchStartScale - newScale);
+      _tkSoftClamp(scrollEl);
+      _tkApplyTransform();
+    } else if (_isPanning && !_isPinching && e.touches.length === 1){
+      var pt = _tkTouchPt(e.touches[0], scrollEl);
+      _tkTX += pt.x - _panLastX;
+      _tkTY += pt.y - _panLastY;
+      _panLastX = pt.x; _panLastY = pt.y;
+      _tkSoftClamp(scrollEl);
+      _tkApplyTransform();
+    }
+  }, {passive:false});
+
   scrollEl.addEventListener('touchend', function(e){
-    if (e.touches.length < 2) _tkPinchStartDist = 0;
+    if (e.touches.length === 0){
+      if (_isPinching){ _lastPinchEnd = Date.now(); } // đánh dấu trước khi reset flag
+      _isPinching = false; _isPanning = false; _pinchStartDist = 0;
+    } else if (e.touches.length === 1 && _isPinching){
+      // Một ngón nhấc lên trong khi đang pinch → tiếp tục pan bằng ngón còn lại
+      _lastPinchEnd = Date.now();
+      _isPinching = false; _isPanning = true;
+      var pt = _tkTouchPt(e.touches[0], scrollEl);
+      _panLastX = pt.x; _panLastY = pt.y;
+      _pinchStartDist = 0;
+    }
+  }, {passive:true});
+
+  // Double-tap → reset về 100% căn giữa.
+  // _lastPinchEnd được set trong handler trên (cùng event, trước handler này).
+  var _lastTap = 0, _lastPinchEnd = 0;
+  scrollEl.addEventListener('touchend', function(e){
+    if (e.touches.length === 0 && !_isPinching){
+      var now = Date.now();
+      // Bỏ qua nếu vừa kết thúc pinch trong 500ms qua (tránh nhận nhầm là double-tap)
+      if (now - _lastPinchEnd < 500){ _lastTap = 0; return; }
+      if (e.changedTouches.length === 1 && now - _lastTap < 300){ _tkResetView(scrollEl); }
+      _lastTap = now;
+    }
   }, {passive:true});
 }
 // Dựng PDF A4 ĐỨNG từ MẢNG ảnh đã chụp — MỖI PHẦN TỬ = ĐÚNG 1 TRANG PDF (không cắt theo chiều cao cố
@@ -2643,6 +2809,7 @@ document.addEventListener('keydown',    _markUserAction);
 document.addEventListener('DOMContentLoaded', function(){
   renderLauncher();
   _capNhatSelectCheDoKhoiDong();
+  _wlInit();
 
   // ── Restore màn hình sau reload: nếu đang ở tờ khai nào thì mở lại đúng đó ──
   var lastForm = sessionStorage.getItem('kt_last_form');
