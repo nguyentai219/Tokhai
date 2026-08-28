@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#8a6e2f">
-<title>Khai Thuế v1.4.0</title>
+<title>Khai Thuế v1.4.1</title>
 <meta name="description" content="Công cụ khai thuế đa tờ khai (Lệ phí trước bạ, TNCN chuyển nhượng BĐS...) - v1.3.6">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -278,7 +278,7 @@
     <div class="launcher-header-top">
       <div>
         <b>📚 Khai Thuế</b>
-        <span>TaiDauTieng@gmail.com · v1.4.0</span>
+        <span>TaiDauTieng@gmail.com · v1.4.1</span>
       </div>
       <button class="gear-btn" onclick="openGlobalSettings()" title="Cài đặt chung">⚙️</button>
     </div>
@@ -308,7 +308,7 @@
     </div>
     <div class="header-title" id="header-title-box" style="flex:1;text-align:center;align-items:center;padding:0 4px">
       <b id="header-title-b">📋 Tờ khai</b>
-      <span id="header-title-span">v1.4.0</span>
+      <span id="header-title-span">v1.4.1</span>
     </div>
     <div style="display:flex;gap:6px;flex:0 0 auto">
       <button class="gear-btn" onclick="moLichSuToKhai()" title="Lịch sử tờ khai">🕘</button>
@@ -1465,7 +1465,11 @@ function renderFieldCard(f){
   return '<div class="field-card"><div class="field-label">' + maHtml + '<span>' + esc(f.label) + '</span></div>' + inner + '</div>';
 }
 // ═══════════════════════ TỰ ĐỘNG ĐỀ XUẤT — Pool chung + CSDL hành chính ═══════════════════════
-var LS_AC_POOL = LS_PREFIX + 'ac_pool_v1';
+var LS_AC_POOL    = LS_PREFIX + 'ac_pool_v1';
+var LS_AC_PERSON  = LS_PREFIX + 'ac_person_v1'; // pool theo "bộ người": [{ho_ten,ma_so_thue,cmnd_cccd,dia_chi}]
+
+// Key nào thuộc nhóm "cùng người" (liên kết với ho_ten)
+var _AC_PERSON_KEYS = ['ho_ten','ma_so_thue','cmnd_cccd','dia_chi'];
 
 function _acNormLabel(label){
   var s = (label||'').toLowerCase()
@@ -1490,6 +1494,116 @@ function _acSaveToPool(fieldLabel, val){
   arr = [val].concat(arr.filter(function(x){ return x !== val; })).slice(0, 60);
   pool[key] = arr;
   lsSet(LS_AC_POOL, pool);
+}
+
+// Lưu bộ dữ liệu người: gộp giá trị của các trường cùng người vào 1 object trong LS_AC_PERSON.
+// Gọi khi blur bất kỳ trường thuộc nhóm _AC_PERSON_KEYS — tìm object khớp ho_ten hiện tại và merge.
+function _acSavePerson(normKey, val){
+  if (_AC_PERSON_KEYS.indexOf(normKey) < 0) return;
+  val = (val||'').trim();
+  if (!val || val.length < 2) return;
+  // Lấy ho_ten hiện đang nhập trong form (valuesMap hoặc DOM)
+  var hoTenVal = _acGetCurrentHoTen();
+  var persons  = lsGetA(LS_AC_PERSON);
+  if (normKey === 'ho_ten'){
+    // Tìm hoặc tạo entry theo họ tên
+    var found = null;
+    for (var i = 0; i < persons.length; i++){
+      if ((persons[i].ho_ten||'').toLowerCase() === val.toLowerCase()){ found = i; break; }
+    }
+    if (found !== null){
+      persons.splice(found, 1); // đưa lên đầu (MRU)
+      persons.unshift(Object.assign(persons[found] || {}, { ho_ten: val }));
+      // vì splice+unshift shift index, rebuild:
+      persons = lsGetA(LS_AC_PERSON);
+      var existing = null;
+      for (var j = 0; j < persons.length; j++){
+        if ((persons[j].ho_ten||'').toLowerCase() === val.toLowerCase()){ existing = persons.splice(j,1)[0]; break; }
+      }
+      existing = existing || {};
+      existing.ho_ten = val;
+      persons.unshift(existing);
+    } else {
+      persons.unshift({ ho_ten: val });
+    }
+  } else {
+    // Trường khác: tìm entry khớp ho_ten rồi merge
+    if (!hoTenVal){ return; } // chưa có ho_ten → không biết gắn vào ai
+    var target = null;
+    for (var k = 0; k < persons.length; k++){
+      if ((persons[k].ho_ten||'').toLowerCase() === hoTenVal.toLowerCase()){ target = k; break; }
+    }
+    if (target === null){
+      // Tạo mới với ho_ten + key này
+      var obj = { ho_ten: hoTenVal };
+      obj[normKey] = val;
+      persons.unshift(obj);
+    } else {
+      var entry = persons.splice(target, 1)[0];
+      entry[normKey] = val;
+      persons.unshift(entry);
+    }
+  }
+  lsSet(LS_AC_PERSON, persons.slice(0, 50));
+}
+
+// Lấy giá trị ho_ten hiện tại từ valuesMap (nếu đang trong form)
+function _acGetCurrentHoTen(){
+  if (!currentForm) return '';
+  var schema = currentForm.schema || [];
+  for (var i = 0; i < schema.length; i++){
+    var f = schema[i];
+    if (_acNormLabel(f.label) === 'ho_ten'){
+      var v = valuesMap[f.id];
+      if (typeof v === 'string' && v.trim()) return v.trim();
+    }
+    if (f.subs){
+      for (var j = 0; j < f.subs.length; j++){
+        if (_acNormLabel(f.subs[j].label) === 'ho_ten'){
+          var sv = valuesMap[f.id] && valuesMap[f.id][f.subs[j].k];
+          if (typeof sv === 'string' && sv.trim()) return sv.trim();
+        }
+      }
+    }
+  }
+  return '';
+}
+
+// Lấy danh sách gợi ý cho normKey, có lọc theo ho_ten đang nhập nếu normKey thuộc nhóm người.
+function _acPersonSuggest(normKey, typedVal){
+  if (_AC_PERSON_KEYS.indexOf(normKey) < 0) return [];
+  var persons = lsGetA(LS_AC_PERSON);
+  var vLow    = (typedVal||'').trim().toLowerCase();
+  if (normKey === 'ho_ten'){
+    // Gợi ý họ tên: lọc theo prefix đang gõ
+    return persons
+      .map(function(p){ return p.ho_ten||''; })
+      .filter(function(n){ return n && (!vLow || n.toLowerCase().indexOf(vLow) === 0) && n.toLowerCase() !== vLow; })
+      .slice(0, 6);
+  } else {
+    // Trường khác: ưu tiên lọc theo ho_ten đang có trong form
+    var hoTen = _acGetCurrentHoTen().toLowerCase();
+    var result = [];
+    if (hoTen){
+      persons.forEach(function(p){
+        if ((p.ho_ten||'').toLowerCase() === hoTen && p[normKey]){
+          var v = p[normKey];
+          if (!vLow || v.toLowerCase().indexOf(vLow) === 0) result.push(v);
+        }
+      });
+    }
+    // Nếu chưa đủ thì bổ sung từ pool chung (không giới hạn ho_ten)
+    if (result.length < 3){
+      persons.forEach(function(p){
+        if (hoTen && (p.ho_ten||'').toLowerCase() === hoTen) return; // đã lấy ở trên
+        if (p[normKey]){
+          var v = p[normKey];
+          if ((!vLow || v.toLowerCase().indexOf(vLow) === 0) && result.indexOf(v) < 0) result.push(v);
+        }
+      });
+    }
+    return result.slice(0, 6);
+  }
 }
 
 function _fieldGoiYPool(fieldId, fieldLabel){
@@ -1660,22 +1774,39 @@ function onAutoInput(key, val, fieldLabel){
   if (!box) return;
   val = (val||'').trim();
   if (!val){ box.style.display='none'; return; }
-  var pool = _fieldGoiYPool(key, fieldLabel||'');
-  var vLow = val.toLowerCase();
+  var vLow  = val.toLowerCase();
   var lnorm = _acNormLabel(fieldLabel||'');
   var matches = [];
+
+  // 1. Gợi ý từ pool người (ưu tiên, lọc theo ho_ten đang nhập)
+  var personSug = _acPersonSuggest(lnorm, val);
+
+  // 2. Gợi ý địa chính
   if (lnorm === 'phuong_xa' || lnorm === 'quan_huyen' || lnorm === 'tinh_tp'){
     var field = lnorm === 'phuong_xa' ? 'xa' : lnorm === 'quan_huyen' ? 'huyen' : 'tinh';
     var hcSet = {};
     Object.keys(_HC).forEach(function(k){ var v=_HC[k][field]; if(v && v.toLowerCase().indexOf(vLow)===0) hcSet[v]=true; });
     matches = Object.keys(hcSet).sort(function(a,b){ return a.localeCompare(b,'vi'); });
   }
-  var poolM = pool.filter(function(x){ return x.toLowerCase().indexOf(vLow)===0 && x.toLowerCase()!==vLow && matches.indexOf(x)<0; });
-  matches = poolM.concat(matches);
-  if (!matches.length){ box.style.display='none'; return; }
-  box.innerHTML = matches.slice(0,8).map(function(x){
-    var icon = poolM.indexOf(x)>=0 ? '👤' : '📍';
-    return '<div class="ac-item" onmousedown="chonGoiYTruong(\''+key+'\',\''+x.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\',\''+(fieldLabel||'').replace(/'/g,"\\'")+'\')">'+ icon +' '+esc(x)+'</div>';
+
+  // 3. Pool chung (cho trường không thuộc nhóm người, hoặc bổ sung nếu thiếu)
+  var pool  = _fieldGoiYPool(key, fieldLabel||'');
+  var poolM = pool.filter(function(x){
+    return x.toLowerCase().indexOf(vLow)===0 && x.toLowerCase()!==vLow
+        && matches.indexOf(x)<0 && personSug.indexOf(x)<0;
+  });
+
+  // Ghép: person trước, pool chung, địa chính sau
+  var allMatches = personSug.concat(poolM).concat(
+    matches.filter(function(x){ return personSug.indexOf(x)<0 && poolM.indexOf(x)<0; })
+  );
+
+  if (!allMatches.length){ box.style.display='none'; return; }
+  box.innerHTML = allMatches.slice(0,8).map(function(x){
+    var icon = personSug.indexOf(x)>=0 ? '👤' : poolM.indexOf(x)>=0 ? '🕐' : '📍';
+    var xE = x.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    var lE = (fieldLabel||'').replace(/'/g,"\\'");
+    return '<div class="ac-item" onmousedown="chonGoiYTruong(\'' + key + '\',\'' + xE + '\',\'' + lE + '\')">'+icon+' '+esc(x)+'</div>';
   }).join('');
   box.style.display = 'block';
 }
@@ -1692,11 +1823,17 @@ function chonGoiYTruong(key, val, fieldLabel){
     if (el2) el2.value = val;
     onSimpleInput(parts[0], val);
   }
-  if (fieldLabel) _acSaveToPool(fieldLabel, val);
+  if (fieldLabel){
+    _acSaveToPool(fieldLabel, val);
+    _acSavePerson(_acNormLabel(fieldLabel), val); // lưu vào pool người
+  }
   if (_acNormLabel(fieldLabel||'') === 'phuong_xa') _autoFillHuyenTinh(val);
 }
 function hideGoiYTruong(key, fieldLabel, val){
-  if (fieldLabel && val && val.trim().length >= 2) _acSaveToPool(fieldLabel, val.trim());
+  if (fieldLabel && val && val.trim().length >= 2){
+    _acSaveToPool(fieldLabel, val.trim());
+    _acSavePerson(_acNormLabel(fieldLabel), val.trim()); // lưu vào pool người
+  }
   setTimeout(function(){ var box = document.getElementById('ac-'+key); if(box) box.style.display='none'; }, 150);
 }
 
