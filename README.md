@@ -194,6 +194,8 @@ số riêng lẻ như trước. Từ v1.1.0, mỗi số phiên bản phản ánh
 
 | Phiên bản | Ngày | Thay đổi |
 |-----------|------|----------|
+| **v1.4.6** | 2026-08-28 | 🗺️ Bổ sung CSDL TP.HCM mở rộng theo NQ202/2025/QH15: thêm 75 xã/phường từ Bình Dương sáp nhập (TP. Dầu Tiếng, TP. Bến Cát, Huyện Bàu Bàng, Huyện Phú Giáo, TP. Tân Uyên, TP. Thủ Dầu Một, TP. Thuận An, TP. Dĩ An). Tổng 377 xã/phường, 30 quận/huyện. Xã Thanh An nay thuộc TP. Dầu Tiếng - TP.HCM |
+| **v1.4.5** | 2026-08-28 | 🗺️ Bổ sung CSDL hành chính TP.HCM đầy đủ: từ 95 → 302 xã/phường, từ 7 → 22 quận/huyện. Bổ sung toàn bộ Huyện Củ Chi (22 xã gồm Thanh An), Huyện Hóc Môn (12 xã), Huyện Nhà Bè (7 xã), Huyện Cần Giờ (7 xã/thị trấn), Quận 3, 4, 5, 6, 7, 8, 10, 11, Bình Thạnh, Phú Nhuận, Tân Phú |
 | **v1.4.4** | 2026-08-28 | 🐛✨ 2 sửa: (1) Popup xác nhận xóa nâng z-index 900 (trên modal-cloud 700) — không còn bị che; (2) Màn hình chi tiết nhóm dữ liệu: nhấn vào nhóm → xem từng sub-key (giá trị/lịch sử/bảng), xóa từng phần; lịch sử tờ khai hiện tên từng người; gợi ý autocomplete hiện từng người riêng có thể xóa từng người |
 | **v1.4.3** | 2026-08-28 | ✨ 2 tính năng: (1) **Quản lý dữ liệu đám mây** — thêm mục "📂 Quản lý dữ liệu đám mây" vào menu Supabase, hiện danh sách từng tờ khai / nhóm dữ liệu đang lưu trên cloud, xóa sẽ đồng bộ xóa cả Supabase lẫn localStorage máy; pool gợi ý được tách thành nhóm riêng tránh xóa nhầm; (2) **Person pool liên thông tờ khai** — xác nhận `tk2_ac_person_v1` tự sync theo push/pull cloud nên dữ liệu gợi ý dùng chung mọi tờ khai |
 | **v1.4.2** | 2026-08-28 | 🐛 Sửa autocomplete nhóm người: tách hẳn khỏi pool cũ `tk2_ac_pool_v1` — trường họ tên/MST/CMND/địa chỉ giờ CHỈ đọc `tk2_ac_person_v1`, không còn trộn dữ liệu người khác từ pool chung |
