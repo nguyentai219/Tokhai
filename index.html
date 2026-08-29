@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#8a6e2f">
-<title>Khai Thuế v1.4.6</title>
+<title>Khai Thuế v1.4.7</title>
 <meta name="description" content="Công cụ khai thuế đa tờ khai (Lệ phí trước bạ, TNCN chuyển nhượng BĐS...) - v1.3.6">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -202,6 +202,8 @@
   /* Wake Lock toggle — JS sẽ thêm/bỏ class .wl-on trên #wakelock-thumb */
   #wakelock-thumb.wl-on{background:var(--gold) !important}
   #wakelock-thumb.wl-on #wakelock-knob{left:21px !important}
+  #autofill-tinh-thumb.at-on{background:var(--gold) !important}
+  #autofill-tinh-thumb.at-on #autofill-tinh-knob{left:21px !important}
   .tk-print-doc{
     font-family:'Times New Roman',Times,serif; color:#000; font-size:13px; line-height:1.5; padding:26px 30px;
   }
@@ -278,7 +280,7 @@
     <div class="launcher-header-top">
       <div>
         <b>📚 Khai Thuế</b>
-        <span>TaiDauTieng@gmail.com · v1.4.6</span>
+        <span>TaiDauTieng@gmail.com · v1.4.7</span>
       </div>
       <button class="gear-btn" onclick="openGlobalSettings()" title="Cài đặt chung">⚙️</button>
     </div>
@@ -308,7 +310,7 @@
     </div>
     <div class="header-title" id="header-title-box" style="flex:1;text-align:center;align-items:center;padding:0 4px">
       <b id="header-title-b">📋 Tờ khai</b>
-      <span id="header-title-span">v1.4.6</span>
+      <span id="header-title-span">v1.4.7</span>
     </div>
     <div style="display:flex;gap:6px;flex:0 0 auto">
       <button class="gear-btn" onclick="moLichSuToKhai()" title="Lịch sử tờ khai">🕘</button>
@@ -456,6 +458,19 @@
       </label>
     </div>
 
+    <div style="background:var(--g100);border-radius:10px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px">
+      <div>
+        <label style="font-size:12px;color:var(--g600);font-weight:700;display:block">🗺️ Tự động điền Tỉnh/thành phố</label>
+        <div style="font-size:11px;color:var(--g500);margin-top:2px">Khi chọn xã/phường → tự điền tỉnh/thành phố tương ứng. Không tự điền quận/huyện vì có thể không chính xác sau sáp nhập</div>
+      </div>
+      <label style="position:relative;display:inline-block;width:44px;height:26px;flex-shrink:0">
+        <input type="checkbox" id="autofill-tinh-toggle" onchange="toggleAutofillTinh(this.checked)" style="opacity:0;width:0;height:0">
+        <span id="autofill-tinh-thumb" style="position:absolute;cursor:pointer;inset:0;background:var(--g300);border-radius:13px;transition:.25s">
+          <span style="position:absolute;left:3px;top:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:.25s;display:block" id="autofill-tinh-knob"></span>
+        </span>
+      </label>
+    </div>
+
     <!-- Nút mở hướng dẫn -->
     <div onclick="openM('modal-huong-dan')" style="display:flex;align-items:center;gap:10px;background:var(--g50);border:1.5px solid var(--g200);border-radius:10px;padding:11px 13px;cursor:pointer;margin-bottom:4px">
       <span style="font-size:20px">📖</span>
@@ -564,6 +579,7 @@
 const LS_PREFIX = 'tk2_';
 const LS_STARTUP_MODE = LS_PREFIX + 'startup_mode_v1'; // dùng CHUNG cho mọi loại tờ khai
 const LS_WAKELOCK    = LS_PREFIX + 'wakelock_v1';     // 'on'|'off'
+const LS_AUTOFILL_TINH = LS_PREFIX + 'autofill_tinh_v1'; // 'on'|'off' — tự điền tỉnh/tp khi chọn xã
 const LICH_SU_TOI_DA = 200;
 
 function lsGetO(k){ try{ var v=JSON.parse(localStorage.getItem(k)); return (v&&typeof v==='object'&&!Array.isArray(v))?v:{}; }catch(e){ return {}; } }
@@ -1290,6 +1306,8 @@ function openGlobalSettings(){
   _renderHCTinhSelect();
   // Restore trạng thái toggle Wake Lock
   _wlSetUi(localStorage.getItem(LS_WAKELOCK) === 'on');
+  // Restore trạng thái toggle Tự động điền tỉnh (mặc định: bật)
+  _atSetUi(localStorage.getItem(LS_AUTOFILL_TINH) !== 'off');
   openM('modal-global-settings');
 }
 function _renderHCTinhSelect(){
@@ -1357,6 +1375,7 @@ function toggleWakeLock(on){
 function _wlInit(){
   _wlEnabled = (localStorage.getItem(LS_WAKELOCK) === 'on');
   _wlSetUi(_wlEnabled);
+  _atSetUi(localStorage.getItem(LS_AUTOFILL_TINH) !== 'off'); // mặc định bật
   if (_wlEnabled) _wlAcquire();
   document.addEventListener('visibilitychange', function(){
     if (_wlEnabled && document.visibilityState === 'visible') _wlAcquire();
@@ -1747,6 +1766,19 @@ function _hcGetFiltered(){
 // Alias _HC cho các hàm cũ vẫn dùng
 Object.defineProperty(window, '_HC', { get: function(){ return _hcGetFiltered(); } });
 
+// ─── AUTOFILL TỈNH/THÀNH PHỐ ──────────────────────────────────────────────────
+function _atSetUi(on){
+  var chk   = document.getElementById('autofill-tinh-toggle');
+  var thumb = document.getElementById('autofill-tinh-thumb');
+  if (chk)   chk.checked = on;
+  if (thumb){ if (on) thumb.classList.add('at-on'); else thumb.classList.remove('at-on'); }
+}
+function toggleAutofillTinh(on){
+  localStorage.setItem(LS_AUTOFILL_TINH, on ? 'on' : 'off');
+  _atSetUi(on);
+  toast(on ? '🗺️ Tự động điền tỉnh/TP: BẬT' : '🗺️ Tự động điền tỉnh/TP: TẮT');
+}
+
 function _hcLookup(phuongXa){
   var q = (phuongXa||'').trim().toLowerCase();
   if (q.length < 2) return null;
@@ -1757,35 +1789,29 @@ function _hcLookup(phuongXa){
   }
   return null;
 }
+
+// Chỉ tự động điền tỉnh/thành phố (KHÔNG điền quận/huyện vì có thể sai sau sáp nhập).
+// Chỉ chạy khi cài đặt "Tự động điền tỉnh" đang BẬT (mặc định bật).
 function _autoFillHuyenTinh(phuongXaVal){
+  if (localStorage.getItem(LS_AUTOFILL_TINH) === 'off') return;
   if (!currentForm) return;
   var hc = _hcLookup(phuongXaVal);
   if (!hc) return;
   currentForm.schema.forEach(function(f){
     if (f.type === 'text'){
       var ln = _acNormLabel(f.label), cur = valuesMap[f.id];
-      if (ln === 'quan_huyen' && (!cur||!cur.trim())){
-        valuesMap[f.id] = hc.huyen; lsSet(K(currentForm.id,'values'),valuesMap);
-        var el = document.querySelector('[data-id="'+f.id+'"]:not([data-sub])'); if(el) el.value = hc.huyen;
-        _acSaveToPool(f.label, hc.huyen);
-      }
       if (ln === 'tinh_tp' && (!cur||!cur.trim())){
         valuesMap[f.id] = hc.tinh; lsSet(K(currentForm.id,'values'),valuesMap);
-        var el2 = document.querySelector('[data-id="'+f.id+'"]:not([data-sub])'); if(el2) el2.value = hc.tinh;
+        var el = document.querySelector('[data-id="'+f.id+'"]:not([data-sub])'); if(el) el.value = hc.tinh;
         _acSaveToPool(f.label, hc.tinh);
       }
     }
     if (f.type === 'multi' && f.subs) f.subs.forEach(function(sb){
       var ln = _acNormLabel(sb.label), cur = valuesMap[f.id] && valuesMap[f.id][sb.k];
-      if (ln === 'quan_huyen' && (!cur||!cur.trim())){
-        if(!valuesMap[f.id]) valuesMap[f.id]={};
-        valuesMap[f.id][sb.k] = hc.huyen; lsSet(K(currentForm.id,'values'),valuesMap);
-        var el3 = document.querySelector('[data-id="'+f.id+'"][data-sub="'+sb.k+'"]'); if(el3) el3.value = hc.huyen;
-      }
       if (ln === 'tinh_tp' && (!cur||!cur.trim())){
         if(!valuesMap[f.id]) valuesMap[f.id]={};
         valuesMap[f.id][sb.k] = hc.tinh; lsSet(K(currentForm.id,'values'),valuesMap);
-        var el4 = document.querySelector('[data-id="'+f.id+'"][data-sub="'+sb.k+'"]'); if(el4) el4.value = hc.tinh;
+        var el2 = document.querySelector('[data-id="'+f.id+'"][data-sub="'+sb.k+'"]'); if(el2) el2.value = hc.tinh;
       }
     });
   });
