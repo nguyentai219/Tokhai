@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#8a6e2f">
-<title>Khai Thuế v1.4.3</title>
+<title>Khai Thuế v1.4.4</title>
 <meta name="description" content="Công cụ khai thuế đa tờ khai (Lệ phí trước bạ, TNCN chuyển nhượng BĐS...) - v1.3.6">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -278,7 +278,7 @@
     <div class="launcher-header-top">
       <div>
         <b>📚 Khai Thuế</b>
-        <span>TaiDauTieng@gmail.com · v1.4.3</span>
+        <span>TaiDauTieng@gmail.com · v1.4.4</span>
       </div>
       <button class="gear-btn" onclick="openGlobalSettings()" title="Cài đặt chung">⚙️</button>
     </div>
@@ -308,7 +308,7 @@
     </div>
     <div class="header-title" id="header-title-box" style="flex:1;text-align:center;align-items:center;padding:0 4px">
       <b id="header-title-b">📋 Tờ khai</b>
-      <span id="header-title-span">v1.4.3</span>
+      <span id="header-title-span">v1.4.4</span>
     </div>
     <div style="display:flex;gap:6px;flex:0 0 auto">
       <button class="gear-btn" onclick="moLichSuToKhai()" title="Lịch sử tờ khai">🕘</button>
@@ -511,6 +511,17 @@
   </div>
 </div>
 
+<div class="modal modal-cloud" id="modal-cloud-detail" style="z-index:750">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title"><span class="modal-title-text" id="cloud-detail-title">Chi tiết</span><button class="modal-close-x" onclick="closeM('modal-cloud-detail')">✕</button></div>
+    <div id="cloud-detail-body" style="padding:4px 0 8px"><!-- render động --></div>
+    <div class="modal-footer">
+      <button class="btn-huy" onclick="closeM('modal-cloud-detail')" style="flex:none;width:100%">Đóng</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <!-- MODAL LỊCH SỬ TỜ KHAI -->
@@ -527,7 +538,7 @@
 </div>
 
 <!-- MODAL XÁC NHẬN dùng chung (thay cho confirm() mặc định của trình duyệt) -->
-<div class="modal" id="modal-confirm" style="z-index:600">
+<div class="modal" id="modal-confirm" style="z-index:900">
   <div class="modal-box">
     <div class="modal-handle"></div>
     <div class="modal-title"><span class="modal-title-text" id="confirm-title">⚠️ Xác nhận</span><button class="modal-close-x" onclick="closeM('modal-confirm')">✕</button></div>
@@ -2854,10 +2865,48 @@ function openCloudModal(){
 }
 function _updateLastSyncDisplay(){ /* modal render động */ }
 
-// ── Quản lý dữ liệu đám mây ──────────────────────────────────────────────────
-// Mỗi tờ khai có tập key theo pattern tk2_<formId>_*_v1.
-// Ngoài ra có các key chung: ac_pool, ac_person, startup_mode, wakelock.
-var _CLOUD_COMMON_KEYS = ['ac_pool_v1','ac_person_v1','startup_mode_v1','wakelock_v1','hc_tinh_v1','cloud_last_sync'];
+// ── Quản lý dữ liệu đám mây ─────────────────────────────────────────────────
+// Sub-key mỗi tờ khai và nhãn hiển thị
+var _FORM_SUB_KEYS = [
+  { k:'values',     label:'Dữ liệu nhập liệu',        icon:'📝' },
+  { k:'checked',    label:'Mục kích hoạt',             icon:'☑️' },
+  { k:'tables',     label:'Dữ liệu bảng',              icon:'📊' },
+  { k:'history',    label:'Lịch sử tờ khai',           icon:'📋' },
+  { k:'current_id', label:'Tờ khai đang mở',           icon:'🔖' },
+];
+
+async function _fetchCloudRows(){
+  var res = await _supa.from('khai_thue_data').select('data_key,data_val,updated_at').eq('user_id', _supaUser.id);
+  if (res.error) throw res.error;
+  return res.data || [];
+}
+
+function _groupRows(rows){
+  var acKeys = [LS_AC_POOL, LS_AC_PERSON];
+  var groups = {};
+  FORM_DEFS.forEach(function(f){
+    groups[f.id] = { label:f.tenNgan, icon:f.icon, mauSo:f.mauSo, rows:[], updatedAt:null };
+  });
+  groups['__chung__'] = { label:'Dữ liệu chung', icon:'⚙️', mauSo:'', rows:[], updatedAt:null };
+  groups['__goiy__']  = { label:'Lịch sử gợi ý (autocomplete)', icon:'💡', mauSo:'', rows:[], updatedAt:null };
+  rows.forEach(function(r){
+    var matched = false;
+    FORM_DEFS.forEach(function(f){
+      if (r.data_key.startsWith('tk2_' + f.id + '_')){
+        groups[f.id].rows.push(r); matched = true;
+        if (!groups[f.id].updatedAt || r.updated_at > groups[f.id].updatedAt) groups[f.id].updatedAt = r.updated_at;
+      }
+    });
+    if (!matched){
+      var dest = acKeys.indexOf(r.data_key) >= 0 ? '__goiy__' : '__chung__';
+      groups[dest].rows.push(r);
+      if (!groups[dest].updatedAt || r.updated_at > groups[dest].updatedAt) groups[dest].updatedAt = r.updated_at;
+    }
+  });
+  return groups;
+}
+
+function _fmtTs(iso){ return iso ? new Date(iso).toLocaleString('vi-VN',{hour12:false,hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit',year:'numeric'}) : ''; }
 
 async function openCloudStorage(){
   if (!_supa || !_supaUser){ toast('Chưa đăng nhập Supabase'); return; }
@@ -2865,47 +2914,22 @@ async function openCloudStorage(){
   body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--g500)">⏳ Đang tải…</div>';
   openM('modal-cloud-storage');
   try {
-    var res = await _supa.from('khai_thue_data').select('data_key,updated_at').eq('user_id', _supaUser.id);
-    if (res.error) throw res.error;
-    var rows = res.data || [];
-    // Nhóm theo tờ khai
-    var groups = {}; // { formId: { label, icon, keys:[], updatedAt } }
-    FORM_DEFS.forEach(function(f){
-      groups[f.id] = { label: f.tenNgan, icon: f.icon, mauSo: f.mauSo, keys: [], updatedAt: null };
-    });
-    groups['__chung__'] = { label: 'Dữ liệu chung', icon: '⚙️', mauSo: '', keys: [], updatedAt: null };
-    // Key gợi ý — nhóm riêng, không bị xóa cùng __chung__
-    var _AC_KEYS = [LS_AC_POOL, LS_AC_PERSON]; // tk2_ac_pool_v1, tk2_ac_person_v1
-    groups['__goiy__'] = { label: 'Lịch sử gợi ý (autocomplete)', icon: '💡', mauSo: '', keys: [], updatedAt: null };
-    rows.forEach(function(r){
-      var matched = false;
-      FORM_DEFS.forEach(function(f){
-        if (r.data_key.startsWith('tk2_' + f.id + '_')){ groups[f.id].keys.push(r.data_key); matched = true;
-          if (!groups[f.id].updatedAt || r.updated_at > groups[f.id].updatedAt) groups[f.id].updatedAt = r.updated_at; }
-      });
-      if (!matched){
-        if (_AC_KEYS.indexOf(r.data_key) >= 0){
-          groups['__goiy__'].keys.push(r.data_key);
-          if (!groups['__goiy__'].updatedAt || r.updated_at > groups['__goiy__'].updatedAt) groups['__goiy__'].updatedAt = r.updated_at;
-        } else {
-          groups['__chung__'].keys.push(r.data_key);
-          if (!groups['__chung__'].updatedAt || r.updated_at > groups['__chung__'].updatedAt) groups['__chung__'].updatedAt = r.updated_at;
-        }
-      }
-    });
-    var html = '<div style="font-size:12px;color:var(--g500);padding:6px 16px 10px">Dữ liệu đang lưu trên tài khoản Supabase. Xóa sẽ đồng thời xóa trên đám mây và trên máy này.</div>';
+    var rows   = await _fetchCloudRows();
+    var groups = _groupRows(rows);
+    var html = '<div style="font-size:12px;color:var(--g500);padding:6px 16px 10px">Nhấn vào nhóm để xem chi tiết và xóa từng phần.</div>';
     var allIds = FORM_DEFS.map(function(f){ return f.id; }).concat(['__chung__','__goiy__']);
     allIds.forEach(function(gid){
       var g = groups[gid];
-      if (!g.keys.length){ return; } // không có dữ liệu → không hiện
-      var ts = g.updatedAt ? new Date(g.updatedAt).toLocaleString('vi-VN',{hour12:false,hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit',year:'numeric'}) : '';
-      html += '<div style="display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--g100)">'
+      if (!g.rows.length) return;
+      var ts = _fmtTs(g.updatedAt);
+      html += '<div style="display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--g100);cursor:pointer" onclick="openCloudDetail(\'' + gid + '\')">'
         + '<div style="font-size:22px;flex-shrink:0">' + g.icon + '</div>'
         + '<div style="flex:1;min-width:0">'
-        +   '<div style="font-size:13px;font-weight:700;color:var(--ink)">' + g.label + (g.mauSo ? ' <span style="font-weight:400;color:var(--g500)">(' + g.mauSo + ')</span>' : '') + '</div>'
-        +   '<div style="font-size:11px;color:var(--g400)">' + g.keys.length + ' mục · cập nhật ' + ts + '</div>'
+        +   '<div style="font-size:13px;font-weight:700;color:var(--ink)">' + g.label
+        +     (g.mauSo ? ' <span style="font-weight:400;color:var(--g500)">(' + g.mauSo + ')</span>' : '') + '</div>'
+        +   '<div style="font-size:11px;color:var(--g400)">' + g.rows.length + ' mục · ' + ts + '</div>'
         + '</div>'
-        + '<button onclick="deleteCloudGroup(\'' + gid + '\')" style="flex-shrink:0;padding:7px 12px;border:none;border-radius:8px;background:#fee2e2;color:#dc2626;font-size:12px;font-weight:700;cursor:pointer">🗑 Xóa</button>'
+        + '<div style="font-size:18px;color:var(--g400)">›</div>'
         + '</div>';
     });
     if (!rows.length) html = '<div style="text-align:center;padding:32px;color:var(--g400)">☁️ Chưa có dữ liệu nào trên đám mây</div>';
@@ -2914,6 +2938,186 @@ async function openCloudStorage(){
     body.innerHTML = '<div style="color:#dc2626;padding:16px">❌ Lỗi: ' + (e.message||e) + '</div>';
   }
 }
+
+var _currentDetailGid = '';
+async function openCloudDetail(gid){
+  _currentDetailGid = gid;
+  var titleEl = document.getElementById('cloud-detail-title');
+  var body    = document.getElementById('cloud-detail-body');
+  body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--g500)">⏳ Đang tải…</div>';
+  openM('modal-cloud-detail');
+  try {
+    var rows   = await _fetchCloudRows();
+    var groups = _groupRows(rows);
+    var g = groups[gid];
+    if (!g){ body.innerHTML = '<div style="padding:16px;color:#dc2626">❌ Không tìm thấy nhóm</div>'; return; }
+    titleEl.textContent = g.icon + ' ' + g.label;
+    var html = '';
+    var btnXoaHet = '<div style="padding:8px 16px 4px"><button onclick="deleteCloudGroup(\'' + gid + '\')" style="width:100%;padding:10px;border:none;border-radius:9px;background:#fee2e2;color:#dc2626;font-size:13px;font-weight:700;cursor:pointer">🗑 Xóa toàn bộ nhóm này</button></div>';
+
+    if (gid !== '__goiy__' && gid !== '__chung__'){
+      var f = FORM_DEFS.find(function(x){ return x.id===gid; });
+      html += btnXoaHet;
+      _FORM_SUB_KEYS.forEach(function(sk){
+        var fullKey = K(gid, sk.k);
+        var row = g.rows.find(function(r){ return r.data_key === fullKey; });
+        if (!row) return;
+        var preview = '';
+        try {
+          var parsed = JSON.parse(row.data_val);
+          if (Array.isArray(parsed)) preview = parsed.length + ' bản ghi';
+          else if (parsed && typeof parsed === 'object'){
+            var klen = Object.keys(parsed).length;
+            preview = klen + ' mục';
+            if (sk.k === 'history' && f){
+              var names = [];
+              Object.values(parsed).forEach(function(v){ if (v && v[f.tenFieldId]) names.push(v[f.tenFieldId]); });
+              if (names.length) preview += ' – ' + names.slice(0,3).join(', ');
+            }
+          } else if (typeof parsed === 'string') preview = '"' + parsed.slice(0,40) + '"';
+        } catch(e2){}
+        var keyEsc = fullKey.replace(/'/g,"\\'");
+        var lblEsc = sk.label.replace(/'/g,"\\'");
+        html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--g100)">'
+          + '<div style="font-size:18px;flex-shrink:0">' + sk.icon + '</div>'
+          + '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--ink)">' + sk.label + '</div>'
+          + '<div style="font-size:11px;color:var(--g400)">' + preview + '</div></div>'
+          + '<button onclick="deleteCloudKeys([\'' + keyEsc + '\'],\'' + lblEsc + '\')" style="flex-shrink:0;padding:6px 10px;border:none;border-radius:7px;background:#fee2e2;color:#dc2626;font-size:12px;font-weight:700;cursor:pointer">🗑</button>'
+          + '</div>';
+      });
+      // Lịch sử từng người
+      var histKey = K(gid, 'history');
+      var histRow = g.rows.find(function(r){ return r.data_key === histKey; });
+      if (histRow && f){
+        try {
+          var hist = JSON.parse(histRow.data_val);
+          if (hist && typeof hist === 'object' && !Array.isArray(hist)){
+            var entries = Object.entries(hist);
+            if (entries.length){
+              html += '<div style="padding:8px 16px 2px;font-size:12px;color:var(--g500);font-weight:700;border-top:2px solid var(--g200)">TỪNG NGƯỜI TRONG LỊCH SỬ</div>';
+              entries.forEach(function(kv){
+                var eid = kv[0], vals = kv[1];
+                var name = (vals && vals[f.tenFieldId]) ? vals[f.tenFieldId] : ('Tờ khai #' + eid);
+                html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid var(--g100)">'
+                  + '<div style="font-size:15px;flex-shrink:0">👤</div>'
+                  + '<div style="flex:1;font-size:13px;color:var(--ink)">' + esc(name) + '</div>'
+                  + '<button onclick="deleteHistoryEntry(\'' + gid + '\',\'' + eid.replace(/'/g,"\\'") + '\')" style="flex-shrink:0;padding:6px 10px;border:none;border-radius:7px;background:#fee2e2;color:#dc2626;font-size:12px;font-weight:700;cursor:pointer">🗑</button>'
+                  + '</div>';
+              });
+            }
+          }
+        } catch(e2){}
+      }
+    } else if (gid === '__goiy__'){
+      html += btnXoaHet;
+      var persRow = g.rows.find(function(r){ return r.data_key === LS_AC_PERSON; });
+      if (persRow){
+        try {
+          var persons = JSON.parse(persRow.data_val);
+          if (Array.isArray(persons) && persons.length){
+            html += '<div style="padding:8px 16px 2px;font-size:12px;color:var(--g500);font-weight:700">TỪNG NGƯỜI</div>';
+            persons.forEach(function(p, idx){
+              var name   = p.ho_ten || '(Không tên)';
+              var detail = [p.ma_so_thue && ('MST: ' + p.ma_so_thue), p.cmnd_cccd && ('CMND: ' + p.cmnd_cccd)].filter(Boolean).join(' · ');
+              html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid var(--g100)">'
+                + '<div style="font-size:15px;flex-shrink:0">👤</div>'
+                + '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--ink)">' + esc(name) + '</div>'
+                + (detail ? '<div style="font-size:11px;color:var(--g400)">' + esc(detail) + '</div>' : '') + '</div>'
+                + '<button onclick="deletePersonEntry(' + idx + ')" style="flex-shrink:0;padding:6px 10px;border:none;border-radius:7px;background:#fee2e2;color:#dc2626;font-size:12px;font-weight:700;cursor:pointer">🗑</button>'
+                + '</div>';
+            });
+          } else { html += '<div style="padding:16px;color:var(--g400);text-align:center">Chưa có người nào</div>'; }
+        } catch(e2){}
+      }
+    } else {
+      html += btnXoaHet;
+      g.rows.forEach(function(r){
+        var kEsc = r.data_key.replace(/'/g,"\\'");
+        html += '<div style="display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--g100)">'
+          + '<div style="flex:1;font-size:12px;color:var(--ink);word-break:break-all">' + esc(r.data_key) + '</div>'
+          + '<button onclick="deleteCloudKeys([\'' + kEsc + '\'],\'mục này\')" style="flex-shrink:0;padding:6px 10px;border:none;border-radius:7px;background:#fee2e2;color:#dc2626;font-size:12px;cursor:pointer">🗑</button>'
+          + '</div>';
+      });
+    }
+    body.innerHTML = html || '<div style="padding:16px;color:var(--g400)">Không có dữ liệu</div>';
+  } catch(e){
+    body.innerHTML = '<div style="color:#dc2626;padding:16px">❌ Lỗi: ' + (e.message||e) + '</div>';
+  }
+}
+
+async function deleteCloudKeys(keys, label){
+  showConfirm('🗑 Xóa ' + label, 'Xóa "' + label + '" khỏi đám mây và máy này?', async function(){
+    try {
+      var del = await _supa.from('khai_thue_data').delete().eq('user_id',_supaUser.id).in('data_key',keys);
+      if (del.error) throw del.error;
+      keys.forEach(function(k){ localStorage.removeItem(k); });
+      toast('✅ Đã xóa "' + label + '"');
+      if (_currentDetailGid) openCloudDetail(_currentDetailGid);
+    } catch(e){ toast('❌ Lỗi: ' + (e.message||e)); }
+  }, 'Xóa', true);
+}
+
+async function deleteHistoryEntry(formId, entryId){
+  showConfirm('🗑 Xóa tờ khai này', 'Xóa tờ khai khỏi lịch sử?', async function(){
+    try {
+      var histKey = K(formId, 'history');
+      var res = await _supa.from('khai_thue_data').select('data_val').eq('user_id',_supaUser.id).eq('data_key',histKey).single();
+      if (res.error) throw res.error;
+      var hist = JSON.parse(res.data.data_val || '{}');
+      delete hist[entryId];
+      var newVal = JSON.stringify(hist);
+      var upd = await _supa.from('khai_thue_data').upsert([{ user_id:_supaUser.id, data_key:histKey, data_val:newVal, updated_at:new Date().toISOString() }],{ onConflict:'user_id,data_key' });
+      if (upd.error) throw upd.error;
+      localStorage.setItem(histKey, newVal);
+      toast('✅ Đã xóa tờ khai khỏi lịch sử');
+      openCloudDetail(formId);
+    } catch(e){ toast('❌ Lỗi: ' + (e.message||e)); }
+  }, 'Xóa', true);
+}
+
+async function deletePersonEntry(idx){
+  showConfirm('🗑 Xóa người này', 'Xóa bản ghi autocomplete của người này?', async function(){
+    try {
+      var persons = lsGetA(LS_AC_PERSON);
+      persons.splice(idx, 1);
+      var newVal = JSON.stringify(persons);
+      var upd = await _supa.from('khai_thue_data').upsert([{ user_id:_supaUser.id, data_key:LS_AC_PERSON, data_val:newVal, updated_at:new Date().toISOString() }],{ onConflict:'user_id,data_key' });
+      if (upd.error) throw upd.error;
+      lsSet(LS_AC_PERSON, persons);
+      toast('✅ Đã xóa');
+      openCloudDetail('__goiy__');
+    } catch(e){ toast('❌ Lỗi: ' + (e.message||e)); }
+  }, 'Xóa', true);
+}
+
+async function deleteCloudGroup(gid){
+  var gLabels = { '__chung__':'Dữ liệu chung', '__goiy__':'Lịch sử gợi ý' };
+  var label = gLabels[gid] || (function(){ var f=FORM_DEFS.find(function(x){ return x.id===gid; }); return f ? f.tenNgan+' ('+f.mauSo+')' : gid; })();
+  showConfirm('🗑 Xóa ' + label,
+    'Xóa toàn bộ "' + label + '" khỏi đám mây VÀ máy này. Không thể khôi phục!',
+    async function(){
+      try {
+        var rows   = await _fetchCloudRows();
+        var acKeys = [LS_AC_POOL, LS_AC_PERSON];
+        var toDelete = rows.map(function(r){ return r.data_key; }).filter(function(k){
+          var isFormKey = FORM_DEFS.some(function(f){ return k.startsWith('tk2_'+f.id+'_'); });
+          var isAcKey   = acKeys.indexOf(k) >= 0;
+          if (gid==='__chung__') return !isFormKey && !isAcKey;
+          if (gid==='__goiy__')  return isAcKey;
+          return k.startsWith('tk2_'+gid+'_');
+        });
+        if (toDelete.length){
+          var del = await _supa.from('khai_thue_data').delete().eq('user_id',_supaUser.id).in('data_key',toDelete);
+          if (del.error) throw del.error;
+          toDelete.forEach(function(k){ localStorage.removeItem(k); });
+        }
+        toast('✅ Đã xóa "' + label + '"');
+        closeM('modal-cloud-detail');
+        openCloudStorage();
+      } catch(e){ toast('❌ Lỗi xóa: ' + (e.message||e)); }
+    }, 'Xóa', true);
+}
+
 
 // Xóa toàn bộ dữ liệu 1 nhóm: cả Supabase lẫn localStorage
 async function deleteCloudGroup(gid){

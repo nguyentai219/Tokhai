@@ -194,6 +194,7 @@ số riêng lẻ như trước. Từ v1.1.0, mỗi số phiên bản phản ánh
 
 | Phiên bản | Ngày | Thay đổi |
 |-----------|------|----------|
+| **v1.4.4** | 2026-08-28 | 🐛✨ 2 sửa: (1) Popup xác nhận xóa nâng z-index 900 (trên modal-cloud 700) — không còn bị che; (2) Màn hình chi tiết nhóm dữ liệu: nhấn vào nhóm → xem từng sub-key (giá trị/lịch sử/bảng), xóa từng phần; lịch sử tờ khai hiện tên từng người; gợi ý autocomplete hiện từng người riêng có thể xóa từng người |
 | **v1.4.3** | 2026-08-28 | ✨ 2 tính năng: (1) **Quản lý dữ liệu đám mây** — thêm mục "📂 Quản lý dữ liệu đám mây" vào menu Supabase, hiện danh sách từng tờ khai / nhóm dữ liệu đang lưu trên cloud, xóa sẽ đồng bộ xóa cả Supabase lẫn localStorage máy; pool gợi ý được tách thành nhóm riêng tránh xóa nhầm; (2) **Person pool liên thông tờ khai** — xác nhận `tk2_ac_person_v1` tự sync theo push/pull cloud nên dữ liệu gợi ý dùng chung mọi tờ khai |
 | **v1.4.2** | 2026-08-28 | 🐛 Sửa autocomplete nhóm người: tách hẳn khỏi pool cũ `tk2_ac_pool_v1` — trường họ tên/MST/CMND/địa chỉ giờ CHỈ đọc `tk2_ac_person_v1`, không còn trộn dữ liệu người khác từ pool chung |
 | **v1.4.1** | 2026-08-28 | ✨ Autocomplete thông minh theo người: thêm pool `tk2_ac_person_v1` lưu bộ dữ liệu theo người (họ tên + MST + CMND/CCCD + địa chỉ). Khi đã nhập họ tên, ô MST/CMND/địa chỉ tiếp theo chỉ hiện đúng đề xuất của người đó. Icon 👤=khớp người, 🕐=pool chung, 📍=địa chính |
