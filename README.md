@@ -194,6 +194,8 @@ số riêng lẻ như trước. Từ v1.1.0, mỗi số phiên bản phản ánh
 
 | Phiên bản | Ngày | Thay đổi |
 |-----------|------|----------|
+| **v1.4.9** | 2026-08-29 | 🐛 Sửa 2 bug autocomplete: (1) `_acNormLabel`: đưa kiểm tra `cmnd_cccd` lên TRƯỚC `ma_so_thue` — label "Số CMND/CCCD/Hộ chiếu (trường hợp chưa có mã số thuế)" bị nhận nhầm thành `ma_so_thue` do label chứa cả hai từ; (2) `_acPersonSuggest`: khi đã có ho_ten khớp thì KHÔNG trộn dữ liệu người khác vào kết quả |
+| **v1.4.8** | 2026-08-29 | 🗺️ Làm lại hoàn toàn CSDL TP.HCM: xây từ nguồn chính xác (NQ1685/NQ-UBTVQH15), đúng 168 xã/phường/đặc khu (113 phường + 54 xã + Côn Đảo). Không còn cấp quận/huyện. Gồm đủ khu vực TP.HCM cũ + 36 đơn vị Bình Dương cũ (có Xã Thanh An từ H. Dầu Tiếng) + 30 đơn vị Bà Rịa–Vũng Tàu cũ. Xóa dữ liệu sai của các phiên bản trước |
 | **v1.4.7** | 2026-08-29 | ✨ Cải tiến autofill địa chỉ: (1) Bỏ tự động điền Quận/huyện (không chính xác sau sáp nhập NQ202); (2) Chỉ giữ tự động điền Tỉnh/thành phố; (3) Thêm toggle bật/tắt "Tự động điền Tỉnh/TP" vào Cài đặt chung (mặc định bật, lưu localStorage) |
 | **v1.4.6** | 2026-08-28 | 🗺️ Bổ sung CSDL TP.HCM mở rộng theo NQ202/2025/QH15: thêm 75 xã/phường từ Bình Dương sáp nhập (TP. Dầu Tiếng, TP. Bến Cát, Huyện Bàu Bàng, Huyện Phú Giáo, TP. Tân Uyên, TP. Thủ Dầu Một, TP. Thuận An, TP. Dĩ An). Tổng 377 xã/phường, 30 quận/huyện. Xã Thanh An nay thuộc TP. Dầu Tiếng - TP.HCM |
 | **v1.4.5** | 2026-08-28 | 🗺️ Bổ sung CSDL hành chính TP.HCM đầy đủ: từ 95 → 302 xã/phường, từ 7 → 22 quận/huyện. Bổ sung toàn bộ Huyện Củ Chi (22 xã gồm Thanh An), Huyện Hóc Môn (12 xã), Huyện Nhà Bè (7 xã), Huyện Cần Giờ (7 xã/thị trấn), Quận 3, 4, 5, 6, 7, 8, 10, 11, Bình Thạnh, Phú Nhuận, Tân Phú |
