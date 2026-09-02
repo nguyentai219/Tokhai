@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#8a6e2f">
-<title>Khai Thuế v1.4.9</title>
+<title>Khai Thuế v1.5.0</title>
 <meta name="description" content="Công cụ khai thuế đa tờ khai (Lệ phí trước bạ, TNCN chuyển nhượng BĐS...) - v1.3.6">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -280,7 +280,7 @@
     <div class="launcher-header-top">
       <div>
         <b>📚 Khai Thuế</b>
-        <span>TaiDauTieng@gmail.com · v1.4.9</span>
+        <span>TaiDauTieng@gmail.com · v1.5.0</span>
       </div>
       <button class="gear-btn" onclick="openGlobalSettings()" title="Cài đặt chung">⚙️</button>
     </div>
@@ -310,7 +310,7 @@
     </div>
     <div class="header-title" id="header-title-box" style="flex:1;text-align:center;align-items:center;padding:0 4px">
       <b id="header-title-b">📋 Tờ khai</b>
-      <span id="header-title-span">v1.4.9</span>
+      <span id="header-title-span">v1.5.0</span>
     </div>
     <div style="display:flex;gap:6px;flex:0 0 auto">
       <button class="gear-btn" onclick="moLichSuToKhai()" title="Lịch sử tờ khai">🕘</button>
@@ -2624,8 +2624,17 @@ async function cloudPullAll(showFeedback){
   try {
     var res = await _supa.from('khai_thue_data').select('data_key,data_val').eq('user_id',_supaUser.id);
     if (res.error) throw res.error;
+    var cloudKeys = {};
     (res.data||[]).forEach(function(r){
-      if (r.data_key && r.data_val != null) localStorage.setItem(r.data_key, r.data_val);
+      if (r.data_key && r.data_val != null){
+        localStorage.setItem(r.data_key, r.data_val);
+        cloudKeys[r.data_key] = true;
+      }
+    });
+    // Xóa các key app trong localStorage mà cloud không còn (đã bị xóa trên cloud)
+    var localAppKeys = _getAllAppKeys();
+    localAppKeys.forEach(function(k){
+      if (!cloudKeys[k]) localStorage.removeItem(k);
     });
     // Cập nhật state đang mở (không reload trang)
     if (currentForm){
@@ -3038,6 +3047,7 @@ async function openCloudDetail(gid){
       }
     } else if (gid === '__goiy__'){
       html += btnXoaHet;
+      html += '<div style="padding:0 16px 8px"><button onclick="clearLocalAcPool()" style="width:100%;padding:10px;border:none;border-radius:9px;background:#fff3cd;color:#92400e;font-size:13px;font-weight:700;cursor:pointer">🧹 Xóa gợi ý trên máy này (không cần Supabase)</button></div>';
       var persRow = g.rows.find(function(r){ return r.data_key === LS_AC_PERSON; });
       if (persRow){
         try {
@@ -3071,6 +3081,16 @@ async function openCloudDetail(gid){
   } catch(e){
     body.innerHTML = '<div style="color:#dc2626;padding:16px">❌ Lỗi: ' + (e.message||e) + '</div>';
   }
+}
+
+// Xóa pool gợi ý trực tiếp khỏi localStorage (không cần Supabase)
+function clearLocalAcPool(){
+  showConfirm('🧹 Xóa gợi ý trên máy', 'Xóa toàn bộ lịch sử gợi ý (họ tên, MST, CMND, địa chỉ) khỏi máy này ngay lập tức?', function(){
+    localStorage.removeItem(LS_AC_PERSON);
+    localStorage.removeItem(LS_AC_POOL);
+    toast('✅ Đã xóa gợi ý trên máy này');
+    openCloudDetail('__goiy__');
+  }, 'Xóa', true);
 }
 
 async function deleteCloudKeys(keys, label){
