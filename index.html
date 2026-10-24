@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#8a6e2f">
-<title>Khai Thuế v1.5.2</title>
+<title>Khai Thuế v1.5.3</title>
 <meta name="description" content="Công cụ khai thuế đa tờ khai (Lệ phí trước bạ, TNCN chuyển nhượng BĐS...) - v1.3.6">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -221,6 +221,12 @@
 
 
   /* ═══ ĐỌC GIẤY TỜ BẰNG AI ═══ */
+  .vip-badge{display:inline-block;font-size:.62em;font-weight:900;letter-spacing:.6px;line-height:1;color:#4a2f00;
+    background:linear-gradient(135deg,#fff3a8 0%,#ffd23f 40%,#f0a800 100%);padding:3px 6px 2px;border-radius:5px;
+    margin-left:6px;vertical-align:middle;position:relative;top:-1px;text-shadow:0 1px 0 rgba(255,255,255,.6);
+    box-shadow:0 0 0 1px #c98f00,0 1px 6px rgba(240,168,0,.65)}
+  #ai-auto-thumb.ai-on{background:var(--gold) !important}
+  #ai-auto-thumb.ai-on #ai-auto-knob{left:21px !important}
   .ai-bar{display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#f7f1e3,#fff);border:1.5px solid var(--gold);border-radius:12px;padding:10px 12px;margin-bottom:14px;cursor:pointer}
   .ai-bar:active{background:var(--gold-light)}
   .ai-bar .ico{font-size:24px}
@@ -315,7 +321,7 @@
     <div class="launcher-header-top">
       <div>
         <b>📚 Khai Thuế</b>
-        <span>TaiDauTieng@gmail.com · v1.5.2</span>
+        <span>TaiDauTieng@gmail.com · v1.5.3</span>
       </div>
       <button class="gear-btn" onclick="openGlobalSettings()" title="Cài đặt chung">⚙️</button>
     </div>
@@ -345,7 +351,7 @@
     </div>
     <div class="header-title" id="header-title-box" style="flex:1;text-align:center;align-items:center;padding:0 4px">
       <b id="header-title-b">📋 Tờ khai</b>
-      <span id="header-title-span">v1.5.2</span>
+      <span id="header-title-span">v1.5.3</span>
     </div>
     <div style="display:flex;gap:6px;flex:0 0 auto">
       <button class="gear-btn" onclick="moLichSuToKhai()" title="Lịch sử tờ khai">🕘</button>
@@ -432,10 +438,11 @@
       </div>
 
       <div style="height:1px;background:var(--g200);margin:8px 0"></div>
-      <div style="font-size:13px;font-weight:700;color:var(--gold-dark);margin-bottom:4px">🤖 Đọc giấy tờ bằng AI</div>
+      <div style="font-size:13px;font-weight:700;color:var(--gold-dark);margin-bottom:4px">🤖 Đọc giấy tờ bằng AI<span class="vip-badge">VIP</span></div>
       <div style="font-size:12px;background:var(--g50);border-radius:8px;padding:8px 10px;margin-bottom:10px">
         Tạo API key ở <b>console.anthropic.com</b> (nạp tiền trước), dán vào ⚙️ Cài đặt chung → 🤖 Đọc giấy tờ bằng AI, nhập số dư đã nạp.<br>
         Trong tờ khai, nhấn <b>📷 Đọc giấy tờ bằng AI</b> → chụp/chọn ảnh vào đúng nhóm <b>Bên mua</b> / <b>Bên bán</b> (CCCD up đúng bên; sổ đỏ, hợp đồng up bên nào cũng được) → AI đề xuất giá trị từng mục → xem lại, sửa nếu cần → <b>Điền vào tờ khai</b>.<br>
+        Bật <b>⚡ Tự động điền sau khi đọc ảnh</b> trong Cài đặt chung để AI điền thẳng vào các mục đang tick, không qua bước xem lại.<br>
         Mỗi lần đọc app tự trừ số dư ước tính và báo biến động. Hết số dư thì không đọc ảnh được, vẫn nhập tay bình thường. API key chỉ lưu trên máy, không đồng bộ đám mây.
       </div>
 
@@ -516,7 +523,7 @@
 
     <!-- ĐỌC GIẤY TỜ BẰNG AI — API key + mô hình + số dư ước tính (chỉ lưu trên máy này, không đồng bộ đám mây) -->
     <div class="ai-box">
-      <div style="font-weight:700;color:var(--g600);margin-bottom:4px">🤖 Đọc giấy tờ bằng AI (Claude)</div>
+      <div style="font-weight:700;color:var(--g600);margin-bottom:4px">🤖 Đọc giấy tờ bằng AI<span class="vip-badge">VIP</span> <span style="font-weight:400;font-size:11px">(Claude)</span></div>
       <div style="font-size:11px;color:var(--g500)">Dán API key tạo ở console.anthropic.com (sau khi nạp tiền). Key chỉ lưu trên máy này, <b>không</b> đồng bộ lên đám mây.</div>
       <div class="ai-row">
         <input type="password" id="ai-key-input" placeholder="sk-ant-..." autocomplete="off" spellcheck="false">
@@ -526,6 +533,18 @@
       <div class="ai-row">
         <label style="flex:0 0 auto;font-weight:700;color:var(--g600)">Mô hình:</label>
         <select id="ai-model-select" onchange="aiLuuModel(this.value)"></select>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px">
+        <div>
+          <label style="font-weight:700;color:var(--g600);display:block">⚡ Tự động điền sau khi đọc ảnh</label>
+          <div style="font-size:11px;color:var(--g500);margin-top:2px">Bỏ qua bước xem lại: AI tự điền đầy đủ thông tin đọc được vào <b>các mục đang tick</b> (đang hiện ô nhập) của tờ khai. Mục chưa tick bị bỏ qua.</div>
+        </div>
+        <label style="position:relative;display:inline-block;width:44px;height:26px;flex-shrink:0">
+          <input type="checkbox" id="ai-auto-toggle" onchange="aiLuuTuDong(this.checked)" style="opacity:0;width:0;height:0">
+          <span id="ai-auto-thumb" style="position:absolute;cursor:pointer;inset:0;background:var(--g300);border-radius:13px;transition:.25s">
+            <span style="position:absolute;left:3px;top:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:.25s;display:block" id="ai-auto-knob"></span>
+          </span>
+        </label>
       </div>
       <div style="margin-top:8px"><b>💰 Số dư ước tính:</b> <span id="ai-balance-text">—</span></div>
       <div class="ai-row">
@@ -606,7 +625,7 @@
 <div class="modal" id="modal-ai">
   <div class="modal-box">
     <div class="modal-handle"></div>
-    <div class="modal-title"><span class="modal-title-text">🤖 Đọc giấy tờ bằng AI</span><button class="modal-close-x" onclick="aiDong()">✕</button></div>
+    <div class="modal-title"><span class="modal-title-text">🤖 Đọc giấy tờ bằng AI<span class="vip-badge">VIP</span></span><button class="modal-close-x" onclick="aiDong()">✕</button></div>
     <div id="ai-body"><!-- render bởi aiRender() --></div>
   </div>
 </div>
@@ -1502,7 +1521,7 @@ function _apDungCheDoKhoiDong(form){
 function renderMain(){
   var box = document.getElementById('main-container');
   var checkedSchemas = currentForm.schema.filter(function(f){ return isChecked(f.id); });
-  var aiBar = '<div class="ai-bar" onclick="aiMo()"><div class="ico">📷</div><div><b>Đọc giấy tờ bằng AI</b>'
+  var aiBar = '<div class="ai-bar" onclick="aiMo()"><div class="ico">📷</div><div><b>Đọc giấy tờ bằng AI<span class="vip-badge">VIP</span></b>'
     + '<span>Chụp CCCD, sổ đỏ, hợp đồng… để AI tự điền vào tờ khai</span></div></div>';
   if (!checkedSchemas.length) {
     box.innerHTML = aiBar
@@ -3386,6 +3405,7 @@ var LS_AI_KEY     = 'ktai_key_v1';
 var LS_AI_MODEL   = 'ktai_model_v1';
 var LS_AI_BALANCE = 'ktai_balance_v1'; // số dư ước tính (USD), '' = chưa nhập
 var LS_AI_LOG     = 'ktai_log_v1';     // lịch sử trừ tiền gần đây
+var LS_AI_AUTO    = 'ktai_auto_v1';    // 'on' = tự điền vào các mục đang tick, bỏ bước xem lại
 var AI_SDK_SRC    = 'anthropic-sdk-0.132.1.js';
 var AI_TY_GIA     = 26000;             // quy đổi tạm USD → VNĐ, chỉ để hiển thị
 var AI_ANH_TOI_DA = 10;
@@ -3439,6 +3459,17 @@ var _aiGhiChuNguoiDung = '';
 
 function _aiGetKey(){ return (localStorage.getItem(LS_AI_KEY) || '').trim(); }
 function _aiGetModel(){ var m = localStorage.getItem(LS_AI_MODEL); return AI_MODELS[m] ? m : 'claude-haiku-5-5'; }
+function _aiTuDong(){ return localStorage.getItem(LS_AI_AUTO) === 'on'; }
+function _aiSetTuDongUi(on){
+  var chk = document.getElementById('ai-auto-toggle'), thumb = document.getElementById('ai-auto-thumb');
+  if (chk) chk.checked = on;
+  if (thumb) thumb.classList.toggle('ai-on', on);
+}
+function aiLuuTuDong(on){
+  localStorage.setItem(LS_AI_AUTO, on ? 'on' : 'off');
+  _aiSetTuDongUi(on);
+  toast(on ? '⚡ Tự động điền sau khi đọc ảnh: BẬT' : '📝 Tự động điền: TẮT — xem lại trước khi điền');
+}
 function _aiGetSoDu(){ var v = localStorage.getItem(LS_AI_BALANCE); return (v === null || v === '') ? null : Number(v); }
 function _aiUsd(n){ return '$' + (Math.abs(n) < 1 ? n.toFixed(4) : n.toFixed(3)); }
 function _aiVnd(n){ return '~' + Math.round(n * AI_TY_GIA).toLocaleString('vi-VN') + 'đ'; }
@@ -3459,6 +3490,7 @@ function aiRenderCaiDat(){
   sel.innerHTML = Object.keys(AI_MODELS).map(function(m){
     return '<option value="' + m + '"' + (m === cur ? ' selected' : '') + '>' + esc(AI_MODELS[m].ten) + '</option>';
   }).join('');
+  _aiSetTuDongUi(_aiTuDong());
   document.getElementById('ai-balance-text').textContent = _aiSoDuText();
   document.getElementById('ai-balance-input').value = '';
   var log = lsGetA(LS_AI_LOG);
@@ -3535,7 +3567,8 @@ function aiRender(){
     return;
   }
   var model = _aiGetModel();
-  var dongSoDu = '<div class="ai-box" style="padding:8px 12px">🤖 ' + esc(AI_MODELS[model].ten) + '<br>💰 Số dư ước tính: <b>' + esc(_aiSoDuText()) + '</b></div>';
+  var dongSoDu = '<div class="ai-box" style="padding:8px 12px">🤖 ' + esc(AI_MODELS[model].ten) + '<br>💰 Số dư ước tính: <b>' + esc(_aiSoDuText()) + '</b>'
+    + (_aiTuDong() ? '<br>⚡ <b>Tự động điền: BẬT</b> — điền thẳng vào ' + _aiDemMucDaTick() + ' mục đang tick, không qua bước xem lại' : '') + '</div>';
   if (_aiTrangThai === 'doc'){
     html = '<div class="ai-spin"></div><div style="text-align:center;font-size:13px;color:var(--g600);margin-bottom:16px">AI đang đọc ' + _aiAnh.length + ' ảnh…<br><span style="font-size:11px;color:var(--g500)">Thường mất 10–40 giây, giữ app mở.</span></div>';
   } else if (_aiTrangThai === 'ketqua' && _aiKetQua){
@@ -3635,8 +3668,11 @@ function _aiNapSDK(){
 }
 
 // Mô tả các mục của tờ khai đang mở cho AI (bỏ qua mục tự tính)
-function _aiMoTaTruong(form){
-  return form.schema.filter(function(f){ return f.type !== 'computed'; }).map(function(f){
+function _aiDemMucDaTick(){
+  return currentForm ? currentForm.schema.filter(function(f){ return f.type !== 'computed' && isChecked(f.id); }).length : 0;
+}
+function _aiMoTaTruong(form, chiMucDaTick){
+  return form.schema.filter(function(f){ return f.type !== 'computed' && (!chiMucDaTick || isChecked(f.id)); }).map(function(f){
     var dau = '- id=' + f.id + ' | ' + form.sectionLabel[f.section] + ' | ' + (f.ma ? f.ma + ' ' : '') + f.label + ' | ';
     if (f.type === 'multi') return dau + 'có ô con: ' + f.subs.map(function(s){ return s.k + ' = ' + s.label + ' (' + _aiKieu(s.type || 'text') + ')'; }).join('; ');
     if (f.type === 'choice') return dau + 'lựa chọn, value là một trong: ' + f.options.map(function(o){ return o.v + ' (' + o.label + ')'; }).join(', ');
@@ -3654,7 +3690,8 @@ async function aiDoc(){
   var key = _aiGetKey();
   if (!key){ aiRender(); return; }
   if (navigator.onLine === false){ _aiTrangThai = 'loi'; _aiLoi = '📡 Đang không có mạng. Kết nối mạng rồi thử lại.'; aiRender(); return; }
-  var form = currentForm, model = _aiGetModel(), anh = _aiAnh.slice();
+  var form = currentForm, model = _aiGetModel(), anh = _aiAnh.slice(), tuDong = _aiTuDong();
+  if (tuDong && !_aiDemMucDaTick()){ _aiTrangThai = 'loi'; _aiLoi = '⚡ Đang bật Tự động điền nhưng tờ khai chưa tick mục nào.\nVào ⚙️ Chọn mục cần khai để tick các mục muốn điền, hoặc tắt Tự động điền trong Cài đặt chung.'; aiRender(); return; }
   _aiTrangThai = 'doc'; _aiLoi = ''; aiRender();
   var SDK;
   try { SDK = await _aiNapSDK(); }
@@ -3670,7 +3707,7 @@ async function aiDoc(){
       'Tờ khai cần điền: ' + form.headerTitle.replace(/^\S+\s/, '') + ' (Mẫu ' + form.mauSo + ', ' + form.thongTu + ').\n'
     + (AI_VAI_TRO[form.id] || '') + '\n'
     + (ghiChu ? 'Ghi chú của người dùng (ưu tiên làm theo): ' + ghiChu + '\n' : '')
-    + '\nDanh sách mục của tờ khai (chỉ dùng đúng các id/sub/k này):\n' + _aiMoTaTruong(form) });
+    + '\nDanh sách mục ' + (tuDong ? 'cần điền' : 'của tờ khai') + ' (chỉ dùng đúng các id/sub/k này):\n' + _aiMoTaTruong(form, tuDong) });
   var msg;
   try {
     var client = new Anthropic({ apiKey:key, dangerouslyAllowBrowser:true, timeout:120000, maxRetries:1 });
@@ -3695,6 +3732,18 @@ async function aiDoc(){
     return;
   }
   _aiKetQua = { formId:form.id, items:_aiChuanHoaKetQua(form, msg.parsed_output), ghiChu:(msg.parsed_output.ghi_chu || '').trim(), chiPhi:chiPhi };
+  if (tuDong && currentForm && currentForm.id === form.id){
+    // Tự động điền: chỉ các mục đang tick, dùng nguyên giá trị AI đọc được, không qua bước xem lại
+    var items = _aiKetQua.items.filter(function(it){ return isChecked(it.id); });
+    var dem = _aiApDung(items, function(it){ return it.value; });
+    var ghi = _aiKetQua.ghiChu;
+    _aiDonDep();
+    closeM('modal-ai');
+    toast((dem ? '⚡ AI đã tự điền ' + dem + ' mục' : '⚡ AI không đọc được thông tin cho các mục đang tick')
+      + ' · −' + _aiUsd(chiPhi) + ' (' + _aiVnd(chiPhi) + ') · Số dư còn ' + _aiSoDuText()
+      + (ghi ? ' · 📝 ' + ghi : ''), ghi ? 12000 : 8000);
+    return;
+  }
   _aiTrangThai = 'ketqua';
   if (document.getElementById('modal-ai').classList.contains('show')) aiRender();
   else { aiRender(); openM('modal-ai'); }
@@ -3776,22 +3825,21 @@ function _aiChuanHoaKetQua(form, out){
   return items;
 }
 
-function aiDienVao(){
-  var kq = _aiKetQua;
-  if (!kq) return;
-  if (!currentForm || currentForm.id !== kq.formId){ toast('⚠️ Kết quả này thuộc tờ khai khác — mở lại đúng tờ khai rồi đọc lại', 3500); return; }
+// Ghi các mục AI đọc được vào tờ khai đang mở; layGiaTri(it, i) trả về giá trị cần ghi (null = bỏ qua).
+// Mục chưa tick sẽ được tick để hiện ô nhập. Trả về số mục đã điền.
+function _aiApDung(items, layGiaTri){
   var dem = 0;
-  kq.items.forEach(function(it, i){
-    var chk = document.getElementById('ai-c-' + i);
-    if (!chk || !chk.checked) return;
+  items.forEach(function(it, i){
     var f = schemaById(it.id);
     if (!f) return;
     if (it.bang){
+      if (layGiaTri(it, i) === null) return;
       var cu = (tablesState[f.id] || []).filter(function(row){ return Object.keys(row).some(function(k){ return row[k]; }); });
       tablesState[f.id] = cu.concat(it.rows);
     } else {
-      var inp = document.getElementById('ai-v-' + i);
-      var val = (inp ? inp.value : it.value).trim();
+      var val = layGiaTri(it, i);
+      if (val === null) return;
+      val = String(val).trim();
       if (!val) return;
       if (it.money) val = _raSoThoTuChuoiTien(val);
       if (f.type === 'multi'){
@@ -3813,9 +3861,22 @@ function aiDienVao(){
   lsSet(K(currentForm.id,'values'), valuesMap);
   lsSet(K(currentForm.id,'tables'), tablesState);
   renderMain();
-  closeM('modal-ai');
-  _aiAnh = []; _aiKetQua = null; _aiTrangThai = 'chon'; _aiGhiChuNguoiDung = '';
   _markUserAction();
+  return dem;
+}
+function _aiDonDep(){ _aiAnh = []; _aiKetQua = null; _aiTrangThai = 'chon'; _aiGhiChuNguoiDung = ''; }
+function aiDienVao(){
+  var kq = _aiKetQua;
+  if (!kq) return;
+  if (!currentForm || currentForm.id !== kq.formId){ toast('⚠️ Kết quả này thuộc tờ khai khác — mở lại đúng tờ khai rồi đọc lại', 3500); return; }
+  var dem = _aiApDung(kq.items, function(it, i){
+    var chk = document.getElementById('ai-c-' + i);
+    if (!chk || !chk.checked) return null;
+    var inp = document.getElementById('ai-v-' + i);
+    return inp ? inp.value : (it.bang ? '' : it.value);
+  });
+  closeM('modal-ai');
+  _aiDonDep();
   toast(dem ? '✅ Đã điền ' + dem + ' mục từ giấy tờ — kiểm tra lại trước khi in' : 'Không có mục nào được chọn', 3500);
 }
 

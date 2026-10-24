@@ -121,6 +121,10 @@ giá trị cho các mục của tờ khai đang mở:
 3. AI trả về danh sách mục đọc được → xem lại, sửa trực tiếp, bỏ tick dòng không muốn → **✅ Điền vào
    tờ khai** (mục chưa tick ở ⚙️ sẽ tự tick; mục đang có dữ liệu khác sẽ báo "Đang có: … → sẽ bị thay")
 
+- **⚡ Tự động điền sau khi đọc ảnh** (công tắc trong Cài đặt chung, cùng mục AI, mặc định tắt): bỏ bước
+  xem lại — app chỉ gửi cho AI danh sách **các mục đang tick** (đang hiện ô nhập) của tờ khai, rồi điền
+  thẳng toàn bộ thông tin đọc được vào các mục đó; mục chưa tick bị bỏ qua. Chưa tick mục nào thì app báo
+  và không gửi ảnh (không mất tiền). Ghi chú của AI hiện kèm trong thông báo sau khi điền.
 - **Số dư ước tính**: Anthropic không cho đọc số dư bằng API key thường, nên app tự trừ theo số token
   Anthropic báo về sau mỗi lần đọc (Haiku 5.5: $0,10/$0,50; Sonnet 5.5: $2/$10 mỗi 1 triệu token đọc
   vào/viết ra), hiện thông báo biến động và lưu lịch sử trừ tiền trong Cài đặt chung. Nhập lại số dư
@@ -223,6 +227,7 @@ số riêng lẻ như trước. Từ v1.1.0, mỗi số phiên bản phản ánh
 
 | Phiên bản | Ngày | Thay đổi |
 |-----------|------|----------|
+| **v1.5.3** | 2026-10-25 | ⚡ Thêm công tắc **Tự động điền sau khi đọc ảnh** trong Cài đặt chung (mục 🤖 Đọc giấy tờ bằng AI): bật thì AI chỉ nhận danh sách các mục đang tick và điền thẳng thông tin đọc được vào các mục đó, không qua bước xem lại (chưa tick mục nào thì báo, không gửi ảnh). Thêm huy hiệu **VIP** vàng nổi bật sau chữ "Đọc giấy tờ bằng AI" (nút trong tờ khai, tiêu đề cửa sổ, Cài đặt chung, Hướng dẫn) |
 | **v1.5.2** | 2026-10-25 | 🤖 Đọc giấy tờ bằng AI: tách khu chọn ảnh thành 2 nhóm **🟢 Bên mua** / **🔵 Bên bán** để lấy dữ liệu cả hai bên cho hợp đồng cần thông tin hai bên — CCCD up đúng bên, sổ đỏ/hợp đồng up bên nào cũng được. Mỗi ảnh gửi AI kèm nhãn nhóm; AI điền thông tin mỗi bên vào đúng mục theo từng loại tờ khai (LPTB: bên mua [04]-[12], bên bán 1.6.a; TNCN: bên bán [04]-[12], bên mua [33]-[35.2]). Tăng giới hạn lên 10 ảnh/lần |
 | **v1.5.1** | 2026-10-25 | 🤖 **Đọc giấy tờ bằng AI (Claude)**: nút 📷 trong màn nhập liệu — chụp/chọn ảnh CCCD, sổ đỏ, hợp đồng… → AI đề xuất giá trị cho từng mục của tờ khai đang mở → xem lại, sửa, bỏ tick rồi điền vào tờ khai (tự tick mục, cảnh báo mục sẽ bị ghi đè, bảng đồng sở hữu thêm dòng). Cài đặt chung thêm mục nhập API key (chỉ lưu trên máy, không đồng bộ đám mây), chọn mô hình Haiku 5.5/Sonnet 5.5, số dư ước tính tự trừ theo token sau mỗi lần đọc kèm thông báo biến động và lịch sử trừ tiền. Hết số dư/sai key/mất mạng báo rõ lý do, nhập tay vẫn bình thường. Toast nhận thêm thời gian hiển thị tuỳ chọn |
 | **v1.5.0** | 2026-08-29 | 🐛✨ Sửa sync + xóa gợi ý: (1) `cloudPullAll` nay xóa luôn localStorage key bị xóa trên cloud (trước chỉ ghi đè, không xóa → dữ liệu cũ còn sót); (2) Thêm nút "🧹 Xóa gợi ý trên máy này" trong 💡 Lịch sử gợi ý — xóa trực tiếp `tk2_ac_person_v1` và `tk2_ac_pool_v1` khỏi localStorage không cần Supabase |
