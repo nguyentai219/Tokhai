@@ -105,6 +105,31 @@ tờ khai đã từng lưu (riêng cho loại đang mở):
 
 Lựa chọn "Khi chọn 1 tờ khai" **tự nhớ** cho đến khi đổi lại.
 
+### 🤖 Đọc giấy tờ bằng AI (từ v1.5.1)
+
+Chụp/chọn ảnh CCCD, giấy chứng nhận quyền sử dụng đất, hợp đồng… để AI (Claude) tự đọc và đề xuất
+giá trị cho các mục của tờ khai đang mở:
+
+1. Tạo API key ở **console.anthropic.com** (nạp tiền trước bằng thẻ Visa/Mastercard quốc tế), dán vào
+   **⚙️ Cài đặt chung → 🤖 Đọc giấy tờ bằng AI**, chọn mô hình (Haiku 5.5 — rẻ, mặc định; hoặc
+   Sonnet 5.5 — chính xác hơn) và nhập số dư đã nạp (USD)
+2. Trong màn nhập liệu, nhấn **📷 Đọc giấy tờ bằng AI** → chụp hoặc chọn ảnh (tối đa 8 ảnh, app tự thu
+   nhỏ còn cạnh dài 1600px) → có thể thêm ghi chú cho AI (VD "người nộp thuế là bên mua")
+3. AI trả về danh sách mục đọc được → xem lại, sửa trực tiếp, bỏ tick dòng không muốn → **✅ Điền vào
+   tờ khai** (mục chưa tick ở ⚙️ sẽ tự tick; mục đang có dữ liệu khác sẽ báo "Đang có: … → sẽ bị thay")
+
+- **Số dư ước tính**: Anthropic không cho đọc số dư bằng API key thường, nên app tự trừ theo số token
+  Anthropic báo về sau mỗi lần đọc (Haiku 5.5: $0,10/$0,50; Sonnet 5.5: $2/$10 mỗi 1 triệu token đọc
+  vào/viết ra), hiện thông báo biến động và lưu lịch sử trừ tiền trong Cài đặt chung. Nhập lại số dư
+  thật sau khi nạp thêm.
+- **Hết số dư / sai key / mất mạng**: app báo rõ lý do, không đọc ảnh được nhưng mọi chức năng khác
+  (nhập tay, lưu, in PDF, đồng bộ) vẫn dùng bình thường.
+- **API key, mô hình, số dư** lưu trong localStorage với prefix `ktai_` — chỉ trên máy đó, KHÔNG đồng bộ
+  lên Supabase (cloud sync chỉ xử lý khoá `tk2_`). Ảnh không được lưu lại.
+- Thư viện chính thức `@anthropic-ai/sdk` 0.132.1 được đóng gói sẵn thành `anthropic-sdk-0.132.1.js`
+  (esbuild, IIFE, gán `window.AnthropicSDK`), chỉ tải khi bấm đọc lần đầu. Gọi `messages.parse()` với
+  structured outputs (`output_config.format`) để nhận JSON đúng khuôn `{values, tables, ghi_chu}`.
+
 ### 💡 Tự động đề xuất khi gõ
 
 Các trường nhập chữ ở mục **"Thông tin người nộp thuế"** và **"Đặc điểm nhà, đất"**
@@ -122,6 +147,7 @@ manifest.json   Khai báo PWA (tên, icon, màu chủ đạo) để cài như �
 sw.js           Service worker cache-first, cho phép dùng offline sau lần mở đầu
 icon-192.png    Icon app 192×192
 icon-512.png    Icon app 512×512
+anthropic-sdk-0.132.1.js  Thư viện @anthropic-ai/sdk đóng gói sẵn (chỉ tải khi dùng "Đọc giấy tờ bằng AI")
 ```
 
 ## Đưa lên GitHub Pages
@@ -194,6 +220,7 @@ số riêng lẻ như trước. Từ v1.1.0, mỗi số phiên bản phản ánh
 
 | Phiên bản | Ngày | Thay đổi |
 |-----------|------|----------|
+| **v1.5.1** | 2026-10-25 | 🤖 **Đọc giấy tờ bằng AI (Claude)**: nút 📷 trong màn nhập liệu — chụp/chọn ảnh CCCD, sổ đỏ, hợp đồng… → AI đề xuất giá trị cho từng mục của tờ khai đang mở → xem lại, sửa, bỏ tick rồi điền vào tờ khai (tự tick mục, cảnh báo mục sẽ bị ghi đè, bảng đồng sở hữu thêm dòng). Cài đặt chung thêm mục nhập API key (chỉ lưu trên máy, không đồng bộ đám mây), chọn mô hình Haiku 5.5/Sonnet 5.5, số dư ước tính tự trừ theo token sau mỗi lần đọc kèm thông báo biến động và lịch sử trừ tiền. Hết số dư/sai key/mất mạng báo rõ lý do, nhập tay vẫn bình thường. Toast nhận thêm thời gian hiển thị tuỳ chọn |
 | **v1.5.0** | 2026-08-29 | 🐛✨ Sửa sync + xóa gợi ý: (1) `cloudPullAll` nay xóa luôn localStorage key bị xóa trên cloud (trước chỉ ghi đè, không xóa → dữ liệu cũ còn sót); (2) Thêm nút "🧹 Xóa gợi ý trên máy này" trong 💡 Lịch sử gợi ý — xóa trực tiếp `tk2_ac_person_v1` và `tk2_ac_pool_v1` khỏi localStorage không cần Supabase |
 | **v1.4.9** | 2026-08-29 | 🐛 Sửa 2 bug autocomplete: (1) `_acNormLabel`: đưa kiểm tra `cmnd_cccd` lên TRƯỚC `ma_so_thue` — label "Số CMND/CCCD/Hộ chiếu (trường hợp chưa có mã số thuế)" bị nhận nhầm thành `ma_so_thue` do label chứa cả hai từ; (2) `_acPersonSuggest`: khi đã có ho_ten khớp thì KHÔNG trộn dữ liệu người khác vào kết quả |
 | **v1.4.8** | 2026-08-29 | 🗺️ Làm lại hoàn toàn CSDL TP.HCM: xây từ nguồn chính xác (NQ1685/NQ-UBTVQH15), đúng 168 xã/phường/đặc khu (113 phường + 54 xã + Côn Đảo). Không còn cấp quận/huyện. Gồm đủ khu vực TP.HCM cũ + 36 đơn vị Bình Dương cũ (có Xã Thanh An từ H. Dầu Tiếng) + 30 đơn vị Bà Rịa–Vũng Tàu cũ. Xóa dữ liệu sai của các phiên bản trước |
