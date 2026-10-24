@@ -113,8 +113,11 @@ giá trị cho các mục của tờ khai đang mở:
 1. Tạo API key ở **console.anthropic.com** (nạp tiền trước bằng thẻ Visa/Mastercard quốc tế), dán vào
    **⚙️ Cài đặt chung → 🤖 Đọc giấy tờ bằng AI**, chọn mô hình (Haiku 5.5 — rẻ, mặc định; hoặc
    Sonnet 5.5 — chính xác hơn) và nhập số dư đã nạp (USD)
-2. Trong màn nhập liệu, nhấn **📷 Đọc giấy tờ bằng AI** → chụp hoặc chọn ảnh (tối đa 8 ảnh, app tự thu
-   nhỏ còn cạnh dài 1600px) → có thể thêm ghi chú cho AI (VD "người nộp thuế là bên mua")
+2. Trong màn nhập liệu, nhấn **📷 Đọc giấy tờ bằng AI** → chụp hoặc chọn ảnh vào đúng nhóm **🟢 Bên mua**
+   (bên nhận chuyển nhượng) / **🔵 Bên bán** (bên chuyển nhượng) — CCCD up đúng bên, sổ đỏ và hợp đồng up
+   bên nào cũng được (tối đa 10 ảnh, app tự thu nhỏ còn cạnh dài 1600px) → có thể thêm ghi chú cho AI.
+   AI tự điền thông tin mỗi bên vào đúng mục theo loại tờ khai (VD Lệ phí trước bạ: bên mua → [04]-[12],
+   bên bán → 1.6.a; TNCN: bên bán → [04]-[12], bên mua → [33]-[35.2])
 3. AI trả về danh sách mục đọc được → xem lại, sửa trực tiếp, bỏ tick dòng không muốn → **✅ Điền vào
    tờ khai** (mục chưa tick ở ⚙️ sẽ tự tick; mục đang có dữ liệu khác sẽ báo "Đang có: … → sẽ bị thay")
 
@@ -220,6 +223,7 @@ số riêng lẻ như trước. Từ v1.1.0, mỗi số phiên bản phản ánh
 
 | Phiên bản | Ngày | Thay đổi |
 |-----------|------|----------|
+| **v1.5.2** | 2026-10-25 | 🤖 Đọc giấy tờ bằng AI: tách khu chọn ảnh thành 2 nhóm **🟢 Bên mua** / **🔵 Bên bán** để lấy dữ liệu cả hai bên cho hợp đồng cần thông tin hai bên — CCCD up đúng bên, sổ đỏ/hợp đồng up bên nào cũng được. Mỗi ảnh gửi AI kèm nhãn nhóm; AI điền thông tin mỗi bên vào đúng mục theo từng loại tờ khai (LPTB: bên mua [04]-[12], bên bán 1.6.a; TNCN: bên bán [04]-[12], bên mua [33]-[35.2]). Tăng giới hạn lên 10 ảnh/lần |
 | **v1.5.1** | 2026-10-25 | 🤖 **Đọc giấy tờ bằng AI (Claude)**: nút 📷 trong màn nhập liệu — chụp/chọn ảnh CCCD, sổ đỏ, hợp đồng… → AI đề xuất giá trị cho từng mục của tờ khai đang mở → xem lại, sửa, bỏ tick rồi điền vào tờ khai (tự tick mục, cảnh báo mục sẽ bị ghi đè, bảng đồng sở hữu thêm dòng). Cài đặt chung thêm mục nhập API key (chỉ lưu trên máy, không đồng bộ đám mây), chọn mô hình Haiku 5.5/Sonnet 5.5, số dư ước tính tự trừ theo token sau mỗi lần đọc kèm thông báo biến động và lịch sử trừ tiền. Hết số dư/sai key/mất mạng báo rõ lý do, nhập tay vẫn bình thường. Toast nhận thêm thời gian hiển thị tuỳ chọn |
 | **v1.5.0** | 2026-08-29 | 🐛✨ Sửa sync + xóa gợi ý: (1) `cloudPullAll` nay xóa luôn localStorage key bị xóa trên cloud (trước chỉ ghi đè, không xóa → dữ liệu cũ còn sót); (2) Thêm nút "🧹 Xóa gợi ý trên máy này" trong 💡 Lịch sử gợi ý — xóa trực tiếp `tk2_ac_person_v1` và `tk2_ac_pool_v1` khỏi localStorage không cần Supabase |
 | **v1.4.9** | 2026-08-29 | 🐛 Sửa 2 bug autocomplete: (1) `_acNormLabel`: đưa kiểm tra `cmnd_cccd` lên TRƯỚC `ma_so_thue` — label "Số CMND/CCCD/Hộ chiếu (trường hợp chưa có mã số thuế)" bị nhận nhầm thành `ma_so_thue` do label chứa cả hai từ; (2) `_acPersonSuggest`: khi đã có ho_ten khớp thì KHÔNG trộn dữ liệu người khác vào kết quả |

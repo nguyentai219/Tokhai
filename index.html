@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#8a6e2f">
-<title>Khai Thuế v1.5.1</title>
+<title>Khai Thuế v1.5.2</title>
 <meta name="description" content="Công cụ khai thuế đa tờ khai (Lệ phí trước bạ, TNCN chuyển nhượng BĐS...) - v1.3.6">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -230,7 +230,13 @@
   .ai-thumb{position:relative;width:72px;height:72px;border-radius:8px;overflow:hidden;border:1px solid var(--g300);background:var(--g100)}
   .ai-thumb img{width:100%;height:100%;object-fit:cover;display:block}
   .ai-thumb button{position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;border:none;background:rgba(0,0,0,.6);color:#fff;font-size:11px;line-height:20px;padding:0;cursor:pointer}
-  .ai-pick-row{display:flex;gap:8px;margin-bottom:8px}
+  .ai-nhom{border-radius:10px;padding:8px 10px;margin-bottom:10px;border:1.5px solid}
+  .ai-nhom-mua{border-color:#9fd3b0;background:#f2fbf5}
+  .ai-nhom-ban{border-color:#a9c4ea;background:#f2f6fd}
+  .ai-nhom-ten{font-size:13px;font-weight:800;color:var(--g800);margin-bottom:6px}
+  .ai-nhom-ten span{font-weight:400;font-size:11px;color:var(--g500)}
+  .ai-nhom .ai-thumbs{margin:6px 0 0}
+  .ai-pick-row{display:flex;gap:8px;margin-bottom:0}
   .ai-pick-row label{flex:1;text-align:center;padding:11px 6px;border-radius:10px;border:1.5px dashed var(--gold);color:var(--gold-dark);font-size:13px;font-weight:700;cursor:pointer;background:var(--g50)}
   .ai-pick-row input{display:none}
   .ai-box{background:var(--g100);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:var(--g700);line-height:1.5}
@@ -309,7 +315,7 @@
     <div class="launcher-header-top">
       <div>
         <b>📚 Khai Thuế</b>
-        <span>TaiDauTieng@gmail.com · v1.5.1</span>
+        <span>TaiDauTieng@gmail.com · v1.5.2</span>
       </div>
       <button class="gear-btn" onclick="openGlobalSettings()" title="Cài đặt chung">⚙️</button>
     </div>
@@ -339,7 +345,7 @@
     </div>
     <div class="header-title" id="header-title-box" style="flex:1;text-align:center;align-items:center;padding:0 4px">
       <b id="header-title-b">📋 Tờ khai</b>
-      <span id="header-title-span">v1.5.1</span>
+      <span id="header-title-span">v1.5.2</span>
     </div>
     <div style="display:flex;gap:6px;flex:0 0 auto">
       <button class="gear-btn" onclick="moLichSuToKhai()" title="Lịch sử tờ khai">🕘</button>
@@ -429,7 +435,7 @@
       <div style="font-size:13px;font-weight:700;color:var(--gold-dark);margin-bottom:4px">🤖 Đọc giấy tờ bằng AI</div>
       <div style="font-size:12px;background:var(--g50);border-radius:8px;padding:8px 10px;margin-bottom:10px">
         Tạo API key ở <b>console.anthropic.com</b> (nạp tiền trước), dán vào ⚙️ Cài đặt chung → 🤖 Đọc giấy tờ bằng AI, nhập số dư đã nạp.<br>
-        Trong tờ khai, nhấn <b>📷 Đọc giấy tờ bằng AI</b> → chụp/chọn ảnh CCCD, sổ đỏ, hợp đồng… → AI đề xuất giá trị từng mục → xem lại, sửa nếu cần → <b>Điền vào tờ khai</b>.<br>
+        Trong tờ khai, nhấn <b>📷 Đọc giấy tờ bằng AI</b> → chụp/chọn ảnh vào đúng nhóm <b>Bên mua</b> / <b>Bên bán</b> (CCCD up đúng bên; sổ đỏ, hợp đồng up bên nào cũng được) → AI đề xuất giá trị từng mục → xem lại, sửa nếu cần → <b>Điền vào tờ khai</b>.<br>
         Mỗi lần đọc app tự trừ số dư ước tính và báo biến động. Hết số dư thì không đọc ảnh được, vẫn nhập tay bình thường. API key chỉ lưu trên máy, không đồng bộ đám mây.
       </div>
 
@@ -3382,18 +3388,22 @@ var LS_AI_BALANCE = 'ktai_balance_v1'; // số dư ước tính (USD), '' = chư
 var LS_AI_LOG     = 'ktai_log_v1';     // lịch sử trừ tiền gần đây
 var AI_SDK_SRC    = 'anthropic-sdk-0.132.1.js';
 var AI_TY_GIA     = 26000;             // quy đổi tạm USD → VNĐ, chỉ để hiển thị
-var AI_ANH_TOI_DA = 8;
+var AI_ANH_TOI_DA = 10;
 var AI_CANH_DAI   = 1600;              // thu nhỏ cạnh dài của ảnh còn 1600px trước khi gửi
 // Giá USD / 1 triệu token (đọc vào / viết ra) — bảng giá Anthropic tháng 10/2026
 var AI_MODELS = {
   'claude-haiku-5-5':  { ten:'Haiku 5.5 — rẻ (mặc định)', giaVao:0.10, giaRa:0.50 },
   'claude-sonnet-5-5': { ten:'Sonnet 5.5 — chính xác hơn', giaVao:2,    giaRa:10 }
 };
-// Ai là "người nộp thuế" trên giấy tờ chuyển nhượng — tuỳ loại tờ khai
+// Thông tin bên mua / bên bán điền vào mục nào — tuỳ loại tờ khai
 var AI_VAI_TRO = {
-  ltb:      'Người nộp thuế ([04]-[12]) là BÊN NHẬN chuyển nhượng / nhận tặng cho / nhận thừa kế (bên mua). Bên chuyển giao quyền sử dụng đất (bên bán, bên tặng cho) điền vào mục 1.6.a.',
-  tncn_bds: 'Người nộp thuế ([04]-[12]) là BÊN CHUYỂN NHƯỢNG (bên bán) hoặc người nhận thừa kế, quà tặng là bất động sản.',
-  tsdd:     'Người nộp thuế là người sử dụng đất (người được giao đất, công nhận quyền sử dụng đất, chuyển mục đích sử dụng đất).'
+  ltb:      'BÊN MUA (bên nhận chuyển nhượng / nhận tặng cho / nhận thừa kế) là người nộp thuế: điền mục [04]-[12]. BÊN BÁN (bên chuyển giao quyền sử dụng đất, bên tặng cho) điền mục 1.6.a.',
+  tncn_bds: 'BÊN BÁN (bên chuyển nhượng) là người nộp thuế: điền phần I, mục [04]-[12]. BÊN MUA (bên nhận chuyển nhượng, nhận thừa kế, quà tặng) điền phần II, mục [33]-[35.2]. Trường hợp nhận thừa kế, quà tặng thì làm theo ghi chú của người dùng nếu có.',
+  tsdd:     'Người nộp thuế là người sử dụng đất (thường là BÊN MUA / bên nhận): điền phần thông tin người nộp thuế. Thông tin BÊN BÁN chỉ dùng nếu tờ khai có mục tương ứng.'
+};
+var AI_NHOM = {
+  mua: { ten:'🟢 Bên mua', moTa:'bên nhận chuyển nhượng', nhan:'BÊN MUA' },
+  ban: { ten:'🔵 Bên bán', moTa:'bên chuyển nhượng', nhan:'BÊN BÁN' }
 };
 var AI_SYSTEM = 'Bạn đọc ảnh giấy tờ Việt Nam (CCCD/CMND, giấy chứng nhận quyền sử dụng đất — sổ đỏ, sổ hồng, hợp đồng chuyển nhượng/tặng cho, giấy tờ khác) để điền tờ khai thuế.\n'
   + '- Chỉ lấy thông tin đọc được rõ ràng trên ảnh; không suy đoán, không bịa. Mục nào ảnh không có thông tin thì bỏ qua, không đưa vào kết quả.\n'
@@ -3401,6 +3411,8 @@ var AI_SYSTEM = 'Bạn đọc ảnh giấy tờ Việt Nam (CCCD/CMND, giấy ch
   + '- Định dạng: ngày theo YYYY-MM-DD; số tiền chỉ ghi chữ số, không dấu phân cách; số thập phân (diện tích…) dùng dấu chấm, VD 120.5; số CCCD ghi đủ các chữ số.\n'
   + '- Mục có ô con: mỗi ô con là 1 phần tử riêng, sub = mã ô con. Mục không có ô con: sub là chuỗi rỗng.\n'
   + '- Mục lựa chọn: value là mã lựa chọn. Mục có/không: value là "true" hoặc "false".\n'
+  + '- Mỗi ảnh được gắn nhóm BÊN MUA hoặc BÊN BÁN. CCCD/CMND/hộ chiếu trong nhóm nào là giấy tờ của bên đó. Sổ đỏ, hợp đồng và giấy tờ chung khác có thể nằm ở nhóm bất kỳ: lấy thông tin thửa đất, nhà, giá trị, số/ngày hợp đồng, và thông tin của CẢ HAI bên theo đúng vai trò ghi trên giấy tờ, không theo nhóm.\n'
+  + '- Nếu thông tin một bên trên CCCD khác với trên hợp đồng/sổ đỏ (VD địa chỉ), ưu tiên CCCD và nêu trong ghi_chu.\n'
   + '- Điều gì chưa chắc chắn hoặc người dùng cần kiểm tra lại thì ghi ngắn gọn bằng tiếng Việt vào ghi_chu.';
 var AI_SCHEMA = {
   type:'object',
@@ -3419,7 +3431,7 @@ var AI_SCHEMA = {
   required:['values','tables','ghi_chu'], additionalProperties:false
 };
 
-var _aiAnh = [];        // [{dataUrl, b64}]
+var _aiAnh = [];        // [{dataUrl, b64, nhom:'mua'|'ban'}]
 var _aiTrangThai = 'chon'; // chon | doc | ketqua | loi
 var _aiKetQua = null;   // { formId, items:[...], ghiChu, chiPhi }
 var _aiLoi = '';
@@ -3546,16 +3558,10 @@ function aiRender(){
   } else {
     if (_aiTrangThai === 'loi' && _aiLoi) html += '<div class="cloud-err" style="display:block;font-size:12.5px;color:var(--red);background:#fdf0ef;border:1px solid #f1c6c2;border-radius:8px;padding:9px 11px;margin-bottom:10px;white-space:pre-line">' + esc(_aiLoi) + '</div>';
     html += dongSoDu
-      + '<div class="modal-sub">Chụp hoặc chọn ảnh giấy tờ (CCCD 2 mặt, sổ đỏ, hợp đồng…), tối đa ' + AI_ANH_TOI_DA + ' ảnh. AI đọc và đề xuất giá trị cho các mục của tờ khai <b>' + esc(currentForm.tenNgan) + '</b>; bạn xem lại trước khi điền. Ảnh không được lưu lại.</div>'
-      + '<div class="ai-pick-row">'
-      + '<label>📷 Chụp ảnh<input type="file" accept="image/*" capture="environment" onchange="aiThemAnh(this.files);this.value=\'\'"></label>'
-      + '<label>🖼️ Chọn ảnh<input type="file" accept="image/*" multiple onchange="aiThemAnh(this.files);this.value=\'\'"></label>'
-      + '</div>'
-      + '<div class="ai-thumbs">' + _aiAnh.map(function(a, i){
-          return '<div class="ai-thumb"><img src="' + a.dataUrl + '" alt=""><button onclick="aiXoaAnh(' + i + ')">✕</button></div>';
-        }).join('') + '</div>'
+      + '<div class="modal-sub">Chụp hoặc chọn ảnh giấy tờ, tối đa ' + AI_ANH_TOI_DA + ' ảnh. <b>CCCD up đúng bên</b>; sổ đỏ, hợp đồng up bên nào cũng được. AI đọc và đề xuất giá trị cho các mục của tờ khai <b>' + esc(currentForm.tenNgan) + '</b>; bạn xem lại trước khi điền. Ảnh không được lưu lại.</div>'
+      + _aiNhomHtml('mua') + _aiNhomHtml('ban')
       + '<div class="ai-box" style="padding:8px 10px"><div style="font-weight:700;margin-bottom:4px">Ghi chú cho AI (tuỳ chọn)</div>'
-      + '<textarea id="ai-ghichu" rows="2" placeholder="VD: người nộp thuế là bên mua; chỉ lấy thông tin thửa đất" oninput="_aiGhiChuNguoiDung=this.value">' + esc(_aiGhiChuNguoiDung) + '</textarea></div>'
+      + '<textarea id="ai-ghichu" rows="2" placeholder="VD: đây là hợp đồng tặng cho; chỉ lấy thông tin thửa đất" oninput="_aiGhiChuNguoiDung=this.value">' + esc(_aiGhiChuNguoiDung) + '</textarea></div>'
       + '<div class="modal-footer"><button class="btn-huy" onclick="aiDong()">Đóng</button>'
       + '<button class="btn-luu" onclick="aiDoc()"' + (_aiAnh.length ? '' : ' disabled style="opacity:.5"') + '>🤖 Đọc ' + (_aiAnh.length ? _aiAnh.length + ' ảnh' : 'bằng AI') + '</button></div>';
   }
@@ -3594,11 +3600,23 @@ function _aiThuNhoAnh(file){
     img.src = url;
   });
 }
-async function aiThemAnh(files){
+function _aiNhomHtml(nhom){
+  var n = AI_NHOM[nhom];
+  var thumbs = '';
+  _aiAnh.forEach(function(a, i){
+    if (a.nhom === nhom) thumbs += '<div class="ai-thumb"><img src="' + a.dataUrl + '" alt=""><button onclick="aiXoaAnh(' + i + ')">✕</button></div>';
+  });
+  return '<div class="ai-nhom ai-nhom-' + nhom + '"><div class="ai-nhom-ten">' + n.ten + ' <span>(' + n.moTa + ')</span></div>'
+    + '<div class="ai-pick-row">'
+    + '<label>📷 Chụp<input type="file" accept="image/*" capture="environment" onchange="aiThemAnh(this.files,\'' + nhom + '\');this.value=\'\'"></label>'
+    + '<label>🖼️ Chọn ảnh<input type="file" accept="image/*" multiple onchange="aiThemAnh(this.files,\'' + nhom + '\');this.value=\'\'"></label>'
+    + '</div>' + (thumbs ? '<div class="ai-thumbs">' + thumbs + '</div>' : '') + '</div>';
+}
+async function aiThemAnh(files, nhom){
   var ds = Array.prototype.slice.call(files || []);
   for (var i = 0; i < ds.length; i++){
     if (_aiAnh.length >= AI_ANH_TOI_DA){ toast('⚠️ Tối đa ' + AI_ANH_TOI_DA + ' ảnh mỗi lần đọc', 2500); break; }
-    try { _aiAnh.push(await _aiThuNhoAnh(ds[i])); } catch(e){ toast('⚠️ Không đọc được 1 ảnh', 2500); }
+    try { var a = await _aiThuNhoAnh(ds[i]); a.nhom = AI_NHOM[nhom] ? nhom : 'mua'; _aiAnh.push(a); } catch(e){ toast('⚠️ Không đọc được 1 ảnh', 2500); }
   }
   if (_aiTrangThai === 'loi') _aiTrangThai = 'chon';
   aiRender();
@@ -3644,7 +3662,7 @@ async function aiDoc(){
   var Anthropic = SDK.Anthropic;
   var content = [];
   anh.forEach(function(a, i){
-    content.push({ type:'text', text:'Ảnh ' + (i + 1) + ':' });
+    content.push({ type:'text', text:'Ảnh ' + (i + 1) + ' — nhóm ' + AI_NHOM[a.nhom].nhan + ':' });
     content.push({ type:'image', source:{ type:'base64', media_type:'image/jpeg', data:a.b64 } });
   });
   var ghiChu = (_aiGhiChuNguoiDung || '').trim();
