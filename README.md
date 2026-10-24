@@ -126,6 +126,16 @@ giá trị cho các mục của tờ khai đang mở:
   thẳng toàn bộ thông tin đọc được vào các mục đó; mục chưa tick bị bỏ qua. Chưa tick mục nào thì app báo
   và không gửi ảnh (không mất tiền). Ghi chú của AI hiện kèm trong thông báo sau khi điền. Lựa chọn bật/tắt
   được nhớ trên máy (khoá `ktai_auto_v1`), chỉ đổi khi người dùng tự gạt công tắc.
+- **📥 Giữ kết quả chưa điền**: kết quả đọc xong (kể cả chỗ đã sửa, dòng đã bỏ tick ở màn xem lại) được lưu
+  ngay vào máy (`ktai_pending_v1`, riêng từng loại tờ khai) — tải lại trang, lỡ đóng app vẫn còn. Nút AI
+  trong tờ khai hiện "📥 Có kết quả AI đọc lúc … chưa điền", nhấn để mở lại màn xem lại. Kết quả chỉ mất khi
+  bấm **✅ Điền vào tờ khai** hoặc **🗑️ Bỏ** (có hỏi lại).
+- **♻️ Không đọc lại ảnh đã đọc**: mỗi ảnh được lấy dấu vân tay SHA-256 từ file gốc; kết quả đọc lưu theo
+  dấu vân tay + nhóm (bên mua/bán) + loại tờ khai (`ktai_cache_v1`, tối đa 150 lần đọc, chỉ trên máy). Chọn
+  lại đúng ảnh đó → app báo "đã được đọc lúc …", ảnh có nhãn **♻️ Đã đọc**, khi đọc thì chỉ gửi AI các ảnh
+  mới, ảnh cũ dùng lại kết quả cũ (0đ). Nhấn nhãn để chuyển thành **🔄 Đọc lại** nếu muốn AI đọc lại (tính
+  tiền). Kết quả cũ chỉ được dùng lại khi có đủ các mục đang cần (VD bản đọc ở chế độ tự động chỉ có các mục
+  đang tick lúc đó). Chọn trùng 1 ảnh 2 lần trong cùng nhóm sẽ bị bỏ qua.
 - **🟨 Ô AI đọc không chắc chắn**: với mỗi giá trị AI trả kèm cờ `khong_chac` (ảnh mờ, bị che, khó đọc).
   Các ô đó được tô **nền vàng nhạt** kèm dòng "⚠️ AI đọc không chắc chắn — kiểm tra lại", cả ở màn xem lại
   lẫn trong tờ khai sau khi điền. Đánh dấu lưu trong `valuesMap.__aiMo` (đi cùng tờ khai: lịch sử, đồng bộ,
@@ -232,6 +242,7 @@ số riêng lẻ như trước. Từ v1.1.0, mỗi số phiên bản phản ánh
 
 | Phiên bản | Ngày | Thay đổi |
 |-----------|------|----------|
+| **v1.5.5** | 2026-10-25 | 📥 Giữ kết quả AI chưa điền: lưu ngay vào máy (kể cả chỗ đã sửa/bỏ tick), tải lại trang không mất, nút AI báo "Có kết quả … chưa điền"; chỉ mất khi Điền hoặc Bỏ. ♻️ Ghi nhớ ảnh đã đọc theo dấu vân tay SHA-256: chọn lại ảnh cũ thì báo và dùng lại kết quả cũ, chỉ gửi AI ảnh mới (không mất tiền); nhãn ♻️ Đã đọc / 🔄 Đọc lại trên ảnh; bỏ qua ảnh trùng |
 | **v1.5.4** | 2026-10-25 | 🟨 Ô AI đọc **không chắc chắn** (ảnh mờ, khó đọc) được tô nền vàng nhạt kèm dòng nhắc kiểm tra — ở màn xem lại và trong tờ khai sau khi điền; vẫn giữ sau khi tải lại app, tự mất khi sửa ô/bỏ tick mục/tờ khai mới. Thông báo sau khi điền nêu số ô cần kiểm tra. Xác nhận công tắc ⚡ Tự động điền nhớ lựa chọn trên máy, chỉ đổi khi người dùng tự gạt |
 | **v1.5.3** | 2026-10-25 | ⚡ Thêm công tắc **Tự động điền sau khi đọc ảnh** trong Cài đặt chung (mục 🤖 Đọc giấy tờ bằng AI): bật thì AI chỉ nhận danh sách các mục đang tick và điền thẳng thông tin đọc được vào các mục đó, không qua bước xem lại (chưa tick mục nào thì báo, không gửi ảnh). Thêm huy hiệu **VIP** vàng nổi bật sau chữ "Đọc giấy tờ bằng AI" (nút trong tờ khai, tiêu đề cửa sổ, Cài đặt chung, Hướng dẫn) |
 | **v1.5.2** | 2026-10-25 | 🤖 Đọc giấy tờ bằng AI: tách khu chọn ảnh thành 2 nhóm **🟢 Bên mua** / **🔵 Bên bán** để lấy dữ liệu cả hai bên cho hợp đồng cần thông tin hai bên — CCCD up đúng bên, sổ đỏ/hợp đồng up bên nào cũng được. Mỗi ảnh gửi AI kèm nhãn nhóm; AI điền thông tin mỗi bên vào đúng mục theo từng loại tờ khai (LPTB: bên mua [04]-[12], bên bán 1.6.a; TNCN: bên bán [04]-[12], bên mua [33]-[35.2]). Tăng giới hạn lên 10 ảnh/lần |

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#8a6e2f">
-<title>Khai Thuế v1.5.4</title>
+<title>Khai Thuế v1.5.5</title>
 <meta name="description" content="Công cụ khai thuế đa tờ khai (Lệ phí trước bạ, TNCN chuyển nhượng BĐS...) - v1.3.6">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -245,6 +245,10 @@
   .ai-nhom-ten span{font-weight:400;font-size:11px;color:var(--g500)}
   .ai-nhom .ai-thumbs{margin:6px 0 0}
   .ai-pick-row{display:flex;gap:8px;margin-bottom:0}
+  .ai-thumb .ai-tag{position:absolute;left:0;right:0;bottom:0;font-size:10px;font-weight:700;color:#fff;text-align:center;padding:3px 0;cursor:pointer}
+  .ai-thumb .ai-tag.cu{background:rgba(47,125,79,.92)}
+  .ai-thumb .ai-tag.lai{background:rgba(179,65,58,.92)}
+  .ai-bar .cho{display:block;margin-top:3px;font-size:11px;font-weight:700;color:var(--red)}
   .ai-pick-row label{flex:1;text-align:center;padding:11px 6px;border-radius:10px;border:1.5px dashed var(--gold);color:var(--gold-dark);font-size:13px;font-weight:700;cursor:pointer;background:var(--g50)}
   .ai-pick-row input{display:none}
   .ai-box{background:var(--g100);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:var(--g700);line-height:1.5}
@@ -323,7 +327,7 @@
     <div class="launcher-header-top">
       <div>
         <b>📚 Khai Thuế</b>
-        <span>TaiDauTieng@gmail.com · v1.5.4</span>
+        <span>TaiDauTieng@gmail.com · v1.5.5</span>
       </div>
       <button class="gear-btn" onclick="openGlobalSettings()" title="Cài đặt chung">⚙️</button>
     </div>
@@ -353,7 +357,7 @@
     </div>
     <div class="header-title" id="header-title-box" style="flex:1;text-align:center;align-items:center;padding:0 4px">
       <b id="header-title-b">📋 Tờ khai</b>
-      <span id="header-title-span">v1.5.4</span>
+      <span id="header-title-span">v1.5.5</span>
     </div>
     <div style="display:flex;gap:6px;flex:0 0 auto">
       <button class="gear-btn" onclick="moLichSuToKhai()" title="Lịch sử tờ khai">🕘</button>
@@ -445,6 +449,7 @@
         Tạo API key ở <b>console.anthropic.com</b> (nạp tiền trước), dán vào ⚙️ Cài đặt chung → 🤖 Đọc giấy tờ bằng AI, nhập số dư đã nạp.<br>
         Trong tờ khai, nhấn <b>📷 Đọc giấy tờ bằng AI</b> → chụp/chọn ảnh vào đúng nhóm <b>Bên mua</b> / <b>Bên bán</b> (CCCD up đúng bên; sổ đỏ, hợp đồng up bên nào cũng được) → AI đề xuất giá trị từng mục → xem lại, sửa nếu cần → <b>Điền vào tờ khai</b>.<br>
         Bật <b>⚡ Tự động điền sau khi đọc ảnh</b> trong Cài đặt chung để AI điền thẳng vào các mục đang tick, không qua bước xem lại (app nhớ lựa chọn này cho đến khi bạn tự đổi).<br>
+        Kết quả đọc xong được giữ trong máy đến khi điền hoặc bỏ — tải lại trang không mất. Ảnh đã đọc được ghi nhớ: chọn lại đúng ảnh đó app dùng lại kết quả cũ, không gửi lại AI (không mất tiền); muốn đọc lại thì nhấn nhãn ♻️ Đã đọc trên ảnh.<br>
         Ô nào AI đọc không chắc (ảnh mờ, khó đọc) được <b>tô nền vàng nhạt</b> — kiểm tra lại, sửa ô đó thì nền vàng tự mất.<br>
         Mỗi lần đọc app tự trừ số dư ước tính và báo biến động. Hết số dư thì không đọc ảnh được, vẫn nhập tay bình thường. API key chỉ lưu trên máy, không đồng bộ đám mây.
       </div>
@@ -1524,8 +1529,10 @@ function _apDungCheDoKhoiDong(form){
 function renderMain(){
   var box = document.getElementById('main-container');
   var checkedSchemas = currentForm.schema.filter(function(f){ return isChecked(f.id); });
+  var aiCho = _aiLayCho(currentForm.id);
   var aiBar = '<div class="ai-bar" onclick="aiMo()"><div class="ico">📷</div><div><b>Đọc giấy tờ bằng AI<span class="vip-badge">VIP</span></b>'
-    + '<span>Chụp CCCD, sổ đỏ, hợp đồng… để AI tự điền vào tờ khai</span></div></div>';
+    + '<span>Chụp CCCD, sổ đỏ, hợp đồng… để AI tự điền vào tờ khai</span>'
+    + (aiCho ? '<span class="cho">📥 Có kết quả AI đọc lúc ' + esc(_fmtNgayGioVN(aiCho.t)) + ' chưa điền — nhấn để xem</span>' : '') + '</div></div>';
   if (!checkedSchemas.length) {
     box.innerHTML = aiBar
       + '<div class="empty-state">'
@@ -3410,6 +3417,9 @@ var LS_AI_KEY     = 'ktai_key_v1';
 var LS_AI_MODEL   = 'ktai_model_v1';
 var LS_AI_BALANCE = 'ktai_balance_v1'; // số dư ước tính (USD), '' = chưa nhập
 var LS_AI_LOG     = 'ktai_log_v1';     // lịch sử trừ tiền gần đây
+var LS_AI_PENDING = 'ktai_pending_v1'; // { formId: kết quả đọc chưa điền } — giữ qua tải lại trang
+var LS_AI_CACHE   = 'ktai_cache_v1';   // kết quả đã đọc theo dấu vân tay (SHA-256) của ảnh — tránh đọc lại tốn tiền
+var AI_CACHE_TOI_DA = 150;
 var LS_AI_AUTO    = 'ktai_auto_v1';    // 'on' = tự điền vào các mục đang tick, bỏ bước xem lại
 var AI_SDK_SRC    = 'anthropic-sdk-0.132.1.js';
 var AI_TY_GIA     = 26000;             // quy đổi tạm USD → VNĐ, chỉ để hiển thị
@@ -3457,11 +3467,12 @@ var AI_SCHEMA = {
   required:['values','tables','ghi_chu'], additionalProperties:false
 };
 
-var _aiAnh = [];        // [{dataUrl, b64, nhom:'mua'|'ban'}]
+var _aiAnh = [];        // [{dataUrl, b64, nhom:'mua'|'ban', hash, docLai}]
 var _aiTrangThai = 'chon'; // chon | doc | ketqua | loi
 var _aiKetQua = null;   // { formId, items:[...], ghiChu, chiPhi }
 var _aiLoi = '';
 var _aiGhiChuNguoiDung = '';
+var _aiDangDocMoi = 0;
 
 function _aiGetKey(){ return (localStorage.getItem(LS_AI_KEY) || '').trim(); }
 function _aiGetModel(){ var m = localStorage.getItem(LS_AI_MODEL); return AI_MODELS[m] ? m : 'claude-haiku-5-5'; }
@@ -3558,6 +3569,11 @@ function aiMo(){
   // Giữ kết quả đang chờ điền nếu lỡ đóng modal; chỉ bỏ khi kết quả thuộc tờ khai khác
   if (_aiTrangThai === 'ketqua' && (!_aiKetQua || _aiKetQua.formId !== currentForm.id)){ _aiTrangThai = 'chon'; _aiKetQua = null; }
   if (_aiTrangThai === 'loi'){ _aiTrangThai = 'chon'; _aiLoi = ''; }
+  // Kết quả đọc xong nhưng chưa điền (kể cả trước khi tải lại trang) → mở thẳng màn xem lại
+  if (_aiTrangThai === 'chon' && !_aiKetQua){
+    var cho = _aiLayCho(currentForm.id);
+    if (cho){ _aiKetQua = cho; _aiTrangThai = 'ketqua'; }
+  }
   aiRender();
   openM('modal-ai');
 }
@@ -3576,10 +3592,11 @@ function aiRender(){
   var dongSoDu = '<div class="ai-box" style="padding:8px 12px">🤖 ' + esc(AI_MODELS[model].ten) + '<br>💰 Số dư ước tính: <b>' + esc(_aiSoDuText()) + '</b>'
     + (_aiTuDong() ? '<br>⚡ <b>Tự động điền: BẬT</b> — điền thẳng vào ' + _aiDemMucDaTick() + ' mục đang tick, không qua bước xem lại' : '') + '</div>';
   if (_aiTrangThai === 'doc'){
-    html = '<div class="ai-spin"></div><div style="text-align:center;font-size:13px;color:var(--g600);margin-bottom:16px">AI đang đọc ' + _aiAnh.length + ' ảnh…<br><span style="font-size:11px;color:var(--g500)">Thường mất 10–40 giây, giữ app mở.</span></div>';
+    html = '<div class="ai-spin"></div><div style="text-align:center;font-size:13px;color:var(--g600);margin-bottom:16px">AI đang đọc ' + _aiDangDocMoi + ' ảnh mới' + (_aiAnh.length > _aiDangDocMoi ? ' (dùng lại ' + (_aiAnh.length - _aiDangDocMoi) + ' ảnh đã đọc)' : '') + '…<br><span style="font-size:11px;color:var(--g500)">Thường mất 10–40 giây, giữ app mở.</span></div>';
   } else if (_aiTrangThai === 'ketqua' && _aiKetQua){
     var kq = _aiKetQua;
-    html = '<div class="ai-box" style="padding:8px 12px">🧾 Lần đọc này: <b>−' + _aiUsd(kq.chiPhi) + ' (' + _aiVnd(kq.chiPhi) + ')</b><br>💰 Số dư ước tính còn: <b>' + esc(_aiSoDuText()) + '</b></div>';
+    html = '<div class="ai-box" style="padding:8px 12px">🕘 Đọc lúc: <b>' + esc(_fmtNgayGioVN(kq.t)) + '</b> · kết quả được giữ đến khi điền hoặc bỏ<br>🧾 Lần đọc này: <b>' + (kq.chiPhi ? '−' + _aiUsd(kq.chiPhi) + ' (' + _aiVnd(kq.chiPhi) + ')' : '0đ') + '</b>'
+      + (kq.soAnhCu ? ' · ♻️ dùng lại ' + kq.soAnhCu + ' ảnh đã đọc' : '') + '<br>💰 Số dư ước tính còn: <b>' + esc(_aiSoDuText()) + '</b></div>';
     if (kq.ghiChu) html += '<div class="ai-box" style="background:#fff7e6;border:1px solid #f3d9a4">📝 <b>AI ghi chú:</b> ' + esc(kq.ghiChu) + '</div>';
     if (!kq.items.length){
       html += '<div class="modal-sub">AI không tìm thấy thông tin nào khớp với các mục của tờ khai này. Thử chụp rõ hơn hoặc thêm ghi chú cho AI.</div>';
@@ -3590,11 +3607,12 @@ function aiRender(){
         var oDuLieu = it.bang ? '<div style="font-size:12.5px;white-space:pre-line;border-radius:7px;padding:4px 6px"' + (it.khongChac ? ' class="ai-mo"' : '') + '>' + esc(it.hienThi) + '</div>' : _aiODuLieu(it, i);
         var cu = (it.khongChac ? '<div class="ai-mo-hint">⚠️ AI đọc không chắc chắn (ảnh mờ/khó đọc) — kiểm tra kỹ</div>' : '')
           + (it.cu ? '<div class="old">Đang có: ' + esc(it.cu) + ' → sẽ bị thay</div>' : '');
-        return '<div class="ai-res-item"><input type="checkbox" id="ai-c-' + i + '" checked><div style="flex:1;min-width:0">' + lbl + oDuLieu + cu + '</div></div>';
+        return '<div class="ai-res-item"><input type="checkbox" id="ai-c-' + i + '"' + (it.boChon ? '' : ' checked') + ' onchange="_aiChonMuc(' + i + ',this.checked)"><div style="flex:1;min-width:0">' + lbl + oDuLieu + cu + '</div></div>';
       }).join('');
     }
-    html += '<div class="modal-footer"><button class="btn-huy" onclick="_aiTrangThai=\'chon\';aiRender()">↩️ Đọc lại</button>'
-      + (kq.items.length ? '<button class="btn-luu" onclick="aiDienVao()">✅ Điền vào tờ khai</button>' : '<button class="btn-luu" onclick="aiDong()">Đóng</button>') + '</div>';
+    html += '<div class="modal-footer"><button class="btn-huy" onclick="aiBoKetQua()" style="flex:.8">🗑️ Bỏ</button>'
+      + '<button class="btn-huy" onclick="_aiTrangThai=\'chon\';aiRender()">📷 Đọc ảnh khác</button>'
+      + (kq.items.length ? '<button class="btn-luu" onclick="aiDienVao()">✅ Điền vào tờ khai</button>' : '') + '</div>';
   } else {
     if (_aiTrangThai === 'loi' && _aiLoi) html += '<div class="cloud-err" style="display:block;font-size:12.5px;color:var(--red);background:#fdf0ef;border:1px solid #f1c6c2;border-radius:8px;padding:9px 11px;margin-bottom:10px;white-space:pre-line">' + esc(_aiLoi) + '</div>';
     html += dongSoDu
@@ -3610,7 +3628,7 @@ function aiRender(){
 
 // Ô sửa giá trị trong bảng xem lại — đúng kiểu của mục (lựa chọn/có-không là danh sách chọn, ngày là ô ngày)
 function _aiODuLieu(it, i){
-  var st = ' id="ai-v-' + i + '"' + (it.khongChac ? ' class="ai-mo"' : '') + ' style="width:100%;border:1px solid var(--g300);border-radius:7px;padding:7px 8px;font-size:13px;background:#fff"';
+  var st = ' id="ai-v-' + i + '" onchange="_aiSuaMuc(' + i + ',this.value)" oninput="_aiSuaMuc(' + i + ',this.value)"' + (it.khongChac ? ' class="ai-mo"' : '') + ' style="width:100%;border:1px solid var(--g300);border-radius:7px;padding:7px 8px;font-size:13px;background:#fff"';
   if (it.kieu === 'choice' || it.kieu === 'yesno'){
     var opts = it.kieu === 'yesno' ? [{v:'true',label:'Có'},{v:'false',label:'Không'}] : schemaById(it.id).options;
     return '<select' + st + '>' + opts.map(function(o){
@@ -3644,7 +3662,12 @@ function _aiNhomHtml(nhom){
   var n = AI_NHOM[nhom];
   var thumbs = '';
   _aiAnh.forEach(function(a, i){
-    if (a.nhom === nhom) thumbs += '<div class="ai-thumb"><img src="' + a.dataUrl + '" alt=""><button onclick="aiXoaAnh(' + i + ')">✕</button></div>';
+    if (a.nhom !== nhom) return;
+    var cu = _aiTimCache(a, currentForm.id, _aiCanIds(currentForm, _aiTuDong()));
+    var tag = !cu ? '' : a.docLai
+      ? '<div class="ai-tag lai" onclick="aiDocLaiAnh(' + i + ')">🔄 Đọc lại</div>'
+      : '<div class="ai-tag cu" onclick="aiDocLaiAnh(' + i + ')">♻️ Đã đọc</div>';
+    thumbs += '<div class="ai-thumb"><img src="' + a.dataUrl + '" alt=""><button onclick="aiXoaAnh(' + i + ')">✕</button>' + tag + '</div>';
   });
   return '<div class="ai-nhom ai-nhom-' + nhom + '"><div class="ai-nhom-ten">' + n.ten + ' <span>(' + n.moTa + ')</span></div>'
     + '<div class="ai-pick-row">'
@@ -3656,12 +3679,86 @@ async function aiThemAnh(files, nhom){
   var ds = Array.prototype.slice.call(files || []);
   for (var i = 0; i < ds.length; i++){
     if (_aiAnh.length >= AI_ANH_TOI_DA){ toast('⚠️ Tối đa ' + AI_ANH_TOI_DA + ' ảnh mỗi lần đọc', 2500); break; }
-    try { var a = await _aiThuNhoAnh(ds[i]); a.nhom = AI_NHOM[nhom] ? nhom : 'mua'; _aiAnh.push(a); } catch(e){ toast('⚠️ Không đọc được 1 ảnh', 2500); }
+    try {
+      var a = await _aiThuNhoAnh(ds[i]);
+      a.nhom = AI_NHOM[nhom] ? nhom : 'mua';
+      a.hash = await _aiBamAnh(ds[i]);
+      if (a.hash && _aiAnh.some(function(x){ return x.hash === a.hash && x.nhom === a.nhom; })){ toast('⚠️ Ảnh này đã có trong danh sách', 2500); continue; }
+      _aiAnh.push(a);
+      var cu = _aiTimCache(a, currentForm.id, _aiCanIds(currentForm, _aiTuDong()));
+      if (cu) toast('♻️ Ảnh này đã được đọc lúc ' + _fmtNgayGioVN(cu.t) + ' — sẽ dùng lại kết quả cũ, không gửi lại AI (không mất tiền)', 6000);
+    } catch(e){ toast('⚠️ Không đọc được 1 ảnh', 2500); }
   }
   if (_aiTrangThai === 'loi') _aiTrangThai = 'chon';
   aiRender();
 }
 function aiXoaAnh(i){ _aiAnh.splice(i, 1); aiRender(); }
+function aiDocLaiAnh(i){
+  var a = _aiAnh[i];
+  if (!a) return;
+  a.docLai = !a.docLai;
+  toast(a.docLai ? '🔄 Ảnh này sẽ được gửi AI đọc lại (tính tiền)' : '♻️ Dùng lại kết quả đã đọc của ảnh này', 3000);
+  aiRender();
+}
+
+// ── Kết quả chờ điền: lưu vào máy ngay khi đọc xong, xoá khi đã điền hoặc người dùng bỏ ──
+function _aiLayCho(formId){ var m = lsGetO(LS_AI_PENDING)[formId]; return (m && m.items) ? m : null; }
+function _aiLuuCho(kq){
+  var m = lsGetO(LS_AI_PENDING);
+  if (kq) m[kq.formId] = kq;
+  try { lsSet(LS_AI_PENDING, m); } catch(e){}
+}
+function _aiXoaCho(formId){ var m = lsGetO(LS_AI_PENDING); delete m[formId]; lsSet(LS_AI_PENDING, m); }
+function _aiSuaMuc(i, val){ if (_aiKetQua && _aiKetQua.items[i]){ _aiKetQua.items[i].value = val; _aiLuuCho(_aiKetQua); } }
+function _aiChonMuc(i, on){ if (_aiKetQua && _aiKetQua.items[i]){ _aiKetQua.items[i].boChon = !on; _aiLuuCho(_aiKetQua); } }
+function aiBoKetQua(){
+  showConfirm('🗑️ Bỏ kết quả AI', 'Bỏ kết quả đọc này, không điền vào tờ khai?\n\nẢnh đã đọc vẫn được ghi nhớ — nếu chọn lại đúng ảnh đó, app dùng lại kết quả cũ mà không tốn tiền.', function(){
+    if (_aiKetQua) _aiXoaCho(_aiKetQua.formId);
+    _aiKetQua = null; _aiTrangThai = 'chon';
+    aiRender(); renderMain();
+  }, 'Bỏ kết quả', true);
+}
+
+// ── Bộ nhớ ảnh đã đọc: khoá = SHA-256 của file ảnh gốc + nhóm (mua/bán); kết quả gắn với loại tờ khai và
+// danh sách mục đã gửi (null = đủ mục). Chỉ dùng lại khi kết quả cũ có đủ các mục đang cần.
+async function _aiBamAnh(file){
+  try {
+    if (!(window.crypto && crypto.subtle)) return null;
+    var buf = await file.arrayBuffer();
+    var h = await crypto.subtle.digest('SHA-256', buf);
+    return Array.prototype.map.call(new Uint8Array(h), function(b){ return ('0' + b.toString(16)).slice(-2); }).join('');
+  } catch(e){ return null; }
+}
+function _aiCanIds(form, tuDong){
+  return tuDong ? form.schema.filter(function(f){ return f.type !== 'computed' && isChecked(f.id); }).map(function(f){ return f.id; }) : null;
+}
+function _aiTimCache(a, formId, canIds){
+  if (!a.hash) return null;
+  var khoa = a.hash + '|' + a.nhom;
+  return lsGetA(LS_AI_CACHE).find(function(e){
+    return e.formId === formId && e.imgs.indexOf(khoa) >= 0
+      && (!e.ids || (canIds && canIds.every(function(id){ return e.ids.indexOf(id) >= 0; })));
+  }) || null;
+}
+function _aiLuuCache(entry){
+  var ds = lsGetA(LS_AI_CACHE);
+  ds.unshift(entry);
+  ds = ds.slice(0, AI_CACHE_TOI_DA);
+  while (ds.length){
+    try { lsSet(LS_AI_CACHE, ds); return; } catch(e){ ds = ds.slice(0, Math.floor(ds.length / 2)); } // đầy bộ nhớ → bỏ bớt bản cũ
+  }
+}
+function _aiGopKetQua(outs){
+  var g = { values:[], tables:[], ghi_chu:'' }, daCoBang = {}, ghi = [];
+  outs.forEach(function(o){
+    g.values = g.values.concat(o.values || []);
+    (o.tables || []).forEach(function(t){ if (!daCoBang[t.id]){ daCoBang[t.id] = 1; g.tables.push(t); } });
+    var gc = (o.ghi_chu || '').trim();
+    if (gc && ghi.indexOf(gc) < 0) ghi.push(gc);
+  });
+  g.ghi_chu = ghi.join(' · ');
+  return g;
+}
 
 function _aiNapSDK(){
   if (window.AnthropicSDK) return Promise.resolve(window.AnthropicSDK);
@@ -3694,51 +3791,69 @@ function _aiKieu(t, money){
 
 async function aiDoc(){
   if (!_aiAnh.length || _aiTrangThai === 'doc') return;
-  var key = _aiGetKey();
-  if (!key){ aiRender(); return; }
-  if (navigator.onLine === false){ _aiTrangThai = 'loi'; _aiLoi = '📡 Đang không có mạng. Kết nối mạng rồi thử lại.'; aiRender(); return; }
   var form = currentForm, model = _aiGetModel(), anh = _aiAnh.slice(), tuDong = _aiTuDong();
   if (tuDong && !_aiDemMucDaTick()){ _aiTrangThai = 'loi'; _aiLoi = '⚡ Đang bật Tự động điền nhưng tờ khai chưa tick mục nào.\nVào ⚙️ Chọn mục cần khai để tick các mục muốn điền, hoặc tắt Tự động điền trong Cài đặt chung.'; aiRender(); return; }
-  _aiTrangThai = 'doc'; _aiLoi = ''; aiRender();
-  var SDK;
-  try { SDK = await _aiNapSDK(); }
-  catch(e){ _aiTrangThai = 'loi'; _aiLoi = '❌ Không tải được thư viện AI. Kiểm tra mạng rồi thử lại.'; aiRender(); return; }
-  var Anthropic = SDK.Anthropic;
-  var content = [];
-  anh.forEach(function(a, i){
-    content.push({ type:'text', text:'Ảnh ' + (i + 1) + ' — nhóm ' + AI_NHOM[a.nhom].nhan + ':' });
-    content.push({ type:'image', source:{ type:'base64', media_type:'image/jpeg', data:a.b64 } });
+  // Ảnh đã đọc trước đó (cùng tờ khai, đủ mục cần) → dùng lại kết quả cũ, chỉ gửi ảnh mới cho AI
+  var canIds = _aiCanIds(form, tuDong), cuEntries = [], moi = [], soAnhCu = 0;
+  anh.forEach(function(a){
+    var e = a.docLai ? null : _aiTimCache(a, form.id, canIds);
+    if (e){ soAnhCu++; if (!cuEntries.some(function(x){ return x.id === e.id; })) cuEntries.push(e); }
+    else moi.push(a);
   });
-  var ghiChu = (_aiGhiChuNguoiDung || '').trim();
-  content.push({ type:'text', text:
-      'Tờ khai cần điền: ' + form.headerTitle.replace(/^\S+\s/, '') + ' (Mẫu ' + form.mauSo + ', ' + form.thongTu + ').\n'
-    + (AI_VAI_TRO[form.id] || '') + '\n'
-    + (ghiChu ? 'Ghi chú của người dùng (ưu tiên làm theo): ' + ghiChu + '\n' : '')
-    + '\nDanh sách mục ' + (tuDong ? 'cần điền' : 'của tờ khai') + ' (chỉ dùng đúng các id/sub/k này):\n' + _aiMoTaTruong(form, tuDong) });
-  var msg;
-  try {
-    var client = new Anthropic({ apiKey:key, dangerouslyAllowBrowser:true, timeout:120000, maxRetries:1 });
-    msg = await client.messages.parse({
-      model:model,
-      max_tokens:16000,
-      system:AI_SYSTEM,
-      messages:[{ role:'user', content:content }],
-      output_config:{ effort:'medium', format:SDK.jsonSchemaOutputFormat(AI_SCHEMA) }
+  var key = _aiGetKey();
+  if (moi.length && !key){ aiRender(); return; }
+  if (moi.length && navigator.onLine === false){ _aiTrangThai = 'loi'; _aiLoi = '📡 Đang không có mạng. Kết nối mạng rồi thử lại.'; aiRender(); return; }
+  _aiDangDocMoi = moi.length;
+  _aiTrangThai = 'doc'; _aiLoi = ''; aiRender();
+  var outMoi = null, chiPhi = 0;
+  if (moi.length){
+    var SDK;
+    try { SDK = await _aiNapSDK(); }
+    catch(e){ _aiTrangThai = 'loi'; _aiLoi = '❌ Không tải được thư viện AI. Kiểm tra mạng rồi thử lại.'; aiRender(); return; }
+    var Anthropic = SDK.Anthropic;
+    var content = [];
+    moi.forEach(function(a, i){
+      content.push({ type:'text', text:'Ảnh ' + (i + 1) + ' — nhóm ' + AI_NHOM[a.nhom].nhan + ':' });
+      content.push({ type:'image', source:{ type:'base64', media_type:'image/jpeg', data:a.b64 } });
     });
-  } catch(e){
-    _aiTrangThai = 'loi'; _aiLoi = _aiMoTaLoi(Anthropic, e); aiRender();
-    return;
+    var ghiChu = (_aiGhiChuNguoiDung || '').trim();
+    content.push({ type:'text', text:
+        'Tờ khai cần điền: ' + form.headerTitle.replace(/^\S+\s/, '') + ' (Mẫu ' + form.mauSo + ', ' + form.thongTu + ').\n'
+      + (AI_VAI_TRO[form.id] || '') + '\n'
+      + (ghiChu ? 'Ghi chú của người dùng (ưu tiên làm theo): ' + ghiChu + '\n' : '')
+      + '\nDanh sách mục ' + (tuDong ? 'cần điền' : 'của tờ khai') + ' (chỉ dùng đúng các id/sub/k này):\n' + _aiMoTaTruong(form, tuDong) });
+    var msg;
+    try {
+      var client = new Anthropic({ apiKey:key, dangerouslyAllowBrowser:true, timeout:120000, maxRetries:1 });
+      msg = await client.messages.parse({
+        model:model,
+        max_tokens:16000,
+        system:AI_SYSTEM,
+        messages:[{ role:'user', content:content }],
+        output_config:{ effort:'medium', format:SDK.jsonSchemaOutputFormat(AI_SCHEMA) }
+      });
+    } catch(e){
+      _aiTrangThai = 'loi'; _aiLoi = _aiMoTaLoi(Anthropic, e); aiRender();
+      return;
+    }
+    chiPhi = _aiTruTien(model, msg.usage || {}, moi.length);
+    if (msg.stop_reason === 'refusal' || msg.stop_reason === 'max_tokens' || !msg.parsed_output){
+      _aiTrangThai = 'loi';
+      _aiLoi = msg.stop_reason === 'refusal' ? '⚠️ AI từ chối đọc các ảnh này. Thử ảnh khác hoặc nhập tay.'
+        : '⚠️ AI trả về kết quả không đầy đủ. Thử lại với ít ảnh hơn.';
+      aiRender();
+      toast('🤖 Đọc ' + moi.length + ' ảnh: −' + _aiUsd(chiPhi) + ' (' + _aiVnd(chiPhi) + ') · Số dư còn ' + _aiSoDuText(), 7000);
+      return;
+    }
+    outMoi = msg.parsed_output;
+    var khoaMoi = moi.filter(function(a){ return a.hash; }).map(function(a){ return a.hash + '|' + a.nhom; });
+    if (khoaMoi.length) _aiLuuCache({ id:'c' + Date.now(), formId:form.id, t:new Date().toISOString(), imgs:khoaMoi, ids:canIds, out:outMoi });
+    moi.forEach(function(a){ a.docLai = false; });
   }
-  var chiPhi = _aiTruTien(model, msg.usage || {}, anh.length);
-  var thongBao = '🤖 Đọc ' + anh.length + ' ảnh: −' + _aiUsd(chiPhi) + ' (' + _aiVnd(chiPhi) + ') · Số dư còn ' + _aiSoDuText();
-  if (msg.stop_reason === 'refusal' || msg.stop_reason === 'max_tokens' || !msg.parsed_output){
-    _aiTrangThai = 'loi';
-    _aiLoi = msg.stop_reason === 'refusal' ? '⚠️ AI từ chối đọc các ảnh này. Thử ảnh khác hoặc nhập tay.'
-      : '⚠️ AI trả về kết quả không đầy đủ. Thử lại với ít ảnh hơn.';
-    aiRender(); toast(thongBao, 7000);
-    return;
-  }
-  _aiKetQua = { formId:form.id, items:_aiChuanHoaKetQua(form, msg.parsed_output), ghiChu:(msg.parsed_output.ghi_chu || '').trim(), chiPhi:chiPhi };
+  var out = _aiGopKetQua((outMoi ? [outMoi] : []).concat(cuEntries.map(function(e){ return e.out; })));
+  var thongBao = (moi.length ? '🤖 Đọc ' + moi.length + ' ảnh: −' + _aiUsd(chiPhi) + ' (' + _aiVnd(chiPhi) + ')' : '♻️ Không gửi ảnh nào lên AI — 0đ')
+    + (soAnhCu ? ' · ♻️ dùng lại kết quả ' + soAnhCu + ' ảnh đã đọc' : '') + ' · Số dư còn ' + _aiSoDuText();
+  _aiKetQua = { formId:form.id, t:new Date().toISOString(), items:_aiChuanHoaKetQua(form, out), ghiChu:(out.ghi_chu || '').trim(), chiPhi:chiPhi, soAnhCu:soAnhCu };
   if (tuDong && currentForm && currentForm.id === form.id){
     // Tự động điền: chỉ các mục đang tick, dùng nguyên giá trị AI đọc được, không qua bước xem lại
     var items = _aiKetQua.items.filter(function(it){ return isChecked(it.id); });
@@ -3748,11 +3863,12 @@ async function aiDoc(){
     _aiDonDep();
     closeM('modal-ai');
     toast((dem ? '⚡ AI đã tự điền ' + dem + ' mục' + (soMo ? ' (' + soMo + ' mục không chắc — nền vàng)' : '') : '⚡ AI không đọc được thông tin cho các mục đang tick')
-      + ' · −' + _aiUsd(chiPhi) + ' (' + _aiVnd(chiPhi) + ') · Số dư còn ' + _aiSoDuText()
-      + (ghi ? ' · 📝 ' + ghi : ''), ghi ? 12000 : 8000);
+      + ' · ' + thongBao + (ghi ? ' · 📝 ' + ghi : ''), ghi ? 12000 : 8000);
     return;
   }
+  _aiLuuCho(_aiKetQua); // giữ kết quả trong máy — tải lại trang hay lỡ đóng app vẫn còn để điền
   _aiTrangThai = 'ketqua';
+  if (currentForm && currentForm.id === form.id) renderMain();
   if (document.getElementById('modal-ai').classList.contains('show')) aiRender();
   else { aiRender(); openM('modal-ai'); }
   toast(thongBao, 7000);
@@ -3946,8 +4062,10 @@ function aiDienVao(){
     var inp = document.getElementById('ai-v-' + i);
     return inp ? inp.value : (it.bang ? '' : it.value);
   });
+  _aiXoaCho(kq.formId);
   closeM('modal-ai');
   _aiDonDep();
+  renderMain();
   var soMo = (valuesMap.__aiMo ? Object.keys(valuesMap.__aiMo).length : 0);
   toast(dem ? '✅ Đã điền ' + dem + ' mục từ giấy tờ' + (soMo ? ' · ' + soMo + ' ô nền vàng cần kiểm tra' : '') + ' — kiểm tra lại trước khi in' : 'Không có mục nào được chọn', 4500);
 }
