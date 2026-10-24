@@ -130,12 +130,22 @@ giá trị cho các mục của tờ khai đang mở:
   ngay vào máy (`ktai_pending_v1`, riêng từng loại tờ khai) — tải lại trang, lỡ đóng app vẫn còn. Nút AI
   trong tờ khai hiện "📥 Có kết quả AI đọc lúc … chưa điền", nhấn để mở lại màn xem lại. Kết quả chỉ mất khi
   bấm **✅ Điền vào tờ khai** hoặc **🗑️ Bỏ** (có hỏi lại).
-- **♻️ Không đọc lại ảnh đã đọc**: mỗi ảnh được lấy dấu vân tay SHA-256 từ file gốc; kết quả đọc lưu theo
-  dấu vân tay + nhóm (bên mua/bán) + loại tờ khai (`ktai_cache_v1`, tối đa 150 lần đọc, chỉ trên máy). Chọn
-  lại đúng ảnh đó → app báo "đã được đọc lúc …", ảnh có nhãn **♻️ Đã đọc**, khi đọc thì chỉ gửi AI các ảnh
-  mới, ảnh cũ dùng lại kết quả cũ (0đ). Nhấn nhãn để chuyển thành **🔄 Đọc lại** nếu muốn AI đọc lại (tính
-  tiền). Kết quả cũ chỉ được dùng lại khi có đủ các mục đang cần (VD bản đọc ở chế độ tự động chỉ có các mục
-  đang tick lúc đó). Chọn trùng 1 ảnh 2 lần trong cùng nhóm sẽ bị bỏ qua.
+- **📚 Kho giấy tờ đã đọc** (từ v1.5.6): AI đọc ảnh ra dạng **trung lập**, không gắn với tờ khai — danh sách
+  *người* (họ tên, CCCD, ngày/nơi cấp, địa chỉ, MST… kèm vai trò mua/bán), *bất động sản* (số GCN, thửa, tờ
+  bản đồ, địa chỉ, diện tích, mục đích, nhà trên đất…) và *hợp đồng* (loại, số, ngày, nơi công chứng, giá
+  trị). Mọi thứ đọc được tự lưu vào kho `tk2_kho_v1` (đồng bộ đám mây, chống trùng theo số CCCD / số GCN /
+  số + ngày hợp đồng; đọc lại thì cập nhật bản ghi cũ). App tự ghép vào ô của từng loại tờ khai (`_aiGhep`):
+  LPTB bên mua → [04]-[12], bên bán → 1.6.a, người mua thứ 2 → bảng đồng sở hữu (5); TNCN bên bán →
+  [04]-[12], bên mua → [33]-[35.2], hợp đồng → [32] hoặc [36] (tặng cho/thừa kế); TSDĐ bên mua → người
+  sử dụng đất. Màn xem lại có ô chọn **Bên mua / Mua thêm / Bên bán / Bán thêm / Thửa đất / Hợp đồng** và
+  nút **⇄ Đảo bên mua ↔ bên bán** — đổi lựa chọn không cần đọc lại. Nút **📚 Điền từ kho giấy tờ (0đ)**
+  trong cửa sổ đọc ảnh cho phép điền thẳng từ kho không cần chụp (dùng được cả khi chưa có API key).
+  Quản lý (tìm, xoá) kho ở Cài đặt chung → 📚 Kho giấy tờ đã đọc.
+- **♻️ Không đọc lại đúng file ảnh đã đọc**: mỗi ảnh lấy dấu vân tay SHA-256 từ file gốc (`ktai_cache_v2`,
+  tối đa 150 lần đọc, chỉ trên máy). Chọn lại đúng file đó → báo "đã được đọc lúc …", nhãn **♻️ Đã đọc**,
+  dùng lại kết quả cũ (0đ) cho mọi loại tờ khai; ảnh CCCD chuyển sang nhóm kia thì tự đảo vai trò (hợp đồng
+  ghi rõ 2 bên thì giữ nguyên). Nhấn nhãn → **🔄 Đọc lại** nếu muốn AI đọc lại. Ảnh chụp lại (file khác) vẫn
+  phải đọc — khi đó dùng 📚 Kho giấy tờ để khỏi chụp.
 - **🟨 Ô AI đọc không chắc chắn**: với mỗi giá trị AI trả kèm cờ `khong_chac` (ảnh mờ, bị che, khó đọc).
   Các ô đó được tô **nền vàng nhạt** kèm dòng "⚠️ AI đọc không chắc chắn — kiểm tra lại", cả ở màn xem lại
   lẫn trong tờ khai sau khi điền. Đánh dấu lưu trong `valuesMap.__aiMo` (đi cùng tờ khai: lịch sử, đồng bộ,
@@ -242,6 +252,7 @@ số riêng lẻ như trước. Từ v1.1.0, mỗi số phiên bản phản ánh
 
 | Phiên bản | Ngày | Thay đổi |
 |-----------|------|----------|
+| **v1.5.6** | 2026-10-25 | 📚 **Kho giấy tờ đã đọc**: AI đọc ảnh ra dạng trung lập (người / bất động sản / hợp đồng, không gắn với tờ khai), tự lưu vào kho đồng bộ đám mây, chống trùng theo số CCCD/GCN/hợp đồng; app tự ghép vào ô của từng loại tờ khai. Màn xem lại có ô chọn Bên mua/Bên bán (kèm người thứ 2)/Thửa đất/Hợp đồng và nút ⇄ đảo vai trò — đổi không cần đọc lại. Nút **📚 Điền từ kho giấy tờ (0đ)** điền không cần chụp ảnh. Quản lý kho (tìm, xoá) trong Cài đặt chung. Bộ nhớ ảnh đã đọc dùng được cho mọi tờ khai, ảnh CCCD đổi nhóm tự đảo vai trò |
 | **v1.5.5** | 2026-10-25 | 📥 Giữ kết quả AI chưa điền: lưu ngay vào máy (kể cả chỗ đã sửa/bỏ tick), tải lại trang không mất, nút AI báo "Có kết quả … chưa điền"; chỉ mất khi Điền hoặc Bỏ. ♻️ Ghi nhớ ảnh đã đọc theo dấu vân tay SHA-256: chọn lại ảnh cũ thì báo và dùng lại kết quả cũ, chỉ gửi AI ảnh mới (không mất tiền); nhãn ♻️ Đã đọc / 🔄 Đọc lại trên ảnh; bỏ qua ảnh trùng |
 | **v1.5.4** | 2026-10-25 | 🟨 Ô AI đọc **không chắc chắn** (ảnh mờ, khó đọc) được tô nền vàng nhạt kèm dòng nhắc kiểm tra — ở màn xem lại và trong tờ khai sau khi điền; vẫn giữ sau khi tải lại app, tự mất khi sửa ô/bỏ tick mục/tờ khai mới. Thông báo sau khi điền nêu số ô cần kiểm tra. Xác nhận công tắc ⚡ Tự động điền nhớ lựa chọn trên máy, chỉ đổi khi người dùng tự gạt |
 | **v1.5.3** | 2026-10-25 | ⚡ Thêm công tắc **Tự động điền sau khi đọc ảnh** trong Cài đặt chung (mục 🤖 Đọc giấy tờ bằng AI): bật thì AI chỉ nhận danh sách các mục đang tick và điền thẳng thông tin đọc được vào các mục đó, không qua bước xem lại (chưa tick mục nào thì báo, không gửi ảnh). Thêm huy hiệu **VIP** vàng nổi bật sau chữ "Đọc giấy tờ bằng AI" (nút trong tờ khai, tiêu đề cửa sổ, Cài đặt chung, Hướng dẫn) |

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#8a6e2f">
-<title>Khai Thuế v1.5.5</title>
+<title>Khai Thuế v1.5.6</title>
 <meta name="description" content="Công cụ khai thuế đa tờ khai (Lệ phí trước bạ, TNCN chuyển nhượng BĐS...) - v1.3.6">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -327,7 +327,7 @@
     <div class="launcher-header-top">
       <div>
         <b>📚 Khai Thuế</b>
-        <span>TaiDauTieng@gmail.com · v1.5.5</span>
+        <span>TaiDauTieng@gmail.com · v1.5.6</span>
       </div>
       <button class="gear-btn" onclick="openGlobalSettings()" title="Cài đặt chung">⚙️</button>
     </div>
@@ -357,7 +357,7 @@
     </div>
     <div class="header-title" id="header-title-box" style="flex:1;text-align:center;align-items:center;padding:0 4px">
       <b id="header-title-b">📋 Tờ khai</b>
-      <span id="header-title-span">v1.5.5</span>
+      <span id="header-title-span">v1.5.6</span>
     </div>
     <div style="display:flex;gap:6px;flex:0 0 auto">
       <button class="gear-btn" onclick="moLichSuToKhai()" title="Lịch sử tờ khai">🕘</button>
@@ -449,6 +449,7 @@
         Tạo API key ở <b>console.anthropic.com</b> (nạp tiền trước), dán vào ⚙️ Cài đặt chung → 🤖 Đọc giấy tờ bằng AI, nhập số dư đã nạp.<br>
         Trong tờ khai, nhấn <b>📷 Đọc giấy tờ bằng AI</b> → chụp/chọn ảnh vào đúng nhóm <b>Bên mua</b> / <b>Bên bán</b> (CCCD up đúng bên; sổ đỏ, hợp đồng up bên nào cũng được) → AI đề xuất giá trị từng mục → xem lại, sửa nếu cần → <b>Điền vào tờ khai</b>.<br>
         Bật <b>⚡ Tự động điền sau khi đọc ảnh</b> trong Cài đặt chung để AI điền thẳng vào các mục đang tick, không qua bước xem lại (app nhớ lựa chọn này cho đến khi bạn tự đổi).<br>
+        Mọi thông tin AI đọc được (người, thửa đất, hợp đồng) tự lưu vào <b>📚 Kho giấy tờ</b>. Lần sau làm tờ khai cho khách quen: nhấn <b>📚 Điền từ kho giấy tờ (0đ)</b>, chọn bên mua, bên bán, thửa đất, hợp đồng — không cần chụp lại, đổi vai trò mua/bán bằng nút ⇄. Quản lý kho trong Cài đặt chung.<br>
         Kết quả đọc xong được giữ trong máy đến khi điền hoặc bỏ — tải lại trang không mất. Ảnh đã đọc được ghi nhớ: chọn lại đúng ảnh đó app dùng lại kết quả cũ, không gửi lại AI (không mất tiền); muốn đọc lại thì nhấn nhãn ♻️ Đã đọc trên ảnh.<br>
         Ô nào AI đọc không chắc (ảnh mờ, khó đọc) được <b>tô nền vàng nhạt</b> — kiểm tra lại, sửa ô đó thì nền vàng tự mất.<br>
         Mỗi lần đọc app tự trừ số dư ước tính và báo biến động. Hết số dư thì không đọc ảnh được, vẫn nhập tay bình thường. API key chỉ lưu trên máy, không đồng bộ đám mây.
@@ -560,6 +561,7 @@
         <button onclick="aiCapNhatSoDu()">Cập nhật số dư</button>
       </div>
       <div style="font-size:10.5px;color:var(--g500);margin-top:4px">App tự trừ dần theo số token mỗi lần đọc. Số dư thật xem ở console.anthropic.com → Billing; nhập lại vào ô trên sau khi nạp thêm.</div>
+      <div class="ai-row"><button class="sec" onclick="khoMo()" style="flex:1;text-align:left">📚 Kho giấy tờ đã đọc: <span id="kho-dem"></span> ›</button></div>
       <div class="ai-log" id="ai-log-list"></div>
     </div>
 
@@ -635,6 +637,18 @@
     <div class="modal-handle"></div>
     <div class="modal-title"><span class="modal-title-text">🤖 Đọc giấy tờ bằng AI<span class="vip-badge">VIP</span></span><button class="modal-close-x" onclick="aiDong()">✕</button></div>
     <div id="ai-body"><!-- render bởi aiRender() --></div>
+  </div>
+</div>
+
+<!-- MODAL KHO GIẤY TỜ ĐÃ ĐỌC -->
+<div class="modal" id="modal-kho" style="z-index:750">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title"><span class="modal-title-text">📚 Kho giấy tờ đã đọc</span><button class="modal-close-x" onclick="closeM('modal-kho')">✕</button></div>
+    <div class="modal-sub">Thông tin AI đã đọc từ CCCD, sổ đỏ, hợp đồng — dùng lại cho mọi tờ khai bằng nút "📚 Điền từ kho giấy tờ" (0đ). Đồng bộ đám mây cùng dữ liệu tờ khai.</div>
+    <input type="text" id="kho-loc" placeholder="🔍 Tìm tên, số CCCD, số thửa…" oninput="_khoLoc=this.value;khoRenderDS()" style="width:100%;border:1px solid var(--g300);border-radius:8px;padding:9px 10px;font-size:13px;margin-bottom:6px">
+    <div id="kho-ds"></div>
+    <div class="modal-footer"><button class="btn-huy" onclick="closeM('modal-kho')" style="flex:none;width:100%">Đóng</button></div>
   </div>
 </div>
 
@@ -3418,7 +3432,9 @@ var LS_AI_MODEL   = 'ktai_model_v1';
 var LS_AI_BALANCE = 'ktai_balance_v1'; // số dư ước tính (USD), '' = chưa nhập
 var LS_AI_LOG     = 'ktai_log_v1';     // lịch sử trừ tiền gần đây
 var LS_AI_PENDING = 'ktai_pending_v1'; // { formId: kết quả đọc chưa điền } — giữ qua tải lại trang
-var LS_AI_CACHE   = 'ktai_cache_v1';   // kết quả đã đọc theo dấu vân tay (SHA-256) của ảnh — tránh đọc lại tốn tiền
+var LS_AI_CACHE   = 'ktai_cache_v2';   // kết quả đã đọc theo dấu vân tay (SHA-256) của ảnh — tránh đọc lại tốn tiền
+var LS_KHO        = LS_PREFIX + 'kho_v1'; // 📚 Kho giấy tờ đã đọc (người / thửa đất / hợp đồng) — dùng chung mọi tờ khai, đồng bộ đám mây
+var KHO_TOI_DA    = 300;
 var AI_CACHE_TOI_DA = 150;
 var LS_AI_AUTO    = 'ktai_auto_v1';    // 'on' = tự điền vào các mục đang tick, bỏ bước xem lại
 var AI_SDK_SRC    = 'anthropic-sdk-0.132.1.js';
@@ -3430,46 +3446,52 @@ var AI_MODELS = {
   'claude-haiku-5-5':  { ten:'Haiku 5.5 — rẻ (mặc định)', giaVao:0.10, giaRa:0.50 },
   'claude-sonnet-5-5': { ten:'Sonnet 5.5 — chính xác hơn', giaVao:2,    giaRa:10 }
 };
-// Thông tin bên mua / bên bán điền vào mục nào — tuỳ loại tờ khai
-var AI_VAI_TRO = {
-  ltb:      'BÊN MUA (bên nhận chuyển nhượng / nhận tặng cho / nhận thừa kế) là người nộp thuế: điền mục [04]-[12]. BÊN BÁN (bên chuyển giao quyền sử dụng đất, bên tặng cho) điền mục 1.6.a.',
-  tncn_bds: 'BÊN BÁN (bên chuyển nhượng) là người nộp thuế: điền phần I, mục [04]-[12]. BÊN MUA (bên nhận chuyển nhượng, nhận thừa kế, quà tặng) điền phần II, mục [33]-[35.2]. Trường hợp nhận thừa kế, quà tặng thì làm theo ghi chú của người dùng nếu có.',
-  tsdd:     'Người nộp thuế là người sử dụng đất (thường là BÊN MUA / bên nhận): điền phần thông tin người nộp thuế. Thông tin BÊN BÁN chỉ dùng nếu tờ khai có mục tương ứng.'
-};
 var AI_NHOM = {
   mua: { ten:'🟢 Bên mua', moTa:'bên nhận chuyển nhượng', nhan:'BÊN MUA' },
   ban: { ten:'🔵 Bên bán', moTa:'bên chuyển nhượng', nhan:'BÊN BÁN' }
 };
-var AI_SYSTEM = 'Bạn đọc ảnh giấy tờ Việt Nam (CCCD/CMND, giấy chứng nhận quyền sử dụng đất — sổ đỏ, sổ hồng, hợp đồng chuyển nhượng/tặng cho, giấy tờ khác) để điền tờ khai thuế.\n'
-  + '- Chỉ lấy thông tin đọc được rõ ràng trên ảnh; không suy đoán, không bịa. Mục nào ảnh không có thông tin thì bỏ qua, không đưa vào kết quả.\n'
+// AI đọc giấy tờ ra dạng TRUNG LẬP (không gắn với tờ khai): người / bất động sản / hợp đồng. App lưu vào
+// Kho giấy tờ rồi tự ghép vào ô của từng loại tờ khai (_aiGhep) — đổi vai trò, đổi tờ khai không phải đọc lại.
+var AI_TRUONG = {
+  nguoi: ['ho_ten','ngay_sinh','so_cccd','ngay_cap','noi_cap','ho_chieu','dia_chi','phuong_xa','quan_huyen','tinh_tp','ma_so_thue','dien_thoai','email'],
+  bds:   ['so_gcn','so_vao_so','ngay_cap_gcn','co_quan_cap','thua_so','to_ban_do','dia_chi','so_nha','duong_pho','thon_xom','phuong_xa','quan_huyen','tinh_tp',
+          'dien_tich','muc_dich','thoi_han','nguon_goc','nha_loai','nha_cap','nha_dt_xay_dung','nha_dt_san','nha_ket_cau','nha_so_tang','nha_nam_hoan_thanh'],
+  hd:    ['loai','so','ngay_lap','noi_lap','co_quan_chung_thuc','ngay_chung_thuc','gia_tri','gia_tri_dat','gia_tri_nha']
+};
+var AI_LOAI_HD = { chuyennhuong:'Chuyển nhượng', tangcho:'Tặng cho', thuake:'Thừa kế', khac:'Khác' };
+var AI_SYSTEM = 'Bạn đọc ảnh giấy tờ Việt Nam (CCCD/CMND, hộ chiếu, giấy chứng nhận quyền sử dụng đất — sổ đỏ, sổ hồng, hợp đồng chuyển nhượng/tặng cho/thừa kế, giấy tờ khác) và trích thông tin thành 3 nhóm: nguoi (từng người), bat_dong_san (từng thửa đất, kèm nhà trên đất nếu có), hop_dong (từng hợp đồng/văn bản chuyển giao).\n'
+  + '- Chỉ lấy thông tin đọc được trên ảnh; không suy đoán, không bịa. Trường nào không có thì để chuỗi rỗng "".\n'
   + '- Giữ nguyên chính tả tiếng Việt có dấu như trên giấy tờ.\n'
-  + '- Định dạng: ngày theo YYYY-MM-DD; số tiền chỉ ghi chữ số, không dấu phân cách; số thập phân (diện tích…) dùng dấu chấm, VD 120.5; số CCCD ghi đủ các chữ số.\n'
-  + '- Mục có ô con: mỗi ô con là 1 phần tử riêng, sub = mã ô con. Mục không có ô con: sub là chuỗi rỗng.\n'
-  + '- Mục lựa chọn: value là mã lựa chọn. Mục có/không: value là "true" hoặc "false".\n'
-  + '- Mỗi ảnh được gắn nhóm BÊN MUA hoặc BÊN BÁN. CCCD/CMND/hộ chiếu trong nhóm nào là giấy tờ của bên đó. Sổ đỏ, hợp đồng và giấy tờ chung khác có thể nằm ở nhóm bất kỳ: lấy thông tin thửa đất, nhà, giá trị, số/ngày hợp đồng, và thông tin của CẢ HAI bên theo đúng vai trò ghi trên giấy tờ, không theo nhóm.\n'
-  + '- khong_chac = true nếu chữ trên ảnh bị mờ, bị che, bị lóa, khó đọc hoặc bạn không chắc giá trị đúng; ngược lại false. Vẫn ghi giá trị đọc được tốt nhất.\n'
-  + '- Nếu thông tin một bên trên CCCD khác với trên hợp đồng/sổ đỏ (VD địa chỉ), ưu tiên CCCD và nêu trong ghi_chu.\n'
-  + '- Điều gì chưa chắc chắn hoặc người dùng cần kiểm tra lại thì ghi ngắn gọn bằng tiếng Việt vào ghi_chu.';
+  + '- Định dạng: ngày YYYY-MM-DD; số tiền chỉ ghi chữ số, không dấu phân cách; số thập phân (diện tích…) dùng dấu chấm, VD 120.5; số CCCD ghi đủ các chữ số.\n'
+  + '- Mỗi người chỉ 1 phần tử: gộp thông tin của cùng một người từ mọi ảnh (CCCD, hợp đồng, sổ đỏ). Bỏ qua người làm chứng, công chứng viên, cán bộ ký giấy tờ.\n'
+  + '- vai_tro của người: "mua" = bên nhận chuyển nhượng / nhận tặng cho / nhận thừa kế; "ban" = bên chuyển nhượng / bên tặng cho / người để lại thừa kế; "khac" = không xác định được.\n'
+  + '- Mỗi ảnh được gắn nhóm BÊN MUA hoặc BÊN BÁN. CCCD/CMND/hộ chiếu trong nhóm nào là của bên đó. Sổ đỏ, hợp đồng có thể nằm ở nhóm bất kỳ: xác định vai trò theo đúng nội dung giấy tờ, không theo nhóm.\n'
+  + '- Người: dia_chi là địa chỉ đầy đủ như trên giấy (nơi thường trú/nơi cư trú); phuong_xa, quan_huyen, tinh_tp tách từ địa chỉ đó nếu có.\n'
+  + '- Bất động sản: so_gcn là số phát hành (seri) của giấy chứng nhận; dia_chi là địa chỉ thửa đất đầy đủ, các trường so_nha… tinh_tp tách từ đó; muc_dich là mục đích sử dụng đất; các trường nha_… chỉ điền khi giấy tờ có nhà ở/công trình.\n'
+  + '- hop_dong.loai là một trong: "chuyennhuong", "tangcho", "thuake", "khac". gia_tri là tổng giá trị ghi trên hợp đồng; gia_tri_dat, gia_tri_nha nếu hợp đồng ghi riêng.\n'
+  + '- khong_chac: liệt kê tên các trường của phần tử đó bị mờ, bị che, lóa, khó đọc hoặc không chắc đúng (VD ["so_cccd","ngay_cap"]). Vẫn ghi giá trị đọc được tốt nhất.\n'
+  + '- Nếu thông tin một người trên CCCD khác trên hợp đồng/sổ đỏ (VD địa chỉ), ưu tiên CCCD và nêu trong ghi_chu.\n'
+  + '- Điều gì người dùng cần kiểm tra lại thì ghi ngắn gọn bằng tiếng Việt vào ghi_chu.';
+function _aiSchemaObj(fields){
+  var p = {};
+  fields.forEach(function(k){ p[k] = { type:'string' }; });
+  p.khong_chac = { type:'array', items:{ type:'string' } };
+  return { type:'object', properties:p, required:fields.concat(['khong_chac']), additionalProperties:false };
+}
 var AI_SCHEMA = {
   type:'object',
   properties:{
-    values:{ type:'array', items:{ type:'object',
-      properties:{ id:{type:'string'}, sub:{type:'string'}, value:{type:'string'}, khong_chac:{type:'boolean'} },
-      required:['id','sub','value','khong_chac'], additionalProperties:false } },
-    tables:{ type:'array', items:{ type:'object',
-      properties:{ id:{type:'string'}, rows:{ type:'array', items:{ type:'object',
-        properties:{ cells:{ type:'array', items:{ type:'object',
-          properties:{ k:{type:'string'}, value:{type:'string'}, khong_chac:{type:'boolean'} }, required:['k','value','khong_chac'], additionalProperties:false } } },
-        required:['cells'], additionalProperties:false } } },
-      required:['id','rows'], additionalProperties:false } },
+    nguoi:{ type:'array', items:_aiSchemaObj(['vai_tro'].concat(AI_TRUONG.nguoi)) },
+    bat_dong_san:{ type:'array', items:_aiSchemaObj(AI_TRUONG.bds) },
+    hop_dong:{ type:'array', items:_aiSchemaObj(AI_TRUONG.hd) },
     ghi_chu:{ type:'string' }
   },
-  required:['values','tables','ghi_chu'], additionalProperties:false
+  required:['nguoi','bat_dong_san','hop_dong','ghi_chu'], additionalProperties:false
 };
 
 var _aiAnh = [];        // [{dataUrl, b64, nhom:'mua'|'ban', hash, docLai}]
 var _aiTrangThai = 'chon'; // chon | doc | ketqua | loi
-var _aiKetQua = null;   // { formId, items:[...], ghiChu, chiPhi }
+var _aiKetQua = null;   // { formId, t, chon:{mua:[],ban:[],bds,hd}, items:[...], ghiChu, chiPhi, soAnhCu, tuKho }
 var _aiLoi = '';
 var _aiGhiChuNguoiDung = '';
 var _aiDangDocMoi = 0;
@@ -3508,6 +3530,8 @@ function aiRenderCaiDat(){
     return '<option value="' + m + '"' + (m === cur ? ' selected' : '') + '>' + esc(AI_MODELS[m].ten) + '</option>';
   }).join('');
   _aiSetTuDongUi(_aiTuDong());
+  var k = _khoLay(), dk = document.getElementById('kho-dem');
+  if (dk) dk.textContent = k.nguoi.length + ' người · ' + k.bds.length + ' thửa đất · ' + k.hd.length + ' hợp đồng';
   document.getElementById('ai-balance-text').textContent = _aiSoDuText();
   document.getElementById('ai-balance-input').value = '';
   var log = lsGetA(LS_AI_LOG);
@@ -3581,8 +3605,9 @@ function aiDong(){ closeM('modal-ai'); }
 function aiRender(){
   var box = document.getElementById('ai-body');
   var html = '';
-  if (!_aiGetKey()){
+  if (!_aiGetKey() && _aiTrangThai !== 'ketqua'){
     html = '<div class="modal-sub">Chưa có API key. Vào <b>⚙️ Cài đặt chung → 🤖 Đọc giấy tờ bằng AI</b> để dán API key tạo ở console.anthropic.com.<br>Không có key vẫn nhập tay bình thường.</div>'
+      + (_khoDem() ? _aiNutKho() : '')
       + '<div class="modal-footer"><button class="btn-huy" onclick="aiDong()">Đóng</button>'
       + '<button class="btn-luu" onclick="aiDong();openGlobalSettings()">⚙️ Mở Cài đặt</button></div>';
     box.innerHTML = html;
@@ -3595,11 +3620,14 @@ function aiRender(){
     html = '<div class="ai-spin"></div><div style="text-align:center;font-size:13px;color:var(--g600);margin-bottom:16px">AI đang đọc ' + _aiDangDocMoi + ' ảnh mới' + (_aiAnh.length > _aiDangDocMoi ? ' (dùng lại ' + (_aiAnh.length - _aiDangDocMoi) + ' ảnh đã đọc)' : '') + '…<br><span style="font-size:11px;color:var(--g500)">Thường mất 10–40 giây, giữ app mở.</span></div>';
   } else if (_aiTrangThai === 'ketqua' && _aiKetQua){
     var kq = _aiKetQua;
-    html = '<div class="ai-box" style="padding:8px 12px">🕘 Đọc lúc: <b>' + esc(_fmtNgayGioVN(kq.t)) + '</b> · kết quả được giữ đến khi điền hoặc bỏ<br>🧾 Lần đọc này: <b>' + (kq.chiPhi ? '−' + _aiUsd(kq.chiPhi) + ' (' + _aiVnd(kq.chiPhi) + ')' : '0đ') + '</b>'
-      + (kq.soAnhCu ? ' · ♻️ dùng lại ' + kq.soAnhCu + ' ảnh đã đọc' : '') + '<br>💰 Số dư ước tính còn: <b>' + esc(_aiSoDuText()) + '</b></div>';
+    html = kq.tuKho
+      ? '<div class="ai-box" style="padding:8px 12px">📚 <b>Điền từ kho giấy tờ</b> — chọn người, thửa đất, hợp đồng đã đọc trước đây. Không gửi ảnh, <b>0đ</b>.</div>'
+      : '<div class="ai-box" style="padding:8px 12px">🕘 Đọc lúc: <b>' + esc(_fmtNgayGioVN(kq.t)) + '</b> · kết quả được giữ đến khi điền hoặc bỏ<br>🧾 Lần đọc này: <b>' + (kq.chiPhi ? '−' + _aiUsd(kq.chiPhi) + ' (' + _aiVnd(kq.chiPhi) + ')' : '0đ') + '</b>'
+      + (kq.soAnhCu ? ' · ♻️ dùng lại ' + kq.soAnhCu + ' ảnh đã đọc' : '') + '<br>💰 Số dư ước tính còn: <b>' + esc(_aiSoDuText()) + '</b><br>📚 Đã lưu vào kho giấy tờ — lần sau chọn lại không cần chụp</div>';
+    if (kq.chon) html += _aiChonHtml(kq);
     if (kq.ghiChu) html += '<div class="ai-box" style="background:#fff7e6;border:1px solid #f3d9a4">📝 <b>AI ghi chú:</b> ' + esc(kq.ghiChu) + '</div>';
     if (!kq.items.length){
-      html += '<div class="modal-sub">AI không tìm thấy thông tin nào khớp với các mục của tờ khai này. Thử chụp rõ hơn hoặc thêm ghi chú cho AI.</div>';
+      html += '<div class="modal-sub">' + (kq.tuKho ? 'Chọn thông tin ở trên để xem trước các mục sẽ điền.' : 'Không có thông tin nào khớp với các mục của tờ khai này. Đổi lựa chọn ở trên, hoặc chụp rõ hơn rồi đọc lại.') + '</div>';
     } else {
       html += '<div class="modal-sub">Kiểm tra lại từng dòng (sửa trực tiếp nếu sai), bỏ tick dòng không muốn điền. Mục chưa tick ở ⚙️ sẽ được tự tick.</div>';
       html += kq.items.map(function(it, i){
@@ -3611,12 +3639,13 @@ function aiRender(){
       }).join('');
     }
     html += '<div class="modal-footer"><button class="btn-huy" onclick="aiBoKetQua()" style="flex:.8">🗑️ Bỏ</button>'
-      + '<button class="btn-huy" onclick="_aiTrangThai=\'chon\';aiRender()">📷 Đọc ảnh khác</button>'
+      + '<button class="btn-huy" onclick="_aiTrangThai=\'chon\';aiRender()">📷 Chụp ảnh</button>'
       + (kq.items.length ? '<button class="btn-luu" onclick="aiDienVao()">✅ Điền vào tờ khai</button>' : '') + '</div>';
   } else {
     if (_aiTrangThai === 'loi' && _aiLoi) html += '<div class="cloud-err" style="display:block;font-size:12.5px;color:var(--red);background:#fdf0ef;border:1px solid #f1c6c2;border-radius:8px;padding:9px 11px;margin-bottom:10px;white-space:pre-line">' + esc(_aiLoi) + '</div>';
     html += dongSoDu
-      + '<div class="modal-sub">Chụp hoặc chọn ảnh giấy tờ, tối đa ' + AI_ANH_TOI_DA + ' ảnh. <b>CCCD up đúng bên</b>; sổ đỏ, hợp đồng up bên nào cũng được. AI đọc và đề xuất giá trị cho các mục của tờ khai <b>' + esc(currentForm.tenNgan) + '</b>; bạn xem lại trước khi điền. Ảnh không được lưu lại.</div>'
+      + '<div class="modal-sub">Chụp hoặc chọn ảnh giấy tờ, tối đa ' + AI_ANH_TOI_DA + ' ảnh. <b>CCCD up đúng bên</b>; sổ đỏ, hợp đồng up bên nào cũng được. AI đọc và đề xuất giá trị cho các mục của tờ khai <b>' + esc(currentForm.tenNgan) + '</b>; bạn xem lại trước khi điền. Ảnh không được lưu lại; thông tin đọc được lưu vào 📚 Kho giấy tờ để lần sau dùng lại.</div>'
+      + (_khoDem() ? _aiNutKho() : '')
       + _aiNhomHtml('mua') + _aiNhomHtml('ban')
       + '<div class="ai-box" style="padding:8px 10px"><div style="font-weight:700;margin-bottom:4px">Ghi chú cho AI (tuỳ chọn)</div>'
       + '<textarea id="ai-ghichu" rows="2" placeholder="VD: đây là hợp đồng tặng cho; chỉ lấy thông tin thửa đất" oninput="_aiGhiChuNguoiDung=this.value">' + esc(_aiGhiChuNguoiDung) + '</textarea></div>'
@@ -3663,7 +3692,7 @@ function _aiNhomHtml(nhom){
   var thumbs = '';
   _aiAnh.forEach(function(a, i){
     if (a.nhom !== nhom) return;
-    var cu = _aiTimCache(a, currentForm.id, _aiCanIds(currentForm, _aiTuDong()));
+    var cu = _aiTimCache(a);
     var tag = !cu ? '' : a.docLai
       ? '<div class="ai-tag lai" onclick="aiDocLaiAnh(' + i + ')">🔄 Đọc lại</div>'
       : '<div class="ai-tag cu" onclick="aiDocLaiAnh(' + i + ')">♻️ Đã đọc</div>';
@@ -3685,7 +3714,7 @@ async function aiThemAnh(files, nhom){
       a.hash = await _aiBamAnh(ds[i]);
       if (a.hash && _aiAnh.some(function(x){ return x.hash === a.hash && x.nhom === a.nhom; })){ toast('⚠️ Ảnh này đã có trong danh sách', 2500); continue; }
       _aiAnh.push(a);
-      var cu = _aiTimCache(a, currentForm.id, _aiCanIds(currentForm, _aiTuDong()));
+      var cu = _aiTimCache(a);
       if (cu) toast('♻️ Ảnh này đã được đọc lúc ' + _fmtNgayGioVN(cu.t) + ' — sẽ dùng lại kết quả cũ, không gửi lại AI (không mất tiền)', 6000);
     } catch(e){ toast('⚠️ Không đọc được 1 ảnh', 2500); }
   }
@@ -3709,7 +3738,7 @@ function _aiLuuCho(kq){
   try { lsSet(LS_AI_PENDING, m); } catch(e){}
 }
 function _aiXoaCho(formId){ var m = lsGetO(LS_AI_PENDING); delete m[formId]; lsSet(LS_AI_PENDING, m); }
-function _aiSuaMuc(i, val){ if (_aiKetQua && _aiKetQua.items[i]){ _aiKetQua.items[i].value = val; _aiLuuCho(_aiKetQua); } }
+function _aiSuaMuc(i, val){ if (_aiKetQua && _aiKetQua.items[i]){ _aiKetQua.items[i].value = val; _aiKetQua.items[i].daSua = true; _aiLuuCho(_aiKetQua); } }
 function _aiChonMuc(i, on){ if (_aiKetQua && _aiKetQua.items[i]){ _aiKetQua.items[i].boChon = !on; _aiLuuCho(_aiKetQua); } }
 function aiBoKetQua(){
   showConfirm('🗑️ Bỏ kết quả AI', 'Bỏ kết quả đọc này, không điền vào tờ khai?\n\nẢnh đã đọc vẫn được ghi nhớ — nếu chọn lại đúng ảnh đó, app dùng lại kết quả cũ mà không tốn tiền.', function(){
@@ -3719,8 +3748,8 @@ function aiBoKetQua(){
   }, 'Bỏ kết quả', true);
 }
 
-// ── Bộ nhớ ảnh đã đọc: khoá = SHA-256 của file ảnh gốc + nhóm (mua/bán); kết quả gắn với loại tờ khai và
-// danh sách mục đã gửi (null = đủ mục). Chỉ dùng lại khi kết quả cũ có đủ các mục đang cần.
+// ── Bộ nhớ ảnh đã đọc: khoá = SHA-256 của file ảnh gốc; kết quả là dạng trung lập nên dùng lại được cho
+// mọi loại tờ khai. Ảnh CCCD đưa sang nhóm khác (mua ↔ bán) thì đảo vai trò người đọc được từ ảnh đó.
 async function _aiBamAnh(file){
   try {
     if (!(window.crypto && crypto.subtle)) return null;
@@ -3729,16 +3758,9 @@ async function _aiBamAnh(file){
     return Array.prototype.map.call(new Uint8Array(h), function(b){ return ('0' + b.toString(16)).slice(-2); }).join('');
   } catch(e){ return null; }
 }
-function _aiCanIds(form, tuDong){
-  return tuDong ? form.schema.filter(function(f){ return f.type !== 'computed' && isChecked(f.id); }).map(function(f){ return f.id; }) : null;
-}
-function _aiTimCache(a, formId, canIds){
+function _aiTimCache(a){
   if (!a.hash) return null;
-  var khoa = a.hash + '|' + a.nhom;
-  return lsGetA(LS_AI_CACHE).find(function(e){
-    return e.formId === formId && e.imgs.indexOf(khoa) >= 0
-      && (!e.ids || (canIds && canIds.every(function(id){ return e.ids.indexOf(id) >= 0; })));
-  }) || null;
+  return lsGetA(LS_AI_CACHE).find(function(e){ return (e.imgs || []).some(function(x){ return x.hash === a.hash; }); }) || null;
 }
 function _aiLuuCache(entry){
   var ds = lsGetA(LS_AI_CACHE);
@@ -3749,17 +3771,29 @@ function _aiLuuCache(entry){
   }
 }
 function _aiGopKetQua(outs){
-  var g = { values:[], tables:[], ghi_chu:'' }, daCoBang = {}, ghi = [];
+  var g = { nguoi:[], bat_dong_san:[], hop_dong:[], ghi_chu:'' }, ghi = [];
   outs.forEach(function(o){
-    g.values = g.values.concat(o.values || []);
-    (o.tables || []).forEach(function(t){ if (!daCoBang[t.id]){ daCoBang[t.id] = 1; g.tables.push(t); } });
+    g.nguoi = g.nguoi.concat(o.nguoi || []);
+    g.bat_dong_san = g.bat_dong_san.concat(o.bat_dong_san || []);
+    g.hop_dong = g.hop_dong.concat(o.hop_dong || []);
     var gc = (o.ghi_chu || '').trim();
     if (gc && ghi.indexOf(gc) < 0) ghi.push(gc);
   });
   g.ghi_chu = ghi.join(' · ');
   return g;
 }
-
+// Kết quả cũ của 1 ảnh nay được xếp sang nhóm khác → đảo vai trò mua/bán của người đọc từ ảnh đó
+function _aiOutTheoNhom(e, a){
+  var out = JSON.parse(JSON.stringify(e.out));
+  var cu = (e.imgs || []).find(function(x){ return x.hash === a.hash; });
+  var vaiTro = {};
+  (out.nguoi || []).forEach(function(p){ vaiTro[p.vai_tro] = 1; });
+  // Chỉ đảo với ảnh giấy tờ của 1 bên (CCCD…); hợp đồng ghi rõ cả 2 bên thì giữ nguyên vai trò
+  if (cu && cu.nhom !== a.nhom && e.imgs.length === 1 && !(vaiTro.mua && vaiTro.ban)){
+    (out.nguoi || []).forEach(function(p){ p.vai_tro = p.vai_tro === 'mua' ? 'ban' : p.vai_tro === 'ban' ? 'mua' : p.vai_tro; });
+  }
+  return out;
+}
 function _aiNapSDK(){
   if (window.AnthropicSDK) return Promise.resolve(window.AnthropicSDK);
   return new Promise(function(resolve, reject){
@@ -3775,30 +3809,18 @@ function _aiNapSDK(){
 function _aiDemMucDaTick(){
   return currentForm ? currentForm.schema.filter(function(f){ return f.type !== 'computed' && isChecked(f.id); }).length : 0;
 }
-function _aiMoTaTruong(form, chiMucDaTick){
-  return form.schema.filter(function(f){ return f.type !== 'computed' && (!chiMucDaTick || isChecked(f.id)); }).map(function(f){
-    var dau = '- id=' + f.id + ' | ' + form.sectionLabel[f.section] + ' | ' + (f.ma ? f.ma + ' ' : '') + f.label + ' | ';
-    if (f.type === 'multi') return dau + 'có ô con: ' + f.subs.map(function(s){ return s.k + ' = ' + s.label + ' (' + _aiKieu(s.type || 'text') + ')'; }).join('; ');
-    if (f.type === 'choice') return dau + 'lựa chọn, value là một trong: ' + f.options.map(function(o){ return o.v + ' (' + o.label + ')'; }).join(', ');
-    if (f.type === 'table') return dau + 'bảng nhiều dòng (trả trong tables), cột: ' + f.columns.map(function(c){ return c.k + ' = ' + c.label + (c.money ? ' (số tiền)' : c.type === 'number' ? ' (số)' : ''); }).join('; ');
-    return dau + _aiKieu(f.type, f.money);
-  }).join('\n');
-}
-function _aiKieu(t, money){
-  if (money) return 'số tiền (đồng)';
-  return { text:'chữ', textarea:'chữ', number:'số', date:'ngày YYYY-MM-DD', yesno:'có/không' }[t] || 'chữ';
-}
-
 async function aiDoc(){
   if (!_aiAnh.length || _aiTrangThai === 'doc') return;
   var form = currentForm, model = _aiGetModel(), anh = _aiAnh.slice(), tuDong = _aiTuDong();
   if (tuDong && !_aiDemMucDaTick()){ _aiTrangThai = 'loi'; _aiLoi = '⚡ Đang bật Tự động điền nhưng tờ khai chưa tick mục nào.\nVào ⚙️ Chọn mục cần khai để tick các mục muốn điền, hoặc tắt Tự động điền trong Cài đặt chung.'; aiRender(); return; }
-  // Ảnh đã đọc trước đó (cùng tờ khai, đủ mục cần) → dùng lại kết quả cũ, chỉ gửi ảnh mới cho AI
-  var canIds = _aiCanIds(form, tuDong), cuEntries = [], moi = [], soAnhCu = 0;
+  // Ảnh đã đọc trước đó → dùng lại kết quả cũ, chỉ gửi ảnh mới cho AI
+  var outsCu = [], moi = [], soAnhCu = 0, daDung = {};
   anh.forEach(function(a){
-    var e = a.docLai ? null : _aiTimCache(a, form.id, canIds);
-    if (e){ soAnhCu++; if (!cuEntries.some(function(x){ return x.id === e.id; })) cuEntries.push(e); }
-    else moi.push(a);
+    var e = a.docLai ? null : _aiTimCache(a);
+    if (!e){ moi.push(a); return; }
+    soAnhCu++;
+    var khoa = e.id + '|' + a.nhom;
+    if (!daDung[khoa]){ daDung[khoa] = 1; outsCu.push(_aiOutTheoNhom(e, a)); }
   });
   var key = _aiGetKey();
   if (moi.length && !key){ aiRender(); return; }
@@ -3817,11 +3839,7 @@ async function aiDoc(){
       content.push({ type:'image', source:{ type:'base64', media_type:'image/jpeg', data:a.b64 } });
     });
     var ghiChu = (_aiGhiChuNguoiDung || '').trim();
-    content.push({ type:'text', text:
-        'Tờ khai cần điền: ' + form.headerTitle.replace(/^\S+\s/, '') + ' (Mẫu ' + form.mauSo + ', ' + form.thongTu + ').\n'
-      + (AI_VAI_TRO[form.id] || '') + '\n'
-      + (ghiChu ? 'Ghi chú của người dùng (ưu tiên làm theo): ' + ghiChu + '\n' : '')
-      + '\nDanh sách mục ' + (tuDong ? 'cần điền' : 'của tờ khai') + ' (chỉ dùng đúng các id/sub/k này):\n' + _aiMoTaTruong(form, tuDong) });
+    content.push({ type:'text', text:'Trích thông tin từ các ảnh trên.' + (ghiChu ? '\nGhi chú của người dùng (ưu tiên làm theo): ' + ghiChu : '') });
     var msg;
     try {
       var client = new Anthropic({ apiKey:key, dangerouslyAllowBrowser:true, timeout:120000, maxRetries:1 });
@@ -3846,23 +3864,25 @@ async function aiDoc(){
       return;
     }
     outMoi = msg.parsed_output;
-    var khoaMoi = moi.filter(function(a){ return a.hash; }).map(function(a){ return a.hash + '|' + a.nhom; });
-    if (khoaMoi.length) _aiLuuCache({ id:'c' + Date.now(), formId:form.id, t:new Date().toISOString(), imgs:khoaMoi, ids:canIds, out:outMoi });
+    var imgs = moi.filter(function(a){ return a.hash; }).map(function(a){ return { hash:a.hash, nhom:a.nhom }; });
+    if (imgs.length) _aiLuuCache({ id:'c' + Date.now(), t:new Date().toISOString(), imgs:imgs, out:outMoi });
     moi.forEach(function(a){ a.docLai = false; });
   }
-  var out = _aiGopKetQua((outMoi ? [outMoi] : []).concat(cuEntries.map(function(e){ return e.out; })));
+  var out = _aiGopKetQua((outMoi ? [outMoi] : []).concat(outsCu));
+  var chon = _khoNhap(out); // lưu vào kho, lấy lựa chọn mặc định theo vai trò
   var thongBao = (moi.length ? '🤖 Đọc ' + moi.length + ' ảnh: −' + _aiUsd(chiPhi) + ' (' + _aiVnd(chiPhi) + ')' : '♻️ Không gửi ảnh nào lên AI — 0đ')
     + (soAnhCu ? ' · ♻️ dùng lại kết quả ' + soAnhCu + ' ảnh đã đọc' : '') + ' · Số dư còn ' + _aiSoDuText();
-  _aiKetQua = { formId:form.id, t:new Date().toISOString(), items:_aiChuanHoaKetQua(form, out), ghiChu:(out.ghi_chu || '').trim(), chiPhi:chiPhi, soAnhCu:soAnhCu };
+  _aiKetQua = { formId:form.id, t:new Date().toISOString(), chon:chon, items:[], ghiChu:(out.ghi_chu || '').trim(), chiPhi:chiPhi, soAnhCu:soAnhCu };
+  _aiLamMoiItems(_aiKetQua, form);
   if (tuDong && currentForm && currentForm.id === form.id){
-    // Tự động điền: chỉ các mục đang tick, dùng nguyên giá trị AI đọc được, không qua bước xem lại
+    // Tự động điền: chỉ các mục đang tick, dùng nguyên giá trị đọc được, không qua bước xem lại
     var items = _aiKetQua.items.filter(function(it){ return isChecked(it.id); });
     var dem = _aiApDung(items, function(it){ return it.value; });
     var soMo = items.filter(function(it){ return it.khongChac; }).length;
     var ghi = _aiKetQua.ghiChu;
     _aiDonDep();
     closeM('modal-ai');
-    toast((dem ? '⚡ AI đã tự điền ' + dem + ' mục' + (soMo ? ' (' + soMo + ' mục không chắc — nền vàng)' : '') : '⚡ AI không đọc được thông tin cho các mục đang tick')
+    toast((dem ? '⚡ AI đã tự điền ' + dem + ' mục' + (soMo ? ' (' + soMo + ' mục không chắc — nền vàng)' : '') : '⚡ Không có thông tin cho các mục đang tick')
       + ' · ' + thongBao + (ghi ? ' · 📝 ' + ghi : ''), ghi ? 12000 : 8000);
     return;
   }
@@ -3872,6 +3892,254 @@ async function aiDoc(){
   if (document.getElementById('modal-ai').classList.contains('show')) aiRender();
   else { aiRender(); openM('modal-ai'); }
   toast(thongBao, 7000);
+}
+
+// ═══ 📚 KHO GIẤY TỜ: người / thửa đất (bds) / hợp đồng (hd) đã đọc. Khoá chống trùng: số CCCD (hoặc hộ
+// chiếu, họ tên) cho người; số GCN (hoặc thửa/tờ/phường) cho thửa đất; số + ngày + loại cho hợp đồng. ═══
+var _khoLoc = '';
+function _khoLay(){
+  var k = lsGetO(LS_KHO);
+  ['nguoi','bds','hd'].forEach(function(g){ if (!Array.isArray(k[g])) k[g] = []; });
+  return k;
+}
+function _khoLuu(k){
+  try { lsSet(LS_KHO, k); } catch(e){ toast('⚠️ Bộ nhớ máy đầy — không lưu được kho giấy tờ', 4000); }
+}
+function _khoDem(){ var k = _khoLay(); return k.nguoi.length + k.bds.length + k.hd.length; }
+function _khoNorm(s){
+  return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/[^a-z0-9]/g, '');
+}
+function _khoKhoa(g, r){
+  if (g === 'nguoi') return r.so_cccd ? 'c' + _khoNorm(r.so_cccd) : r.ho_chieu ? 'p' + _khoNorm(r.ho_chieu) : r.ho_ten ? 'n' + _khoNorm(r.ho_ten) : '';
+  if (g === 'bds') return r.so_gcn ? 'g' + _khoNorm(r.so_gcn) : (r.thua_so && r.to_ban_do) ? 't' + _khoNorm(r.thua_so + '/' + r.to_ban_do + '/' + r.phuong_xa + r.tinh_tp) : '';
+  return (r.so || r.ngay_lap) ? 'h' + _khoNorm(r.so + '/' + r.ngay_lap + '/' + r.loai) : '';
+}
+// Thêm mới hoặc cập nhật 1 bản ghi (trường có giá trị mới ghi đè trường cũ); trả về id trong kho
+function _khoGhi(k, g, r){
+  var fields = AI_TRUONG[g], rec = {};
+  fields.forEach(function(f){ rec[f] = String(r[f] == null ? '' : r[f]).trim(); });
+  if (g === 'hd' && !AI_LOAI_HD[rec.loai]) rec.loai = rec.loai ? 'khac' : '';
+  if (g === 'nguoi' && !rec.ho_ten && !rec.so_cccd && !rec.ho_chieu) return null;
+  if (g === 'bds' && !rec.thua_so && !rec.so_gcn && !rec.dia_chi) return null;
+  if (g === 'hd' && !rec.so && !rec.ngay_lap && !rec.gia_tri) return null;
+  var mo = (r.khong_chac || []).filter(function(f){ return fields.indexOf(f) >= 0 && rec[f]; });
+  var khoa = _khoKhoa(g, rec), now = new Date().toISOString();
+  var cu = khoa ? k[g].find(function(x){ return x.khoa === khoa; }) : null;
+  if (cu){
+    fields.forEach(function(f){ if (rec[f]) cu[f] = rec[f]; });
+    cu.khong_chac = (cu.khong_chac || []).filter(function(f){ return !rec[f]; }).concat(mo);
+    cu.t = now;
+    k[g].splice(k[g].indexOf(cu), 1);
+    k[g].unshift(cu);
+    return cu.id;
+  }
+  rec.id = g + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  rec.khoa = khoa; rec.t = now; rec.khong_chac = mo;
+  k[g].unshift(rec);
+  if (k[g].length > KHO_TOI_DA) k[g] = k[g].slice(0, KHO_TOI_DA);
+  return rec.id;
+}
+// Đưa kết quả đọc vào kho; trả về lựa chọn mặc định (người theo vai trò, thửa đất & hợp đồng đầu tiên)
+function _khoNhap(out){
+  var k = _khoLay(), chon = { mua:[], ban:[], bds:'', hd:'' };
+  (out.nguoi || []).forEach(function(p){
+    var id = _khoGhi(k, 'nguoi', p);
+    var vt = String(p.vai_tro || '').toLowerCase();
+    if (id && (vt === 'mua' || vt === 'ban') && chon[vt].indexOf(id) < 0) chon[vt].push(id);
+  });
+  (out.bat_dong_san || []).forEach(function(b){ var id = _khoGhi(k, 'bds', b); if (id && !chon.bds) chon.bds = id; });
+  (out.hop_dong || []).forEach(function(h){ var id = _khoGhi(k, 'hd', h); if (id && !chon.hd) chon.hd = id; });
+  _khoLuu(k);
+  // Đẩy kho lên đám mây ngay (nếu đang đăng nhập) để lần kéo dữ liệu sau không làm mất bản ghi mới
+  if (typeof _supa !== 'undefined' && _supa && _supaUser) setTimeout(function(){ cloudPushAll(false); }, 800);
+  return chon;
+}
+function _khoTen(g, r){
+  if (g === 'nguoi') return (r.ho_ten || '(chưa có tên)') + (r.so_cccd ? ' · ' + r.so_cccd : r.ho_chieu ? ' · HC ' + r.ho_chieu : '');
+  if (g === 'bds') return (r.thua_so || r.to_ban_do ? 'Thửa ' + (r.thua_so || '?') + ', tờ ' + (r.to_ban_do || '?') : 'GCN ' + (r.so_gcn || '?'))
+    + ' · ' + (r.phuong_xa || r.dia_chi || r.tinh_tp || '');
+  return (AI_LOAI_HD[r.loai] || 'Hợp đồng') + (r.so ? ' số ' + r.so : '') + (r.ngay_lap ? ' · ' + fmtDateVN(r.ngay_lap) : '')
+    + (r.gia_tri ? ' · ' + fmtSoTien(r.gia_tri) + 'đ' : '');
+}
+
+// ═══ Ghép thông tin trong kho vào ô của tờ khai đang mở. Trả về dạng {values, tables} giống kết quả AI
+// cũ để dùng chung _aiChuanHoaKetQua (kiểm tra mục, chuẩn hoá ngày/số, ghi kèm giá trị đang có). ═══
+function _aiGhep(form, chon){
+  var k = _khoLay();
+  var tim = function(g, id){ return id ? (k[g].find(function(x){ return x.id === id; }) || null) : null; };
+  var M = tim('nguoi', chon.mua[0]), M2 = tim('nguoi', chon.mua[1]);
+  var B = tim('nguoi', chon.ban[0]), B2 = tim('nguoi', chon.ban[1]);
+  var T = tim('bds', chon.bds), H = tim('hd', chon.hd);
+  var values = [], tables = [];
+  var mo = function(src, f){ return !!(src && f && (src.khong_chac || []).indexOf(f) >= 0); };
+  // dat(mục, ô con, bản ghi nguồn, trường nguồn[, giá trị tự ghép])
+  var dat = function(id, sub, src, f, val){
+    if (val === undefined) val = src && f ? src[f] : '';
+    if (val) values.push({ id:id, sub:sub, value:String(val), khong_chac:mo(src, f) });
+  };
+  var dong = function(cells){
+    return { cells:cells.filter(function(c){ return c[1] && c[1][c[2]]; }).map(function(c){ return { k:c[0], value:String(c[1][c[2]]), khong_chac:mo(c[1], c[2]) }; }) };
+  };
+  var coNha = T && (T.nha_loai || T.nha_cap || T.nha_dt_xay_dung || T.nha_dt_san);
+  var fGD = H ? (H.ngay_chung_thuc ? 'ngay_chung_thuc' : 'ngay_lap') : '';
+  var nguonGoc = H ? ({ chuyennhuong:'Nhận chuyển nhượng', tangcho:'Nhận tặng cho', thuake:'Nhận thừa kế' }[H.loai] || '') : '';
+  var giayCN = T && T.so_gcn ? 'Giấy chứng nhận quyền sử dụng đất, quyền sở hữu nhà ở và tài sản khác gắn liền với đất số ' + T.so_gcn
+    + (T.so_vao_so ? ', số vào sổ cấp GCN ' + T.so_vao_so : '') + (T.co_quan_cap ? ', do ' + T.co_quan_cap + ' cấp' : '')
+    + (T.ngay_cap_gcn ? ' ngày ' + fmtDateVN(T.ngay_cap_gcn) : '') : '';
+  if (form.id === 'ltb'){
+    // Lệ phí trước bạ: bên mua là người nộp thuế, bên bán là người chuyển giao (1.6.a)
+    dat('f04','',M,'ho_ten'); dat('f05','',M,'ma_so_thue'); dat('f06','',M,'so_cccd'); dat('f07','',M,'dia_chi');
+    dat('f08','',M,'phuong_xa'); dat('f09','',M,'tinh_tp'); dat('f10','',M,'dien_thoai'); dat('f12','',M,'email');
+    dat('m1_1','thua',T,'thua_so'); dat('m1_1','tbd',T,'to_ban_do'); dat('m1_2','',T,'dia_chi');
+    dat('m1_2_1','sonha',T,'so_nha'); dat('m1_2_1','duongpho',T,'duong_pho'); dat('m1_2_1','thonxom',T,'thon_xom');
+    dat('m1_2_2','',T,'phuong_xa'); dat('m1_2_3','',T,'quan_huyen'); dat('m1_2_4','',T,'tinh_tp');
+    dat('m1_4','',T,'muc_dich'); dat('m1_5','',T,'dien_tich');
+    dat('m1_6','',T,'nguon_goc', nguonGoc || (T ? T.nguon_goc : ''));
+    dat('m1_6_a','ten',B,'ho_ten'); dat('m1_6_a','mst',B,'ma_so_thue'); dat('m1_6_a','cmnd',B,'so_cccd'); dat('m1_6_a','diachi',B,'dia_chi');
+    dat('m1_6_b','',H,fGD); dat('m1_7','',H,'gia_tri_dat');
+    if (coNha){
+      dat('m2_1','cap',T,'nha_cap'); dat('m2_1','loai',T,'nha_loai');
+      dat('m2_2','dtxd',T,'nha_dt_xay_dung'); dat('m2_2','dtsan',T,'nha_dt_san');
+      dat('m2_3a','',T,'nha_nam_hoan_thanh'); dat('m2_3b','',H,fGD);
+    }
+    dat('m2_4','',H,'gia_tri_nha'); dat('m3','',H,'gia_tri');
+    if (M2) tables.push({ id:'m5', rows:[dong([['ten',M2,'ho_ten'],['mst',M2,'ma_so_thue'],['cmnd',M2,'so_cccd']])] });
+    dat('ky2','hoten',M,'ho_ten');
+  } else if (form.id === 'tncn_bds'){
+    // TNCN: bên bán là người nộp thuế (phần I), bên mua ở phần II
+    dat('t04','',B,'ho_ten'); dat('t05','',B,'ma_so_thue'); dat('t06','',B,'so_cccd');
+    dat('t0601','ngaycap',B,'ngay_cap'); dat('t0601','noicap',B,'noi_cap'); dat('t07','',B,'ho_chieu');
+    dat('t08','',B,'dia_chi'); dat('t09','',B,'quan_huyen'); dat('t10','',B,'tinh_tp'); dat('t11','',B,'dien_thoai'); dat('t12','',B,'email');
+    dat('t30','',T,'so_gcn', giayCN);
+    dat('t3001','so',T,'so_gcn'); dat('t3001','coquan',T,'co_quan_cap'); dat('t3001','ngay',T,'ngay_cap_gcn');
+    if (H && (H.loai === 'tangcho' || H.loai === 'thuake')){
+      dat('t36','noilap',H,'noi_lap'); dat('t36','ngaylap',H,'ngay_lap'); dat('t36','coquan',H,'co_quan_chung_thuc'); dat('t36','ngaycc',H,'ngay_chung_thuc');
+      dat('t44','',H,'loai','thuake');
+    } else if (H){
+      dat('t32','so',H,'so'); dat('t32','noilap',H,'noi_lap'); dat('t32','ngaylap',H,'ngay_lap');
+      dat('t32','coquanct',H,'co_quan_chung_thuc'); dat('t32','ngaycc',H,'ngay_chung_thuc');
+      if (H.loai === 'chuyennhuong') dat('t44','',H,'loai','chuyennhuong');
+    }
+    dat('t33','',M,'ho_ten'); dat('t34','',M,'ma_so_thue'); dat('t35','',M,'so_cccd');
+    dat('t3501','ngaycap',M,'ngay_cap'); dat('t3501','noicap',M,'noi_cap');
+    if (T) dat('t37','',null,'','true');
+    if (coNha) dat('t38','',null,'','true');
+    dat('t4101','thua',T,'thua_so'); dat('t4101','tbd',T,'to_ban_do'); dat('t4102','',T,'dia_chi');
+    dat('t4103','sonha',T,'so_nha'); dat('t4103','duongpho',T,'duong_pho'); dat('t4103','thonxom',T,'thon_xom');
+    dat('t4104','',T,'phuong_xa'); dat('t4105','',T,'quan_huyen'); dat('t4106','',T,'tinh_tp');
+    if (T && (T.muc_dich || T.dien_tich)) tables.push({ id:'t4107', rows:[dong([['loaidat',T,'muc_dich'],['dientich',T,'dien_tich']])] });
+    dat('t4109','',T,'nguon_goc'); dat('t4110','',H,'gia_tri_dat');
+    if (coNha){
+      dat('t422','cap',T,'nha_cap'); dat('t422','dtsan',T,'nha_dt_san');
+      if (H && H.loai === 'chuyennhuong') dat('t4217','',H,'loai','chuyennhuong');
+    }
+    dat('t424','',H,'gia_tri_nha'); dat('t45','',H,'gia_tri');
+    if (B2) tables.push({ id:'t51', rows:[dong([['hoten',B,'ho_ten'],['mst',B,'ma_so_thue']]), dong([['hoten',B2,'ho_ten'],['mst',B2,'ma_so_thue']])] });
+    dat('tky2','hoten',B,'ho_ten');
+  } else if (form.id === 'tsdd'){
+    // Tiền sử dụng đất: người sử dụng đất là bên mua / bên nhận
+    dat('d1','',M,'ho_ten'); dat('d11','',M,'dia_chi'); dat('d12','dienthoai',M,'dien_thoai'); dat('d12','email',M,'email');
+    dat('d2','',T,'so_gcn', giayCN);
+    dat('d31','',T,'dia_chi'); dat('d31b','sonha',T,'so_nha'); dat('d31b','duongpho',T,'duong_pho');
+    dat('d31b','phuongxa',T,'phuong_xa'); dat('d31b','quanhuyen',T,'quan_huyen'); dat('d31b','tinh',T,'tinh_tp');
+    dat('d36','',T,'nguon_goc');
+    dat('dky2','hoten',M,'ho_ten');
+  }
+  tables = tables.filter(function(t){ return t.rows.some(function(r){ return r.cells.length; }); });
+  return { values:values, tables:tables, ghi_chu:'' };
+}
+function _aiLamMoiItems(kq, form){
+  // giữ lại chỗ người dùng đã sửa tay ở màn xem lại nếu mục đó vẫn còn
+  var sua = {};
+  (kq.items || []).forEach(function(it){ if (it.daSua || it.boChon) sua[it.id + '.' + it.sub] = it; });
+  kq.items = _aiChuanHoaKetQua(form, _aiGhep(form, kq.chon));
+  kq.items.forEach(function(it){
+    var s = sua[it.id + '.' + it.sub];
+    if (!s) return;
+    if (s.daSua){ it.value = s.value; it.daSua = true; }
+    if (s.boChon) it.boChon = true;
+  });
+}
+// Ô chọn người / thửa đất / hợp đồng ở màn xem lại — đổi vai trò, lấy từ kho mà không đọc lại
+function _aiChonHtml(kq){
+  var k = _khoLay();
+  var sel = function(g, khoa, idx, nhan){
+    var cur = idx === null ? kq.chon[khoa] : (kq.chon[khoa][idx] || '');
+    var opts = '<option value="">— Không chọn —</option>' + k[g].map(function(r){
+      return '<option value="' + r.id + '"' + (r.id === cur ? ' selected' : '') + '>' + esc(_khoTen(g, r)) + '</option>';
+    }).join('');
+    return '<div class="ai-row"><label style="flex:0 0 88px;font-weight:700;color:var(--g600);font-size:12px">' + nhan + '</label>'
+      + '<select onchange="aiDoiChon(\'' + khoa + '\',' + idx + ',this.value)">' + opts + '</select></div>';
+  };
+  return '<div class="ai-box"><div style="font-weight:700">📚 Thông tin dùng để điền</div>'
+    + '<div style="font-size:11px;color:var(--g500)">Đổi người, thửa đất, hợp đồng (lấy từ kho giấy tờ, không tốn tiền).</div>'
+    + sel('nguoi','mua',0,'🟢 Bên mua') + sel('nguoi','mua',1,'🟢 Mua thêm') + sel('nguoi','ban',0,'🔵 Bên bán') + sel('nguoi','ban',1,'🔵 Bán thêm')
+    + sel('bds','bds',null,'🏠 Thửa đất') + sel('hd','hd',null,'📄 Hợp đồng')
+    + '<div class="ai-row"><button class="sec" onclick="aiDaoVaiTro()">⇄ Đảo bên mua ↔ bên bán</button></div></div>';
+}
+function aiDoiChon(khoa, idx, val){
+  var kq = _aiKetQua;
+  if (!kq || !currentForm) return;
+  if (idx === null) kq.chon[khoa] = val;
+  else {
+    var ds = [kq.chon[khoa][0] || '', kq.chon[khoa][1] || ''];
+    ds[idx] = val;
+    kq.chon[khoa] = ds.filter(function(x){ return x; });
+  }
+  _aiLamMoiItems(kq, currentForm);
+  _aiLuuCho(kq);
+  aiRender();
+}
+function aiDaoVaiTro(){
+  var kq = _aiKetQua;
+  if (!kq || !currentForm) return;
+  var t = kq.chon.mua; kq.chon.mua = kq.chon.ban; kq.chon.ban = t;
+  _aiLamMoiItems(kq, currentForm);
+  _aiLuuCho(kq);
+  aiRender();
+  toast('⇄ Đã đảo bên mua ↔ bên bán');
+}
+function _aiNutKho(){
+  return '<div onclick="aiTuKho()" class="ai-bar" style="margin-bottom:10px"><div class="ico">📚</div><div><b>Điền từ kho giấy tờ (0đ)</b>'
+    + '<span>Chọn người, thửa đất, hợp đồng đã đọc trước đây — không cần chụp ảnh</span></div></div>';
+}
+function aiTuKho(){
+  if (!currentForm) return;
+  _aiKetQua = { formId:currentForm.id, t:new Date().toISOString(), chon:{ mua:[], ban:[], bds:'', hd:'' }, items:[], ghiChu:'', chiPhi:0, soAnhCu:0, tuKho:true };
+  _aiTrangThai = 'ketqua';
+  aiRender();
+}
+
+// ── Màn quản lý kho (từ Cài đặt chung) ──
+function khoMo(){ _khoLoc = ''; var o = document.getElementById('kho-loc'); if (o) o.value = ''; khoRenderDS(); openM('modal-kho'); }
+function khoRenderDS(){
+  var k = _khoLay(), loc = _khoNorm(_khoLoc);
+  var nhom = [['nguoi','👤 Người'],['bds','🏠 Thửa đất / nhà'],['hd','📄 Hợp đồng']];
+  var html = '';
+  nhom.forEach(function(n){
+    var ds = k[n[0]].filter(function(r){ return !loc || _khoNorm(AI_TRUONG[n[0]].map(function(f){ return r[f]; }).join(' ')).indexOf(loc) >= 0; });
+    html += '<div class="set-group-title">' + n[1] + ' (' + ds.length + ')</div>';
+    if (!ds.length) html += '<div style="font-size:12px;color:var(--g400);padding:4px 2px 8px">Chưa có</div>';
+    ds.forEach(function(r){
+      var chiTiet = AI_TRUONG[n[0]].filter(function(f){ return r[f] && f !== 'ho_ten'; }).slice(0, 5).map(function(f){ return r[f]; }).join(' · ');
+      html += '<div style="display:flex;align-items:center;gap:8px;padding:8px 2px;border-bottom:1px solid var(--g100)">'
+        + '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:var(--g800)">' + esc(_khoTen(n[0], r)) + '</div>'
+        + '<div style="font-size:11px;color:var(--g500);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(chiTiet) + '</div>'
+        + '<div style="font-size:10.5px;color:var(--g400)">Cập nhật: ' + esc(_fmtNgayGioVN(r.t)) + '</div></div>'
+        + '<button onclick="khoXoa(\'' + n[0] + '\',\'' + r.id + '\')" style="flex:0 0 auto;background:none;border:none;color:var(--red);font-size:18px;cursor:pointer;padding:4px 8px">🗑️</button></div>';
+    });
+  });
+  document.getElementById('kho-ds').innerHTML = html;
+}
+function khoXoa(g, id){
+  var k = _khoLay(), r = k[g].find(function(x){ return x.id === id; });
+  if (!r) return;
+  showConfirm('🗑️ Xoá khỏi kho', 'Xoá "' + _khoTen(g, r) + '" khỏi kho giấy tờ?', function(){
+    k[g] = k[g].filter(function(x){ return x.id !== id; });
+    _khoLuu(k);
+    khoRenderDS(); aiRenderCaiDat();
+    toast('🗑️ Đã xoá khỏi kho');
+  }, 'Xoá', true);
 }
 function _aiMoTaLoi(Anthropic, e){
   var chiTiet = (e && e.error && e.error.error && e.error.error.message) || (e && e.message) || String(e);
