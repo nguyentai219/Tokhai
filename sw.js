@@ -1,4 +1,4 @@
-const CACHE = 'khai-thue-v1.5.6';
+const CACHE = 'khai-thue-v1.5.7';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', function(e){

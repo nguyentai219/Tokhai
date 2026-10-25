@@ -130,17 +130,25 @@ giá trị cho các mục của tờ khai đang mở:
   ngay vào máy (`ktai_pending_v1`, riêng từng loại tờ khai) — tải lại trang, lỡ đóng app vẫn còn. Nút AI
   trong tờ khai hiện "📥 Có kết quả AI đọc lúc … chưa điền", nhấn để mở lại màn xem lại. Kết quả chỉ mất khi
   bấm **✅ Điền vào tờ khai** hoặc **🗑️ Bỏ** (có hỏi lại).
-- **📚 Kho giấy tờ đã đọc** (từ v1.5.6): AI đọc ảnh ra dạng **trung lập**, không gắn với tờ khai — danh sách
-  *người* (họ tên, CCCD, ngày/nơi cấp, địa chỉ, MST… kèm vai trò mua/bán), *bất động sản* (số GCN, thửa, tờ
-  bản đồ, địa chỉ, diện tích, mục đích, nhà trên đất…) và *hợp đồng* (loại, số, ngày, nơi công chứng, giá
-  trị). Mọi thứ đọc được tự lưu vào kho `tk2_kho_v1` (đồng bộ đám mây, chống trùng theo số CCCD / số GCN /
-  số + ngày hợp đồng; đọc lại thì cập nhật bản ghi cũ). App tự ghép vào ô của từng loại tờ khai (`_aiGhep`):
-  LPTB bên mua → [04]-[12], bên bán → 1.6.a, người mua thứ 2 → bảng đồng sở hữu (5); TNCN bên bán →
-  [04]-[12], bên mua → [33]-[35.2], hợp đồng → [32] hoặc [36] (tặng cho/thừa kế); TSDĐ bên mua → người
-  sử dụng đất. Màn xem lại có ô chọn **Bên mua / Mua thêm / Bên bán / Bán thêm / Thửa đất / Hợp đồng** và
-  nút **⇄ Đảo bên mua ↔ bên bán** — đổi lựa chọn không cần đọc lại. Nút **📚 Điền từ kho giấy tờ (0đ)**
-  trong cửa sổ đọc ảnh cho phép điền thẳng từ kho không cần chụp (dùng được cả khi chưa có API key).
-  Quản lý (tìm, xoá) kho ở Cài đặt chung → 📚 Kho giấy tờ đã đọc.
+- **📚 Kho khách hàng** (từ v1.5.6, đổi ở v1.5.7): AI đọc ảnh ra dạng **trung lập** — *người* (họ tên,
+  CCCD, ngày/nơi cấp, địa chỉ, MST… kèm vai trò mua/bán), *bất động sản* và *hợp đồng* — rồi app tự ghép
+  vào ô của từng loại tờ khai (`_aiGhep`): LPTB bên mua → [04]-[12], bên bán → 1.6.a, người mua thứ 2 →
+  bảng đồng sở hữu (5); TNCN bên bán → [04]-[12], bên mua → [33]-[35.2], hợp đồng → [32] hoặc [36]; TSDĐ
+  bên mua → người sử dụng đất. **Khách hàng và hợp đồng** được lưu vào kho `tk2_kho_v1` (đồng bộ đám mây,
+  chống trùng theo số CCCD / hộ chiếu / họ tên và số + ngày hợp đồng). **Thửa đất không lưu** vào kho (mỗi
+  lần mua bán chỉ khai 1 lần) — chỉ dùng trong lần đọc đó.
+  - Dữ liệu AI đọc và dữ liệu **nhập tay** có giá trị như nhau: bấm **💾 Lưu** / **In** tờ khai thì thông
+    tin từng bên đang nhập (có họ tên + CCCD/hộ chiếu/MST/địa chỉ) tự lưu vào kho; hoặc thêm trong kho.
+  - **Cách 1 — nút 👤 Lấy khách hàng từ kho** (trong tờ khai, và trong cửa sổ đọc ảnh): chọn điền vào bên
+    nào (VD LPTB: người nộp thuế/bên mua hoặc bên chuyển giao; TNCN: người nộp thuế/bên bán hoặc bên nhận),
+    gõ tên/số CCCD → chọn → tự điền đủ thông tin khách vào đúng các ô của bên đó (tự tick mục).
+  - **Cách 2 — nhấn vào ô tên/CCCD/MST** của 1 bên trong tờ khai: hiện ngay danh sách khách trong kho
+    (📚, nền xanh), gõ để lọc; chọn 1 khách → điền đủ thông tin khách vào các ô của bên đó. Ô nào thuộc bên
+    nào được suy tự động từ `_aiGhep` (`_khachViTri`), không khai báo tay.
+  - **Quản lý kho** (Cài đặt chung → 📚 Kho khách hàng): tìm, **➕ Thêm khách hàng / hợp đồng**, nhấn
+    **✏️** sau tên để sửa (có 💾 Lưu, 🗑️ Xoá), ô AI đọc không chắc hiện nền vàng; lưu tay thì bỏ đánh dấu.
+  - Màn xem lại sau khi AI đọc vẫn có ô chọn Bên mua/Bên bán (kèm người thứ 2)/Thửa đất (của lần đọc
+    này)/Hợp đồng và nút ⇄ đảo vai trò.
 - **♻️ Không đọc lại đúng file ảnh đã đọc**: mỗi ảnh lấy dấu vân tay SHA-256 từ file gốc (`ktai_cache_v2`,
   tối đa 150 lần đọc, chỉ trên máy). Chọn lại đúng file đó → báo "đã được đọc lúc …", nhãn **♻️ Đã đọc**,
   dùng lại kết quả cũ (0đ) cho mọi loại tờ khai; ảnh CCCD chuyển sang nhóm kia thì tự đảo vai trò (hợp đồng
@@ -252,6 +260,7 @@ số riêng lẻ như trước. Từ v1.1.0, mỗi số phiên bản phản ánh
 
 | Phiên bản | Ngày | Thay đổi |
 |-----------|------|----------|
+| **v1.5.7** | 2026-10-25 | 👤 **Kho khách hàng**: chọn khách theo 2 cách — nút **👤 Lấy khách hàng từ kho** (chọn bên, gõ tên → điền đủ thông tin khách) và **nhấn vào ô tên/CCCD/MST** hiện đề xuất 📚 từ kho, chọn là điền đủ cả bên đó. Dữ liệu nhập tay = dữ liệu AI: Lưu/In tờ khai tự lưu khách vào kho; quản lý kho có ➕ thêm, ✏️ sửa (💾 Lưu, 🗑️ Xoá). Không lưu thửa đất vào kho nữa (chỉ dùng trong lần đọc) |
 | **v1.5.6** | 2026-10-25 | 📚 **Kho giấy tờ đã đọc**: AI đọc ảnh ra dạng trung lập (người / bất động sản / hợp đồng, không gắn với tờ khai), tự lưu vào kho đồng bộ đám mây, chống trùng theo số CCCD/GCN/hợp đồng; app tự ghép vào ô của từng loại tờ khai. Màn xem lại có ô chọn Bên mua/Bên bán (kèm người thứ 2)/Thửa đất/Hợp đồng và nút ⇄ đảo vai trò — đổi không cần đọc lại. Nút **📚 Điền từ kho giấy tờ (0đ)** điền không cần chụp ảnh. Quản lý kho (tìm, xoá) trong Cài đặt chung. Bộ nhớ ảnh đã đọc dùng được cho mọi tờ khai, ảnh CCCD đổi nhóm tự đảo vai trò |
 | **v1.5.5** | 2026-10-25 | 📥 Giữ kết quả AI chưa điền: lưu ngay vào máy (kể cả chỗ đã sửa/bỏ tick), tải lại trang không mất, nút AI báo "Có kết quả … chưa điền"; chỉ mất khi Điền hoặc Bỏ. ♻️ Ghi nhớ ảnh đã đọc theo dấu vân tay SHA-256: chọn lại ảnh cũ thì báo và dùng lại kết quả cũ, chỉ gửi AI ảnh mới (không mất tiền); nhãn ♻️ Đã đọc / 🔄 Đọc lại trên ảnh; bỏ qua ảnh trùng |
 | **v1.5.4** | 2026-10-25 | 🟨 Ô AI đọc **không chắc chắn** (ảnh mờ, khó đọc) được tô nền vàng nhạt kèm dòng nhắc kiểm tra — ở màn xem lại và trong tờ khai sau khi điền; vẫn giữ sau khi tải lại app, tự mất khi sửa ô/bỏ tick mục/tờ khai mới. Thông báo sau khi điền nêu số ô cần kiểm tra. Xác nhận công tắc ⚡ Tự động điền nhớ lựa chọn trên máy, chỉ đổi khi người dùng tự gạt |
