@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#8a6e2f">
-<title>Khai Thuế v1.5.7</title>
+<title>Khai Thuế v1.5.8</title>
 <meta name="description" content="Công cụ khai thuế đa tờ khai (Lệ phí trước bạ, TNCN chuyển nhượng BĐS...) - v1.3.6">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -269,6 +269,7 @@
   @keyframes aiSpin{to{transform:rotate(360deg)}}
   .ai-log{font-size:11px;color:var(--g600);max-height:150px;overflow-y:auto;margin-top:6px}
   .ai-log div{padding:3px 0;border-bottom:1px dashed var(--g200)}
+  .ngay-sai{border-color:var(--red) !important;background:#fdf0ef !important}
   .toast{
     position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:var(--g900);color:#fff;
     padding:10px 18px;border-radius:20px;font-size:13px;font-weight:600;z-index:300;opacity:0;
@@ -330,7 +331,7 @@
     <div class="launcher-header-top">
       <div>
         <b>📚 Khai Thuế</b>
-        <span>TaiDauTieng@gmail.com · v1.5.7</span>
+        <span>TaiDauTieng@gmail.com · v1.5.8</span>
       </div>
       <button class="gear-btn" onclick="openGlobalSettings()" title="Cài đặt chung">⚙️</button>
     </div>
@@ -360,7 +361,7 @@
     </div>
     <div class="header-title" id="header-title-box" style="flex:1;text-align:center;align-items:center;padding:0 4px">
       <b id="header-title-b">📋 Tờ khai</b>
-      <span id="header-title-span">v1.5.7</span>
+      <span id="header-title-span">v1.5.8</span>
     </div>
     <div style="display:flex;gap:6px;flex:0 0 auto">
       <button class="gear-btn" onclick="moLichSuToKhai()" title="Lịch sử tờ khai">🕘</button>
@@ -752,6 +753,31 @@ function fmtDateVN(iso){
   if (!iso) return '…../…../20….';
   var p = iso.split('-'); if (p.length!==3) return esc(iso);
   return p[2] + '/' + p[1] + '/' + p[0];
+}
+// ── Ô NHẬP NGÀY dạng gõ số dd/mm/yyyy: tự chèn "/" khi gõ, gõ thêm "/" không bị nhân đôi. Thay cho
+// <input type="date"> vì bộ chọn ngày của Android tự chèn "/" → người dùng gõ "/" thành "21//09/1986" và
+// bị báo sai định dạng. Giá trị lưu vẫn là ISO yyyy-mm-dd như cũ (bản in, AI, lịch sử không đổi). ──
+function _ngayHien(iso){
+  var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''));
+  return m ? m[3] + '/' + m[2] + '/' + m[1] : String(iso || '');
+}
+function _ngayIso(s){
+  var m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(s || '').trim());
+  if (!m) return '';
+  var d = +m[1], mo = +m[2], y = +m[3], dt = new Date(y, mo - 1, d);
+  return (dt.getFullYear() === y && dt.getMonth() === mo - 1 && dt.getDate() === d) ? m[3] + '-' + m[2] + '-' + m[1] : '';
+}
+function _ngayGo(el){
+  var so = el.value.replace(/\D/g, '').slice(0, 8);
+  var v = so.length > 4 ? so.slice(0, 2) + '/' + so.slice(2, 4) + '/' + so.slice(4) : so.length > 2 ? so.slice(0, 2) + '/' + so.slice(2) : so;
+  if (el.value !== v) el.value = v;
+  el.classList.toggle('ngay-sai', so.length === 8 && !_ngayIso(v));
+  return _ngayIso(v);
+}
+function _ngayInput(thuocTinh, iso, xuLy){
+  // xuLy: đoạn JS chạy khi gõ, dùng biến iso (ngày ISO hợp lệ, hoặc '' khi chưa gõ đủ/sai)
+  return '<input type="text" inputmode="numeric" maxlength="10" placeholder="dd/mm/yyyy" data-ngay="1" ' + thuocTinh
+    + ' value="' + esc(_ngayHien(iso)) + '" oninput="var iso=_ngayGo(this);' + xuLy + '">';
 }
 function fmtSoTien(n){
   n = Number(n) || 0;
@@ -1608,7 +1634,7 @@ function renderFieldCard(f){
   } else if (f.type === 'number') {
     inner = '<input class="field-input" type="number" inputmode="decimal" data-id="' + f.id + '" oninput="onSimpleInput(\'' + f.id + '\',this.value)">';
   } else if (f.type === 'date') {
-    inner = '<input class="field-input" type="date" data-id="' + f.id + '" oninput="onSimpleInput(\'' + f.id + '\',this.value)">';
+    inner = _ngayInput('class="field-input" data-id="' + f.id + '"', '', 'onSimpleInput(\'' + f.id + '\',iso)');
   } else if (f.type === 'textarea') {
     inner = '<textarea class="field-textarea" data-id="' + f.id + '" oninput="onSimpleInput(\'' + f.id + '\',this.value)"></textarea>';
   } else if (f.type === 'yesno') {
@@ -1627,6 +1653,8 @@ function renderFieldCard(f){
           + 'onfocus="scrollInputUp(this);onAutoInput(\'' + key + '\',this.value,\'' + slbl + '\',true)" onblur="hideGoiYTruong(\'' + key + '\',\'' + slbl + '\',this.value)">'
           + '<div class="ac-list" id="ac-' + key + '"></div></div></div>';
       }
+      if (t === 'date') return '<div class="sub-row"><label>' + esc(s.label) + '</label>'
+        + _ngayInput('class="field-input" data-id="' + f.id + '" data-sub="' + s.k + '"', '', 'onMultiInput(\'' + f.id + '\',\'' + s.k + '\',iso)') + '</div>';
       return '<div class="sub-row"><label>' + esc(s.label) + '</label>'
         + '<input class="field-input" type="' + (t==='number'?'number':'date') + '" '
         + (t==='number'?'inputmode="decimal" ':'') + 'data-id="' + f.id + '" data-sub="' + s.k + '" oninput="onMultiInput(\'' + f.id + '\',\'' + s.k + '\',this.value)"></div>';
@@ -2084,14 +2112,14 @@ function fillFieldValue(f){
     if (elM && v != null && v !== '') elM.value = Number(v).toLocaleString('vi-VN');
   } else if (f.type === 'text' || f.type === 'number' || f.type === 'date' || f.type === 'textarea') {
     var el = document.querySelector('[data-id="' + f.id + '"]');
-    if (el && v != null) el.value = v;
+    if (el && v != null) el.value = f.type === 'date' ? _ngayHien(v) : v;
   } else if (f.type === 'yesno') {
     var el2 = document.querySelector('[data-id="' + f.id + '"]');
     if (el2) el2.checked = !!v;
   } else if (f.type === 'multi') {
     (f.subs||[]).forEach(function(s){
       var el3 = document.querySelector('[data-id="' + f.id + '"][data-sub="' + s.k + '"]');
-      if (el3 && v && v[s.k] != null) el3.value = v[s.k];
+      if (el3 && v && v[s.k] != null) el3.value = s.type === 'date' ? _ngayHien(v[s.k]) : v[s.k];
     });
   } else if (f.type === 'choice') {
     if (v && v.value) setChoiceUI(f, v.value, v.extra);
@@ -2147,10 +2175,11 @@ function setChoiceUI(f, v, extra){
   var extraBox = document.getElementById('choice-extra-' + f.id);
   if (!extraBox) return;
   if (opt && opt.hasExtra) {
-    var inpType = opt.extraType==='number' ? 'number' : (opt.extraType==='date' ? 'date' : 'text');
+    var inpType = opt.extraType==='number' ? 'number' : 'text';
     extraBox.innerHTML = '<div class="sub-row" style="margin-top:6px"><label>' + esc(opt.extraLabel) + '</label>'
-      + '<input class="field-input" type="' + inpType + '" value="' + esc(extra||'') + '" '
-      + 'oninput="onChoiceExtraInput(\'' + f.id + '\',this.value)"></div>';
+      + (opt.extraType === 'date' ? _ngayInput('class="field-input"', extra, 'onChoiceExtraInput(\'' + f.id + '\',iso)')
+        : '<input class="field-input" type="' + inpType + '" value="' + esc(extra||'') + '" '
+      + 'oninput="onChoiceExtraInput(\'' + f.id + '\',this.value)">') + '</div>';
   } else {
     extraBox.innerHTML = '';
   }
@@ -3686,7 +3715,8 @@ function _aiODuLieu(it, i){
       return '<option value="' + esc(o.v) + '"' + (o.v === it.value ? ' selected' : '') + '>' + esc(o.label) + '</option>';
     }).join('') + '</select>';
   }
-  return '<input type="' + (it.kieu === 'date' ? 'date' : 'text') + '"' + st + ' value="' + esc(it.money ? Number(it.value).toLocaleString('vi-VN') : it.value) + '">';
+  if (it.kieu === 'date') return _ngayInput('id="ai-v-' + i + '"' + (it.khongChac ? ' class="ai-mo"' : '') + ' style="width:100%;border:1px solid var(--g300);border-radius:7px;padding:7px 8px;font-size:13px;background:#fff"', it.value, '_aiSuaMuc(' + i + ',iso)');
+  return '<input type="text"' + st + ' value="' + esc(it.money ? Number(it.value).toLocaleString('vi-VN') : it.value) + '">';
 }
 // Thu nhỏ ảnh (cạnh dài ≤ AI_CANH_DAI) và nén JPEG — giảm token và dung lượng gửi đi
 function _aiThuNhoAnh(file){
@@ -4289,7 +4319,8 @@ function khoSua(g, id){
     var o;
     if (f === 'loai') o = '<select id="kho-f-loai" style="' + st + '">' + [''].concat(Object.keys(AI_LOAI_HD)).map(function(v){
       return '<option value="' + v + '"' + (r.loai === v ? ' selected' : '') + '>' + (AI_LOAI_HD[v] || '—') + '</option>'; }).join('') + '</select>';
-    else o = '<input id="kho-f-' + f + '" type="' + (KHO_NGAY.indexOf(f) >= 0 ? 'date' : 'text') + '"' + (/^gia_tri/.test(f) ? ' inputmode="numeric"' : '')
+    else if (KHO_NGAY.indexOf(f) >= 0) o = _ngayInput('id="kho-f-' + f + '"' + (mo ? ' class="ai-mo"' : '') + ' style="' + st + '"', r[f], '');
+    else o = '<input id="kho-f-' + f + '" type="text"' + (/^gia_tri/.test(f) ? ' inputmode="numeric"' : '')
       + (mo ? ' class="ai-mo"' : '') + ' value="' + esc(r[f] || '') + '" style="' + st + '">';
     return '<div style="margin-bottom:8px"><div style="font-size:11.5px;font-weight:700;color:var(--g600);margin-bottom:3px">' + esc(KHO_NHAN[f] || f)
       + (mo ? ' <span style="color:#8a6a00;font-weight:600">· AI đọc không chắc</span>' : '') + '</div>' + o + '</div>';
@@ -4303,7 +4334,17 @@ function khoSua(g, id){
 }
 function khoLuuSua(g, id){
   var k = _khoLay(), rec = {};
-  AI_TRUONG[g].forEach(function(f){ var el = document.getElementById('kho-f-' + f); rec[f] = el ? el.value.trim() : ''; });
+  var ngaySai = '';
+  AI_TRUONG[g].forEach(function(f){
+    var el = document.getElementById('kho-f-' + f);
+    rec[f] = el ? el.value.trim() : '';
+    if (el && el.getAttribute('data-ngay') && rec[f]){
+      var iso = _ngayIso(rec[f]);
+      if (!iso && !ngaySai) ngaySai = KHO_NHAN[f] || f;
+      rec[f] = iso;
+    }
+  });
+  if (ngaySai){ toast('⚠️ ' + ngaySai + ' chưa đúng — gõ đủ 8 số ngày/tháng/năm, VD 21091986', 4000); return; }
   if (g === 'hd') ['gia_tri','gia_tri_dat','gia_tri_nha'].forEach(function(f){ rec[f] = _raSoThoTuChuoiTien(rec[f]); });
   if (g === 'nguoi' && !rec.ho_ten){ toast('⚠️ Nhập họ và tên khách hàng', 2500); return; }
   if (g === 'hd' && !rec.so && !rec.ngay_lap && !rec.gia_tri){ toast('⚠️ Nhập số, ngày lập hoặc giá trị hợp đồng', 2500); return; }
@@ -4521,7 +4562,7 @@ function aiDienVao(){
     var chk = document.getElementById('ai-c-' + i);
     if (!chk || !chk.checked) return null;
     var inp = document.getElementById('ai-v-' + i);
-    return inp ? inp.value : (it.bang ? '' : it.value);
+    return inp ? (inp.getAttribute('data-ngay') ? _ngayIso(inp.value) : inp.value) : (it.bang ? '' : it.value);
   });
   _aiXoaCho(kq.formId);
   closeM('modal-ai');
