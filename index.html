@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#8a6e2f">
-<title>Khai Thuế v1.5.8</title>
+<title>Khai Thuế v1.5.9</title>
 <meta name="description" content="Công cụ khai thuế đa tờ khai (Lệ phí trước bạ, TNCN chuyển nhượng BĐS...) - v1.3.6">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -331,7 +331,7 @@
     <div class="launcher-header-top">
       <div>
         <b>📚 Khai Thuế</b>
-        <span>TaiDauTieng@gmail.com · v1.5.8</span>
+        <span>TaiDauTieng@gmail.com · v1.5.9</span>
       </div>
       <button class="gear-btn" onclick="openGlobalSettings()" title="Cài đặt chung">⚙️</button>
     </div>
@@ -361,7 +361,7 @@
     </div>
     <div class="header-title" id="header-title-box" style="flex:1;text-align:center;align-items:center;padding:0 4px">
       <b id="header-title-b">📋 Tờ khai</b>
-      <span id="header-title-span">v1.5.8</span>
+      <span id="header-title-span">v1.5.9</span>
     </div>
     <div style="display:flex;gap:6px;flex:0 0 auto">
       <button class="gear-btn" onclick="moLichSuToKhai()" title="Lịch sử tờ khai">🕘</button>
@@ -2744,7 +2744,9 @@ var LS_CLOUD_LAST_SYNC = 'kt_cloud_last_sync';
 function _initSupabase(){
   try {
     _supa = window.supabase.createClient(_SUPA_URL, _SUPA_KEY, {
-      auth:{ persistSession:true, autoRefreshToken:true, detectSessionInUrl:false }
+      // storageKey riêng: app Mủ Cao Su và Sổ Khách Hàng dùng chung project Supabase này — nếu cùng khoá mặc
+      // định 'sb-<project>-auth-token' thì đăng xuất ở app này sẽ đăng xuất luôn app kia.
+      auth:{ storageKey:'tokhai-sb-auth', persistSession:true, autoRefreshToken:true, detectSessionInUrl:false }
     });
     return true;
   } catch(e){ _supa = null; return false; }
